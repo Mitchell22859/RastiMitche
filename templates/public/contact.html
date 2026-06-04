@@ -1,8 +1,121 @@
 {% extends "layouts/public.html" %}
-{% block title %}تماس با ما - رستی سرویس{% endblock %}
+{% block title %}تماس با ما — رستی سرویس{% endblock %}
+
 {% block content %}
-<section class="max-w-4xl mx-auto py-12 px-4">
-    <h1 class="text-2xl font-bold text-gray-900 mb-6 text-center">تماس با ما</h1>
-    <p class="text-center text-gray-500 mb-8">برای ارتباط با ما از طریق ایمیل یا تلفن اقدام نمایید.</p>
+
+<section style="padding:var(--space-16) 0 var(--space-8);">
+  <div class="public-container" style="text-align:center;">
+    <span class="section-eyebrow">ارتباط با ما</span>
+    <h1 class="section-title">تماس با تیم رستی سرویس</h1>
+    <p class="section-description" style="margin:0 auto;">برای دموی محصول، سوالات فنی، یا همکاری با ما در ارتباط باشید.</p>
+  </div>
 </section>
+
+<section style="padding:var(--space-8) 0 var(--space-16);">
+  <div class="public-container">
+    <div class="contact-grid">
+
+      {# --- Contact info sidebar --- #}
+      <div>
+        <div class="card" style="margin-bottom:var(--space-4);">
+          <div class="card-body">
+            <h2 style="font-size:var(--font-size-base);font-weight:var(--font-weight-bold);color:var(--color-slate-800);margin-bottom:var(--space-5);">اطلاعات تماس</h2>
+            <div style="display:flex;flex-direction:column;gap:var(--space-4);">
+              <div class="contact-info-item">
+                <div class="contact-info-icon" style="background:var(--color-brand-50);">
+                  <svg width="18" height="18" fill="none" stroke="var(--color-brand-600)" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="contact-info-label">ایمیل</div>
+                  <div class="contact-info-value ltr-text">info@rasti.app</div>
+                </div>
+              </div>
+              <div class="contact-info-item">
+                <div class="contact-info-icon" style="background:var(--color-success-bg);">
+                  <svg width="18" height="18" fill="none" stroke="var(--color-success)" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="contact-info-label">پشتیبانی</div>
+                  <div class="contact-info-value">از طریق فرم یا ایمیل</div>
+                </div>
+              </div>
+              <div class="contact-info-item">
+                <div class="contact-info-icon" style="background:var(--color-warning-bg);">
+                  <svg width="18" height="18" fill="none" stroke="var(--color-warning)" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="contact-info-label">ساعات پاسخ</div>
+                  <div class="contact-info-value">شنبه تا پنجشنبه، ۹ تا ۱۸</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info">
+          <div class="alert-icon">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="alert-body">برای درخواست دمو یا مشاوره رایگان، لطفاً نوع کسب‌وکار و تعداد تکنسین‌های خود را در پیام ذکر کنید.</div>
+        </div>
+      </div>
+
+      {# --- Contact form --- #}
+      <div class="card">
+        <div class="card-body">
+          <h2 style="font-size:var(--font-size-base);font-weight:var(--font-weight-bold);color:var(--color-slate-800);margin-bottom:var(--space-5);">ارسال پیام</h2>
+
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} mb-4">
+                <div class="alert-body">{{ message }}</div>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <form method="post" action="{% url 'public:contact' %}">
+            {% csrf_token %}
+            <div style="display:flex;flex-direction:column;gap:var(--space-4);">
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="contact_name">نام و نام‌خانوادگی</label>
+                  <input type="text" id="contact_name" name="contact_name" class="form-control" placeholder="نام شما">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="contact_phone">شماره تماس</label>
+                  <input type="text" id="contact_phone" name="contact_phone" class="form-control ltr-field" placeholder="09xxxxxxxxx" dir="ltr">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="contact_email">ایمیل</label>
+                <input type="email" id="contact_email" name="contact_email" class="form-control ltr-field" placeholder="email@example.com" dir="ltr">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="contact_subject">موضوع</label>
+                <input type="text" id="contact_subject" name="contact_subject" class="form-control" placeholder="موضوع پیام شما">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="contact_message">پیام</label>
+                <textarea id="contact_message" name="contact_message" class="form-control" rows="5" placeholder="پیام خود را اینجا بنویسید..."></textarea>
+              </div>
+              <div>
+                <button type="submit" class="btn btn-primary btn-lg">ارسال پیام</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 {% endblock %}

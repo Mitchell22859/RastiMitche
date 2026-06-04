@@ -1,8 +1,112 @@
 {% extends "layouts/public.html" %}
-{% block title %}درباره ما - رستی سرویس{% endblock %}
+{% block title %}درباره ما — رستی سرویس{% endblock %}
+
 {% block content %}
-<section class="max-w-4xl mx-auto py-12 px-4">
-    <h1 class="text-2xl font-bold text-gray-900 mb-6 text-center">درباره ما</h1>
-    <p class="text-center text-gray-500 mb-8">رستی سرویس، سامانه مدیریت خدمات برای شرکت‌های خدماتی ایرانی.</p>
+
+<section class="about-hero">
+  <div class="public-container" style="text-align:center;">
+    <span class="section-eyebrow">درباره ما</span>
+    <h1 class="about-hero-title">رستی سرویس</h1>
+    <p class="about-hero-desc">سامانه مدیریت خدمات برای شرکت‌های خدماتی ایرانی. از مدیریت سفارش تا پرداخت، همه در یک پلتفرم.</p>
+  </div>
 </section>
+
+<section class="about-section">
+  <div class="public-container">
+    <div style="max-width:48rem;margin:0 auto;">
+      <span class="section-eyebrow">داستان ما</span>
+      <h2 class="section-title" style="margin-bottom:var(--space-4);">چرا رستی سرویس ساخته شد؟</h2>
+      <p style="font-size:var(--font-size-base);color:var(--color-slate-600);line-height:1.8;margin-bottom:var(--space-4);">
+        شرکت‌های خدماتی ایرانی — از نظافت تا تعمیرات، از آبدارخانه تا سمپاشی — معمولاً سفارش‌ها را روی کاغذ یا واتساپ ثبت می‌کنند،
+        تکنسین‌ها را بدون ردیابی اعزام می‌کنند و فاکتور دستی صادر می‌کنند. این روش پر از خطا، کند و غیرقابل مقیاس است.
+      </p>
+      <p style="font-size:var(--font-size-base);color:var(--color-slate-600);line-height:1.8;">
+        رستی سرویس با هدف دیجیتال‌سازی این فرایندها ساخته شده است. ما یک پلتفرم چندمستاجره (Multi-Tenant) ارائه می‌دهیم که
+        هر شرکت فضای اختصاصی، داده‌های جداگانه و کنترل کامل روی تیم و مشتریان خود دارد.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="about-section about-section-alt">
+  <div class="public-container">
+    <div style="text-align:center;margin-bottom:var(--space-10);">
+      <span class="section-eyebrow">ارزش‌های ما</span>
+      <h2 class="section-title">آنچه به آن اعتقاد داریم</h2>
+    </div>
+    <div class="about-value-grid">
+      <div class="about-value-card">
+        <div class="about-value-icon" style="background:var(--color-brand-50);">
+          <svg width="24" height="24" fill="none" stroke="var(--color-brand-600)" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        <h3 class="about-value-title">اطمینان و امنیت</h3>
+        <p class="about-value-desc">جداسازی کامل داده‌ها بین مستاجرها. هیچ شرکتی به داده شرکت دیگر دسترسی ندارد.</p>
+      </div>
+      <div class="about-value-card">
+        <div class="about-value-icon" style="background:var(--color-success-bg);">
+          <svg width="24" height="24" fill="none" stroke="var(--color-success)" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <h3 class="about-value-title">سادگی و سرعت</h3>
+        <p class="about-value-desc">رابط کاربری فارسی، راست‌به‌چپ، بدون پیچیدگی‌های غیرضروری. از ثبت سفارش تا ارسال فاکتور در چند کلیک.</p>
+      </div>
+      <div class="about-value-card">
+        <div class="about-value-icon" style="background:var(--color-warning-bg);">
+          <svg width="24" height="24" fill="none" stroke="var(--color-warning)" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </div>
+        <h3 class="about-value-title">تمرکز بر کاربر ایرانی</h3>
+        <p class="about-value-desc">پشتیبانی کامل از پیامک ایرانی، درگاه پرداخت داخلی، و ساختار کسب‌وکار خدماتی ایران.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="about-section">
+  <div class="public-container">
+    <div style="text-align:center;margin-bottom:var(--space-10);">
+      <span class="section-eyebrow">پلتفرم</span>
+      <h2 class="section-title">چه کسانی از رستی سرویس استفاده می‌کنند؟</h2>
+      <p class="section-description" style="margin:0 auto;">هر شرکتی که تیم میدانی دارد و سفارش‌های خدماتی را مدیریت می‌کند.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--space-4);max-width:56rem;margin:0 auto;">
+      <div class="card card-compact" style="text-align:center;">
+        <div style="font-size:2rem;margin-bottom:var(--space-2);">🧹</div>
+        <div style="font-size:var(--font-size-sm);font-weight:var(--font-weight-medium);color:var(--color-slate-700);">نظافت منزل و اداری</div>
+      </div>
+      <div class="card card-compact" style="text-align:center;">
+        <div style="font-size:2rem;margin-bottom:var(--space-2);">🔧</div>
+        <div style="font-size:var(--font-size-sm);font-weight:var(--font-weight-medium);color:var(--color-slate-700);">تعمیرات و نگهداری</div>
+      </div>
+      <div class="card card-compact" style="text-align:center;">
+        <div style="font-size:2rem;margin-bottom:var(--space-2);">🌿</div>
+        <div style="font-size:var(--font-size-sm);font-weight:var(--font-weight-medium);color:var(--color-slate-700);">سمپاشی و بهداشت</div>
+      </div>
+      <div class="card card-compact" style="text-align:center;">
+        <div style="font-size:2rem;margin-bottom:var(--space-2);">🏊</div>
+        <div style="font-size:var(--font-size-sm);font-weight:var(--font-weight-medium);color:var(--color-slate-700);">استخر و سونا</div>
+      </div>
+      <div class="card card-compact" style="text-align:center;">
+        <div style="font-size:2rem;margin-bottom:var(--space-2);">❄️</div>
+        <div style="font-size:var(--font-size-sm);font-weight:var(--font-weight-medium);color:var(--color-slate-700);">تاسیسات و سرمایش</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="public-container" style="text-align:center;">
+    <h2 class="cta-title">آماده‌اید سیستم خود را دیجیتال کنید؟</h2>
+    <p class="cta-description">با ثبت‌نام رایگان شروع کنید و امکانات پلتفرم را ارزیابی کنید.</p>
+    <div style="display:flex;gap:var(--space-3);justify-content:center;flex-wrap:wrap;">
+      <a href="/register/" class="btn btn-lg" style="background:#fff;color:var(--color-brand-700);">شروع رایگان</a>
+      <a href="/contact/" class="btn btn-lg btn-outline-white">تماس با ما</a>
+    </div>
+  </div>
+</section>
+
 {% endblock %}

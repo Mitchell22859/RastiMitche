@@ -248,6 +248,38 @@
 
 
 /* =============================================================================
+   PUBLIC PAGE SECTIONS — PHASE 4
+   ============================================================================= */
+
+@media (max-width: 639px) {
+
+  .how-it-works-grid  { grid-template-columns: 1fr; }
+  .trust-grid         { grid-template-columns: 1fr 1fr; }
+  .about-value-grid   { grid-template-columns: 1fr; }
+  .contact-grid       { grid-template-columns: 1fr; }
+
+  .cta-title          { font-size: var(--font-size-xl); }
+  .hero-actions       { flex-direction: column; align-items: center; }
+  .hero-actions .btn  { width: 100%; max-width: 18rem; }
+
+  .register-page      { padding: var(--space-6) var(--space-3); }
+  .verify-shell       { margin: var(--space-8) auto; }
+
+}
+
+@media (max-width: 1023px) {
+
+  .how-it-works-grid  { grid-template-columns: repeat(2, 1fr); }
+  .trust-grid         { grid-template-columns: repeat(2, 1fr); }
+  .about-value-grid   { grid-template-columns: repeat(2, 1fr); }
+  .contact-grid       { grid-template-columns: 1fr; }
+
+  .feature-group-list { grid-template-columns: repeat(2, 1fr); }
+
+}
+
+
+/* =============================================================================
    PRINT
    ============================================================================= */
 

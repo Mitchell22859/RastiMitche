@@ -1,32 +1,35 @@
 {% extends "layouts/public.html" %}
-{% block title %}ثبت نام موفق - رستی سرویس{% endblock %}
+{% block title %}ثبت‌نام موفق — رستی سرویس{% endblock %}
 {% block content %}
-<section class="max-w-lg mx-auto py-12 px-4 text-center">
-    <div class="bg-white rounded-xl border border-gray-200 p-8">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-50 flex items-center justify-center">
-            <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-        </div>
 
-        <h1 class="text-2xl font-bold text-gray-900 mb-4">ثبت‌نام شما با موفقیت انجام شد</h1>
+<div style="max-width:32rem;margin:var(--space-16) auto;padding:0 var(--space-4);text-align:center;">
+  <div class="card" style="padding:var(--space-8);">
 
-        <p class="text-gray-600 mb-6 leading-relaxed">
-            درخواست ثبت‌نام شرکت شما دریافت شد و در انتظار بررسی توسط تیم پشتیبانی است.
-            پس از تایید، می‌توانید وارد پنل مدیریت شوید.
-        </p>
-
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p class="text-sm text-blue-700">
-                <strong>توجه:</strong> شرکت شما تا زمان تایید توسط مدیر پلتفرم غیرفعال خواهد بود.
-                پس از فعال‌سازی، از طریق پیامک اطلاع‌رسانی خواهد شد.
-            </p>
-        </div>
-
-        <a href="/login/"
-           class="btn btn-primary inline-flex items-center px-6 py-3 text-base font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 transition-smooth">
-            ورود به سیستم
-        </a>
+    <div style="width:4rem;height:4rem;margin:0 auto var(--space-4);border-radius:50%;background:var(--color-success-bg);display:flex;align-items:center;justify-content:center;">
+      <svg width="32" height="32" fill="none" stroke="var(--color-success)" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
     </div>
-</section>
+
+    <h1 style="font-size:var(--font-size-2xl);font-weight:var(--font-weight-bold);color:var(--color-slate-900);margin-bottom:var(--space-4);">ثبت‌نام با موفقیت انجام شد</h1>
+
+    <p style="font-size:var(--font-size-base);color:var(--color-slate-600);line-height:1.7;margin-bottom:var(--space-6);">
+      درخواست ثبت‌نام شرکت شما دریافت شد و در انتظار بررسی توسط تیم پشتیبانی است.
+      پس از تایید، می‌توانید وارد پنل مدیریت شوید.
+    </p>
+
+    <div class="alert alert-info" style="margin-bottom:var(--space-6);text-align:right;">
+      <div class="alert-icon">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div class="alert-body">شرکت شما تا زمان تایید توسط مدیر پلتفرم غیرفعال خواهد بود. پس از فعال‌سازی، از طریق پیامک اطلاع‌رسانی خواهد شد.</div>
+    </div>
+
+    <a href="/login/" class="btn btn-primary btn-lg">ورود به سیستم</a>
+
+  </div>
+</div>
+
 {% endblock %}

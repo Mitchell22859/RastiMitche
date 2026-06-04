@@ -1,11 +1,152 @@
 {% extends "layouts/public.html" %}
-{% block title %}امکانات - رستی سرویس{% endblock %}
+{% block title %}امکانات — رستی سرویس{% endblock %}
+
 {% block content %}
-<section class="max-w-4xl mx-auto py-12 px-4">
-    <h1 class="text-2xl font-bold text-gray-900 mb-6 text-center">امکانات پلتفرم</h1>
-    <p class="text-center text-gray-500 mb-8">به‌زودی جزئیات کامل امکانات در این صفحه قرار می‌گیرد.</p>
-    <div class="text-center">
-        <a href="/register/" class="btn btn-primary">شروع رایگان</a>
-    </div>
+
+{# ===== PAGE HEADER ===== #}
+<section style="padding:var(--space-16) 0 var(--space-10);background:linear-gradient(135deg,var(--color-slate-900) 0%,var(--color-slate-800) 60%,var(--color-brand-900) 100%);text-align:center;color:#fff;">
+  <div class="public-container">
+    <span class="section-eyebrow" style="color:var(--color-brand-300);margin-bottom:var(--space-3);display:inline-block;">امکانات کامل</span>
+    <h1 style="font-size:var(--font-size-2xl);font-weight:var(--font-weight-extrabold);color:#fff;margin-bottom:var(--space-4);">همه چیز در یک پلتفرم</h1>
+    <p style="font-size:var(--font-size-md);color:var(--color-slate-300);max-width:36rem;margin:0 auto;line-height:var(--line-height-loose);">رستی سرویس تمام ابزارهای لازم برای مدیریت حرفه‌ای شرکت خدماتی شما را در اختیارتان می‌گذارد.</p>
+  </div>
 </section>
+
+{# ===== FEATURE GROUPS ===== #}
+<div style="background-color:var(--color-surface-0);">
+  <div class="public-container">
+
+    {# --- Operations --- #}
+    <div class="feature-group-section">
+      <span class="feature-group-eyebrow">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        مدیریت عملیاتی
+      </span>
+      <h2 style="font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);color:var(--color-slate-800);margin-bottom:var(--space-2);">سفارش‌ها</h2>
+      <p style="font-size:var(--font-size-base);color:var(--color-slate-500);max-width:36rem;">ثبت، پیگیری، تخصیص و مدیریت کامل سفارشات از لحظه ورود تا تحویل نهایی.</p>
+      <div class="feature-group-list">
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">ثبت سفارش دستی توسط ادمین</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">دریافت سفارش از صفحه عمومی</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">تخصیص سفارش به تکنسین</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">تغییر وضعیت سفارش</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">تاریخچه و جزئیات سفارش</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">یادداشت و پیوست سفارش</span></div>
+      </div>
+    </div>
+
+    {# --- Technicians --- #}
+    <div class="feature-group-section">
+      <span class="feature-group-eyebrow">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        نیروهای فنی
+      </span>
+      <h2 style="font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);color:var(--color-slate-800);margin-bottom:var(--space-2);">تکنسین‌ها</h2>
+      <p style="font-size:var(--font-size-base);color:var(--color-slate-500);max-width:36rem;">مدیریت نیروهای فنی، مهارت‌ها و عملکرد آن‌ها.</p>
+      <div class="feature-group-list">
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">پروفایل کامل تکنسین</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">تعریف مهارت‌ها و تخصص‌ها</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">پنل اختصاصی تکنسین</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">مشاهده و به‌روزرسانی سفارش</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">گزارش عملکرد تکنسین</span></div>
+      </div>
+    </div>
+
+    {# --- Customers --- #}
+    <div class="feature-group-section">
+      <span class="feature-group-eyebrow">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        مشتریان
+      </span>
+      <h2 style="font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);color:var(--color-slate-800);margin-bottom:var(--space-2);">مدیریت مشتریان</h2>
+      <p style="font-size:var(--font-size-base);color:var(--color-slate-500);max-width:36rem;">پروفایل مشتریان، سابقه سفارشات و ارتباط مستقیم.</p>
+      <div class="feature-group-list">
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">پروفایل کامل مشتری</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">سابقه سفارشات مشتری</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">صفحه عمومی شرکت + فرم سفارش</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">آدرس‌های تحویل مشتری</span></div>
+      </div>
+    </div>
+
+    {# --- Finance --- #}
+    <div class="feature-group-section">
+      <span class="feature-group-eyebrow">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        مالی
+      </span>
+      <h2 style="font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);color:var(--color-slate-800);margin-bottom:var(--space-2);">فاکتور و پرداخت</h2>
+      <p style="font-size:var(--font-size-base);color:var(--color-slate-500);max-width:36rem;">صدور فاکتور، مدیریت پرداخت‌ها و کمپین‌های تخفیف.</p>
+      <div class="feature-group-list">
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">صدور فاکتور حرفه‌ای</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">ثبت پرداخت نقدی و آنلاین</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">کمپین تخفیف و کد تخفیف</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">چاپ فاکتور</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">گزارش درآمد دوره‌ای</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">اشتراک و پلن خدماتی</span></div>
+      </div>
+    </div>
+
+    {# --- SMS/Notifications --- #}
+    <div class="feature-group-section">
+      <span class="feature-group-eyebrow">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        ارتباطات
+      </span>
+      <h2 style="font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);color:var(--color-slate-800);margin-bottom:var(--space-2);">پیامک و اعلان‌ها</h2>
+      <p style="font-size:var(--font-size-base);color:var(--color-slate-500);max-width:36rem;">ارتباط خودکار با مشتریان و نیروها در هر مرحله از خدمت.</p>
+      <div class="feature-group-list">
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">پیامک خودکار تغییر وضعیت</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">اعلان درون‌سیستمی</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">اعلان به تکنسین هنگام تخصیص</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">مدیریت تاریخچه پیامک‌ها</span></div>
+      </div>
+    </div>
+
+    {# --- Reports --- #}
+    <div class="feature-group-section">
+      <span class="feature-group-eyebrow">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        گزارش‌ها
+      </span>
+      <h2 style="font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);color:var(--color-slate-800);margin-bottom:var(--space-2);">تحلیل و گزارش</h2>
+      <p style="font-size:var(--font-size-base);color:var(--color-slate-500);max-width:36rem;">داشبورد مدیریتی و گزارش‌های کامل برای تصمیم‌گیری بهتر.</p>
+      <div class="feature-group-list">
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">داشبورد آماری مدیر</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">گزارش سفارشات دوره‌ای</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">گزارش عملکرد تکنسین‌ها</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">گزارش مالی ماهانه</span></div>
+      </div>
+    </div>
+
+    {# --- Platform --- #}
+    <div class="feature-group-section">
+      <span class="feature-group-eyebrow">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>
+        مدیریت پلتفرم
+      </span>
+      <h2 style="font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);color:var(--color-slate-800);margin-bottom:var(--space-2);">نقش‌ها و امنیت</h2>
+      <p style="font-size:var(--font-size-base);color:var(--color-slate-500);max-width:36rem;">معماری multi-tenant با کنترل دسترسی کامل.</p>
+      <div class="feature-group-list">
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">جداسازی کامل شرکت‌ها</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">نقش‌ها: مدیر، کارمند، تکنسین، مشتری</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">پنل مدیر پلتفرم</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">مدیریت پلن‌ها و اشتراک</span></div>
+        <div class="feature-group-item"><div class="feature-group-item-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div><span class="feature-group-item-text">فعال/غیرفعال کردن شرکت‌ها</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{# ===== CTA ===== #}
+<section class="cta-section">
+  <div class="public-container">
+    <h2 class="cta-title">آماده شروع هستید؟</h2>
+    <p class="cta-description">همین حالا شرکت خود را ثبت کنید و از تمام این امکانات بهره‌مند شوید.</p>
+    <div class="hero-actions">
+      <a href="/register/" class="btn btn-lg" style="background:#fff;color:var(--color-brand-700);border-color:#fff;">ثبت نام رایگان</a>
+      <a href="/pricing/" class="btn btn-outline-white btn-lg">مشاهده تعرفه‌ها</a>
+    </div>
+  </div>
+</section>
+
 {% endblock %}

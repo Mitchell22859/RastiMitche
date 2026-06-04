@@ -6,59 +6,57 @@
 {% block mobile_brand %}رستی سرویس{% endblock %}
 
 {% block auth_content %}
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-    <div class="text-center mb-6">
-        <h2 class="text-xl font-bold text-gray-900">ورود به سیستم</h2>
-        <p class="text-sm text-gray-500 mt-1">با نام کاربری و رمز عبور وارد شوید</p>
-    </div>
+<div class="card" style="padding:var(--space-8);">
+  <div style="text-align:center;margin-bottom:var(--space-6);">
+    <h2 style="font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);color:var(--color-slate-900);">ورود به سیستم</h2>
+    <p style="font-size:var(--font-size-sm);color:var(--color-slate-500);margin-top:var(--space-1);">با نام کاربری و رمز عبور وارد شوید</p>
+  </div>
 
-    {% if error %}
-    <div class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 flex items-center gap-2">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+  {% if error %}
+  <div class="alert alert-danger" style="margin-bottom:var(--space-4);">
+    <div class="alert-icon">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+    <div class="alert-body">{{ error }}</div>
+  </div>
+  {% endif %}
+
+  <form method="post" style="display:flex;flex-direction:column;gap:var(--space-4);">
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+    <div class="form-group">
+      <label class="form-label" for="id_username">نام کاربری</label>
+      <div class="form-icon-group">
+        <svg class="form-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
         </svg>
-        {{ error }}
+        <input type="text" name="username" id="id_username"
+               class="form-control ltr-field"
+               placeholder="نام کاربری" dir="ltr" autocomplete="username"
+               value="{{ username_value|default:'' }}">
+      </div>
     </div>
-    {% endif %}
 
-    <form method="post" class="space-y-4">
-        {% csrf_token %}
-        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-        <div>
-            <label for="id_username" class="block text-sm font-medium text-gray-700 mb-1.5">نام کاربری</label>
-            <div class="relative">
-                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                </div>
-                <input type="text" name="username" id="id_username"
-                       class="block w-full pr-10 pl-3 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth"
-                       placeholder="نام کاربری" dir="ltr" autocomplete="username"
-                       value="{{ username_value|default:'' }}">
-            </div>
-        </div>
-        <div>
-            <label for="id_password" class="block text-sm font-medium text-gray-700 mb-1.5">رمز عبور</label>
-            <div class="relative">
-                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                    </svg>
-                </div>
-                <input type="password" name="password" id="id_password"
-                       class="block w-full pr-10 pl-3 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth"
-                       placeholder="رمز عبور" autocomplete="current-password">
-            </div>
-        </div>
-        <button type="submit"
-                class="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-smooth">
-            ورود
-        </button>
-    </form>
+    <div class="form-group">
+      <label class="form-label" for="id_password">رمز عبور</label>
+      <div class="form-icon-group">
+        <svg class="form-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+        <input type="password" name="password" id="id_password"
+               class="form-control"
+               placeholder="رمز عبور" autocomplete="current-password">
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg btn-block">ورود</button>
+  </form>
 </div>
 
-<p class="text-center mt-6 text-sm text-gray-500">
-    <a href="/" class="text-brand-600 hover:text-brand-700 font-medium">بازگشت به صفحه اصلی</a>
+<p style="text-align:center;margin-top:var(--space-6);font-size:var(--font-size-sm);color:var(--color-slate-500);">
+  <a href="/" style="color:var(--color-brand-600);font-weight:var(--font-weight-medium);">بازگشت به صفحه اصلی</a>
 </p>
 {% endblock %}

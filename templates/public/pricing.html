@@ -1,11 +1,119 @@
 {% extends "layouts/public.html" %}
-{% block title %}تعرفه‌ها - رستی سرویس{% endblock %}
+{% block title %}تعرفه‌ها — رستی سرویس{% endblock %}
+
 {% block content %}
-<section class="max-w-4xl mx-auto py-12 px-4">
-    <h1 class="text-2xl font-bold text-gray-900 mb-6 text-center">تعرفه‌ها</h1>
-    <p class="text-center text-gray-500 mb-8">به‌زودی جزئیات پلن‌ها و قیمت‌ها در این صفحه قرار می‌گیرد.</p>
-    <div class="text-center">
-        <a href="/register/" class="btn btn-primary">شروع رایگان</a>
+
+<section class="pricing-section">
+  <div class="public-container">
+    <div style="text-align:center;margin-bottom:var(--space-12);">
+      <span class="section-eyebrow">تعرفه‌ها</span>
+      <h1 class="section-title">پلن مناسب کسب‌وکار خود را انتخاب کنید</h1>
+      <p class="section-description" style="margin:0 auto;">همه پلن‌ها شامل تمام امکانات پایه هستند. تفاوت در ظرفیت و پشتیبانی است.</p>
     </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--space-6);margin-bottom:var(--space-16);">
+
+      {# --- Starter --- #}
+      <div class="pricing-card">
+        <div style="margin-bottom:var(--space-6);">
+          <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-bold);color:var(--color-slate-800);margin-bottom:var(--space-1);">آزمایشی</h2>
+          <p style="font-size:var(--font-size-sm);color:var(--color-slate-500);">مناسب برای شروع و آزمایش سیستم</p>
+        </div>
+        <div style="margin-bottom:var(--space-6);">
+          <span class="pricing-price" style="color:var(--color-slate-800);">رایگان</span>
+          <span class="pricing-period">برای دوره ارزیابی</span>
+        </div>
+        <ul style="list-style:none;padding:0;margin:0 0 var(--space-8);display:flex;flex-direction:column;gap:var(--space-3);">
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-slate-700);">
+            <svg width="16" height="16" fill="none" stroke="var(--color-success)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>تعداد محدود سفارش
+          </li>
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-slate-700);">
+            <svg width="16" height="16" fill="none" stroke="var(--color-success)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>تا ۳ تکنسین
+          </li>
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-slate-700);">
+            <svg width="16" height="16" fill="none" stroke="var(--color-success)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>فاکتور پایه
+          </li>
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-slate-700);">
+            <svg width="16" height="16" fill="none" stroke="var(--color-success)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>صفحه عمومی شرکت
+          </li>
+        </ul>
+        <a href="/register/" class="btn btn-outline btn-block">شروع رایگان</a>
+      </div>
+
+      {# --- Pro (featured) --- #}
+      <div class="pricing-card featured">
+        <div style="margin-bottom:var(--space-6);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-1);">
+            <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-bold);color:#fff;">حرفه‌ای</h2>
+            <span class="badge badge-brand" style="background:rgba(255,255,255,0.2);color:#fff;">پیشنهادی</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:rgba(255,255,255,0.75);">مناسب برای شرکت‌های در حال رشد</p>
+        </div>
+        <div style="margin-bottom:var(--space-6);">
+          <span class="pricing-price" style="color:#fff;">با مذاکره</span>
+          <span class="pricing-period" style="color:rgba(255,255,255,0.6);">ماهانه</span>
+        </div>
+        <ul style="list-style:none;padding:0;margin:0 0 var(--space-8);display:flex;flex-direction:column;gap:var(--space-3);">
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:rgba(255,255,255,0.9);">
+            <svg width="16" height="16" fill="none" stroke="#34d399" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>سفارشات نامحدود
+          </li>
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:rgba(255,255,255,0.9);">
+            <svg width="16" height="16" fill="none" stroke="#34d399" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>تکنسین نامحدود
+          </li>
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:rgba(255,255,255,0.9);">
+            <svg width="16" height="16" fill="none" stroke="#34d399" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>پیامک و اعلان کامل
+          </li>
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:rgba(255,255,255,0.9);">
+            <svg width="16" height="16" fill="none" stroke="#34d399" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>تخفیف و کمپین
+          </li>
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:rgba(255,255,255,0.9);">
+            <svg width="16" height="16" fill="none" stroke="#34d399" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>گزارش‌گیری کامل
+          </li>
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:rgba(255,255,255,0.9);">
+            <svg width="16" height="16" fill="none" stroke="#34d399" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>پشتیبانی اولویت‌دار
+          </li>
+        </ul>
+        <a href="/contact/" class="btn btn-block" style="background:#fff;color:var(--color-brand-700);border-color:#fff;">تماس برای فعال‌سازی</a>
+      </div>
+
+      {# --- Enterprise --- #}
+      <div class="pricing-card">
+        <div style="margin-bottom:var(--space-6);">
+          <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-bold);color:var(--color-slate-800);margin-bottom:var(--space-1);">سازمانی</h2>
+          <p style="font-size:var(--font-size-sm);color:var(--color-slate-500);">برای زیرساخت‌های بزرگ‌تر یا نیازهای سفارشی</p>
+        </div>
+        <div style="margin-bottom:var(--space-6);">
+          <span class="pricing-price" style="color:var(--color-slate-800);">سفارشی</span>
+          <span class="pricing-period">متناسب با نیاز شما</span>
+        </div>
+        <ul style="list-style:none;padding:0;margin:0 0 var(--space-8);display:flex;flex-direction:column;gap:var(--space-3);">
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-slate-700);">
+            <svg width="16" height="16" fill="none" stroke="var(--color-success)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>همه امکانات حرفه‌ای
+          </li>
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-slate-700);">
+            <svg width="16" height="16" fill="none" stroke="var(--color-success)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>نصب اختصاصی / سرور جداگانه
+          </li>
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-slate-700);">
+            <svg width="16" height="16" fill="none" stroke="var(--color-success)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>پشتیبانی مستقیم
+          </li>
+          <li style="display:flex;align-items:center;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-slate-700);">
+            <svg width="16" height="16" fill="none" stroke="var(--color-success)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>توسعه ویژگی سفارشی
+          </li>
+        </ul>
+        <a href="/contact/" class="btn btn-primary btn-block">تماس با ما</a>
+      </div>
+
+    </div>
+
+    {# Comparison note #}
+    <div class="alert alert-info" style="max-width:40rem;margin:0 auto;">
+      <div class="alert-icon">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <div class="alert-body">تعرفه‌های دقیق بستگی به نوع استفاده، تعداد نیروها و نیازمندی‌های شما دارد. برای دریافت قیمت دقیق با ما تماس بگیرید.</div>
+    </div>
+
+  </div>
 </section>
+
 {% endblock %}

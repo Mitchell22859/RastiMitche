@@ -109,6 +109,18 @@
   border-color: var(--color-success-hover);
 }
 
+/* White outline — for use on dark/brand backgrounds (hero, CTA sections) */
+.btn-outline-white {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.btn-outline-white:hover {
+  background-color: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+
 /* Size modifiers */
 .btn-sm {
   padding: var(--space-1-5) var(--space-3);
@@ -398,6 +410,37 @@ textarea.form-control {
   margin-top: var(--space-6);
   padding-top: var(--space-4);
   border-top: var(--border-width) solid var(--color-slate-100);
+}
+
+/* Input with embedded icon — RTL-friendly */
+.form-icon-group {
+  position: relative;
+}
+
+.form-icon-group .form-control {
+  padding-right: 2.5rem;
+}
+
+.form-icon {
+  position: absolute;
+  top: 50%;
+  right: var(--space-3);
+  transform: translateY(-50%);
+  color: var(--color-slate-400);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+/* OTP / verification code input */
+.otp-input {
+  text-align: center;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.5rem;
+  direction: ltr;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
 }
 
 
