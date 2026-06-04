@@ -1,62 +1,70 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div class="min-h-screen flex">
-    {# Left Panel - Branding (hidden on mobile) #}
-    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 items-center justify-center relative overflow-hidden">
-        {# Background Pattern #}
-        <div class="absolute inset-0 opacity-10">
-            <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/>
-                    </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#grid)"/>
-            </svg>
-        </div>
+<div class="auth-shell">
 
-        <div class="relative z-10 text-center px-8 max-w-md">
-            <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center">
-                <svg class="w-10 h-10 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-            </div>
-            <h1 class="text-3xl font-extrabold text-white mb-3">{% block brand_title %}رستی سرویس{% endblock %}</h1>
-            <p class="text-slate-300 text-base leading-relaxed">{% block brand_description %}سامانه هوشمند مدیریت خدمات و سفارشات{% endblock %}</p>
-
-            <div class="mt-10 grid grid-cols-3 gap-4 text-center">
-                <div>
-                    <div class="text-2xl font-bold text-brand-400">+۱۰۰</div>
-                    <div class="text-xs text-slate-400 mt-1">شرکت فعال</div>
-                </div>
-                <div>
-                    <div class="text-2xl font-bold text-emerald-400">+۵K</div>
-                    <div class="text-xs text-slate-400 mt-1">سفارش ماهانه</div>
-                </div>
-                <div>
-                    <div class="text-2xl font-bold text-amber-400">۹۹٪</div>
-                    <div class="text-xs text-slate-400 mt-1">رضایت مشتری</div>
-                </div>
-            </div>
-        </div>
+  {# ===== LEFT PANEL — Branding (desktop only, shown via responsive.css) ===== #}
+  <div class="auth-panel-left">
+    {# Subtle grid pattern #}
+    <div style="position:absolute;inset:0;opacity:0.08;pointer-events:none;">
+      <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="authGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#authGrid)"/>
+      </svg>
     </div>
 
-    {# Right Panel - Login Form #}
-    <div class="flex-1 flex items-center justify-center p-6 bg-gray-50">
-        <div class="w-full max-w-sm">
-            {# Mobile Brand #}
-            <div class="lg:hidden text-center mb-8">
-                <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-brand-600 flex items-center justify-center">
-                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                </div>
-                <h1 class="text-xl font-bold text-gray-800">{% block mobile_brand %}رستی سرویس{% endblock %}</h1>
-            </div>
-
-            {% block auth_content %}{% endblock %}
+    <div style="position:relative;z-index:1;text-align:center;max-width:22rem;">
+      <div style="width:5rem;height:5rem;margin:0 auto var(--space-6);border-radius:var(--radius-2xl);background:rgba(255,255,255,0.1);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;">
+        <svg width="40" height="40" fill="none" stroke="var(--color-brand-300)" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <h1 style="font-size:var(--font-size-3xl);font-weight:var(--font-weight-extrabold);color:#fff;margin-bottom:var(--space-3);">
+        {% block brand_title %}رستی سرویس{% endblock %}
+      </h1>
+      <p style="color:var(--color-slate-300);line-height:var(--line-height-loose);">
+        {% block brand_description %}سامانه هوشمند مدیریت خدمات و سفارشات{% endblock %}
+      </p>
+      <div style="margin-top:var(--space-10);display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-4);text-align:center;">
+        <div>
+          <div style="font-size:var(--font-size-2xl);font-weight:var(--font-weight-extrabold);color:var(--color-brand-300);">+۱۰۰</div>
+          <div style="font-size:var(--font-size-xs);color:var(--color-slate-400);margin-top:var(--space-1);">شرکت فعال</div>
         </div>
+        <div>
+          <div style="font-size:var(--font-size-2xl);font-weight:var(--font-weight-extrabold);color:#34d399;">+۵K</div>
+          <div style="font-size:var(--font-size-xs);color:var(--color-slate-400);margin-top:var(--space-1);">سفارش ماهانه</div>
+        </div>
+        <div>
+          <div style="font-size:var(--font-size-2xl);font-weight:var(--font-weight-extrabold);color:#fbbf24;">۹۹٪</div>
+          <div style="font-size:var(--font-size-xs);color:var(--color-slate-400);margin-top:var(--space-1);">رضایت مشتری</div>
+        </div>
+      </div>
     </div>
+  </div>
+
+  {# ===== RIGHT PANEL — Auth Form ===== #}
+  <div class="auth-panel-right">
+    <div class="auth-form-box">
+
+      {# Mobile brand — hidden on desktop via responsive.css #}
+      <div class="auth-mobile-brand">
+        <div class="sidebar-brand-icon" style="width:3.5rem;height:3.5rem;margin:0 auto var(--space-4);">
+          <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <h1 style="font-size:var(--font-size-xl);font-weight:var(--font-weight-bold);color:var(--color-slate-800);text-align:center;margin-bottom:var(--space-6);">
+          {% block mobile_brand %}رستی سرویس{% endblock %}
+        </h1>
+      </div>
+
+      {% block auth_content %}{% endblock %}
+    </div>
+  </div>
+
 </div>
 {% endblock %}

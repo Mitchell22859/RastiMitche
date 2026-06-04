@@ -202,11 +202,9 @@
 /* Mobile close button inside sidebar */
 .sidebar-close-btn {
   display: none;
-  position: absolute;
-  top: var(--space-3);
-  left: var(--space-3);
   width: 2rem;
   height: 2rem;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
@@ -557,4 +555,101 @@
   color: var(--color-slate-500);
   line-height: var(--line-height-loose);
   margin-bottom: var(--space-6);
+}
+
+
+/* =============================================================================
+   PHASE 2 ADDITIONS
+   ============================================================================= */
+
+/* --- Public footer --- */
+.public-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-8);
+}
+
+.public-footer-heading {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: #fff;
+  margin-bottom: var(--space-3);
+}
+
+.public-footer-body {
+  font-size: var(--font-size-xs);
+  color: var(--color-slate-400);
+  line-height: var(--line-height-loose);
+}
+
+.public-footer-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.public-footer-list a {
+  font-size: var(--font-size-xs);
+  color: var(--color-slate-400);
+  transition: var(--transition-colors);
+}
+
+.public-footer-list a:hover { color: #fff; }
+
+.public-footer-bottom {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-slate-700);
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-slate-500);
+}
+
+/* --- Public nav mobile menu dropdown --- */
+.public-mobile-menu {
+  border-top: var(--border-width) solid var(--color-slate-100);
+  padding: var(--space-3) var(--space-4);
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.public-nav-link-block {
+  display: block;
+  border-radius: var(--radius-md);
+}
+
+/* Mobile toggle — visibility controlled by responsive.css */
+.public-nav-mobile-toggle { display: none; }
+
+/* --- Auth mobile brand (shown on mobile, hidden on desktop) --- */
+.auth-mobile-brand {
+  display: block;
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+/* --- Dashboard footer --- */
+.dashboard-footer {
+  border-top: var(--border-width) solid var(--color-slate-100);
+  padding: var(--space-3) var(--content-padding-x);
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-slate-400);
+}
+
+/* --- Topbar subtitle --- */
+.topbar-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-slate-400);
+  margin: 0;
+}
+
+/* --- Topbar logout label --- */
+.topbar-logout-label {
+  display: inline;
 }

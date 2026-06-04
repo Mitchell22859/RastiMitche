@@ -1,88 +1,98 @@
 {% extends "base.html" %}
 
 {% block body %}
-{# ===== PUBLIC NAVBAR ===== #}
-<header class="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
-    <div class="max-w-6xl mx-auto flex items-center justify-between h-16 px-4">
-        {# Brand #}
-        <a href="/" class="flex items-center gap-2">
-            <div class="w-9 h-9 rounded-lg bg-brand-600 flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-            </div>
-            <span class="text-base font-bold text-gray-900">رستی سرویس</span>
-        </a>
+<div class="public-shell">
 
-        {# Desktop Nav #}
-        <nav class="hidden lg:flex items-center gap-6">
-            <a href="/" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-smooth">خانه</a>
-            <a href="/features/" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-smooth">امکانات</a>
-            <a href="/pricing/" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-smooth">تعرفه‌ها</a>
-            <a href="/about/" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-smooth">درباره ما</a>
-            <a href="/contact/" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-smooth">تماس با ما</a>
-        </nav>
+  {# ===== NAVBAR ===== #}
+  <nav class="public-nav">
+    <div class="public-nav-inner">
 
-        {# CTA Buttons #}
-        <div class="flex items-center gap-2">
-            <a href="/register/" class="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-brand-600 border border-brand-600 rounded-lg hover:bg-brand-50 transition-smooth">
-                ثبت نام شرکت
-            </a>
-            <a href="/login/" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 transition-smooth">
-                ورود
-            </a>
-            {# Mobile menu toggle #}
-            <button onclick="document.getElementById('mobileMenu').classList.toggle('hidden')"
-                    class="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-            </button>
+      {# Brand #}
+      <a href="/" class="public-nav-brand">
+        <div class="sidebar-brand-icon">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
         </div>
+        <span class="public-nav-brand-name">رستی سرویس</span>
+      </a>
+
+      {# Desktop nav links — hidden on mobile via responsive.css #}
+      <div class="public-nav-links">
+        <a href="/" class="public-nav-link">خانه</a>
+        <a href="/features/" class="public-nav-link">امکانات</a>
+        <a href="/pricing/" class="public-nav-link">تعرفه‌ها</a>
+        <a href="/about/" class="public-nav-link">درباره ما</a>
+        <a href="/contact/" class="public-nav-link">تماس با ما</a>
+      </div>
+
+      {# CTA buttons + mobile hamburger #}
+      <div class="public-nav-actions">
+        <a href="/register/" class="btn btn-outline btn-sm public-nav-register-btn">ثبت نام شرکت</a>
+        <a href="/login/" class="btn btn-primary btn-sm">ورود</a>
+        <button onclick="toggleMobileMenu()"
+                class="btn btn-ghost btn-icon public-nav-mobile-toggle"
+                aria-label="باز کردن منو">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
-    {# Mobile Nav #}
-    <div id="mobileMenu" class="hidden lg:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1">
-        <a href="/" class="block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50">خانه</a>
-        <a href="/features/" class="block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50">امکانات</a>
-        <a href="/pricing/" class="block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50">تعرفه‌ها</a>
-        <a href="/about/" class="block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50">درباره ما</a>
-        <a href="/contact/" class="block px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50">تماس با ما</a>
-        <a href="/register/" class="block px-3 py-2 text-sm font-medium text-brand-600 rounded-lg hover:bg-brand-50">ثبت نام شرکت</a>
+    {# Mobile dropdown — toggled by JS #}
+    <div id="mobileMenu" class="public-mobile-menu" style="display:none;">
+      <a href="/" class="public-nav-link public-nav-link-block">خانه</a>
+      <a href="/features/" class="public-nav-link public-nav-link-block">امکانات</a>
+      <a href="/pricing/" class="public-nav-link public-nav-link-block">تعرفه‌ها</a>
+      <a href="/about/" class="public-nav-link public-nav-link-block">درباره ما</a>
+      <a href="/contact/" class="public-nav-link public-nav-link-block">تماس با ما</a>
+      <a href="/register/" class="public-nav-link public-nav-link-block" style="color:var(--color-brand-600);">ثبت نام شرکت</a>
     </div>
-</header>
+  </nav>
 
-{# ===== PAGE CONTENT ===== #}
-<main>
+  {# ===== PAGE CONTENT ===== #}
+  <main class="public-main">
     {% block content %}{% endblock %}
-</main>
+  </main>
 
-{# ===== FOOTER ===== #}
-<footer class="bg-slate-900 text-slate-300 py-12 px-4 mt-6">
-    <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8">
+  {# ===== FOOTER ===== #}
+  <footer class="public-footer">
+    <div class="public-footer-inner">
+      <div class="public-footer-grid">
         <div>
-            <h3 class="text-sm font-bold text-white mb-3">رستی سرویس</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">سامانه هوشمند مدیریت خدمات و سفارشات برای شرکت‌های خدماتی ایرانی</p>
+          <h3 class="public-footer-heading">رستی سرویس</h3>
+          <p class="public-footer-body">سامانه هوشمند مدیریت خدمات و سفارشات برای شرکت‌های خدماتی ایرانی</p>
         </div>
         <div>
-            <h3 class="text-sm font-bold text-white mb-3">لینک‌های سریع</h3>
-            <ul class="space-y-1">
-                <li><a href="/features/" class="text-xs text-slate-400 hover:text-white transition-smooth">امکانات</a></li>
-                <li><a href="/pricing/" class="text-xs text-slate-400 hover:text-white transition-smooth">تعرفه‌ها</a></li>
-                <li><a href="/register/" class="text-xs text-slate-400 hover:text-white transition-smooth">ثبت نام شرکت</a></li>
-                <li><a href="/login/" class="text-xs text-slate-400 hover:text-white transition-smooth">ورود</a></li>
-            </ul>
+          <h3 class="public-footer-heading">لینک‌های سریع</h3>
+          <ul class="public-footer-list">
+            <li><a href="/features/">امکانات</a></li>
+            <li><a href="/pricing/">تعرفه‌ها</a></li>
+            <li><a href="/register/">ثبت نام شرکت</a></li>
+            <li><a href="/login/">ورود</a></li>
+          </ul>
         </div>
         <div>
-            <h3 class="text-sm font-bold text-white mb-3">تماس</h3>
-            <ul class="space-y-1">
-                <li><a href="/about/" class="text-xs text-slate-400 hover:text-white transition-smooth">درباره ما</a></li>
-                <li><a href="/contact/" class="text-xs text-slate-400 hover:text-white transition-smooth">تماس با ما</a></li>
-            </ul>
+          <h3 class="public-footer-heading">تماس</h3>
+          <ul class="public-footer-list">
+            <li><a href="/about/">درباره ما</a></li>
+            <li><a href="/contact/">تماس با ما</a></li>
+          </ul>
         </div>
+      </div>
+      <div class="public-footer-bottom">
+        <p>&copy; رستی سرویس &mdash; تمامی حقوق محفوظ است</p>
+      </div>
     </div>
-    <div class="max-w-6xl mx-auto mt-8 pt-6 border-t border-slate-700 text-center">
-        <p class="text-xs text-slate-500">&copy; رستی سرویس &mdash; تمامی حقوق محفوظ است</p>
-    </div>
-</footer>
+  </footer>
+</div>
+
+<script>
+function toggleMobileMenu() {
+  var m = document.getElementById('mobileMenu');
+  if (!m) return;
+  m.style.display = (m.style.display === 'none' || m.style.display === '') ? 'block' : 'none';
+}
+</script>
 {% endblock %}

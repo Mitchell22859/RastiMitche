@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="error-shell">
+  <div class="error-card">
+
+    {% block error_icon %}{% endblock %}
+
+    <div class="error-code">{% block error_code %}{% endblock %}</div>
+    <h1 class="error-title">{% block error_title %}خطا{% endblock %}</h1>
+    <p class="error-description">{% block error_description %}{% endblock %}</p>
+
+    <div style="display:flex;gap:var(--space-3);justify-content:center;flex-wrap:wrap;">
+      {% block error_actions %}
+        <a href="/" class="btn btn-primary">بازگشت به خانه</a>
+      {% endblock %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

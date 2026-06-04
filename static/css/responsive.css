@@ -277,3 +277,31 @@
   }
 
 }
+
+
+/* =============================================================================
+   PHASE 2 RESPONSIVE ADDITIONS
+   ============================================================================= */
+
+@media (max-width: 639px) {
+  /* Hide register btn on smallest phones (it's also in mobile menu) */
+  .public-nav-register-btn { display: none; }
+  /* Hide topbar subtitle and logout label text on phones */
+  .topbar-subtitle { display: none; }
+  .topbar-logout-label { display: none; }
+}
+
+@media (max-width: 1023px) {
+  /* Show mobile hamburger on tablets/phones */
+  .public-nav-mobile-toggle { display: flex; }
+  /* Show auth mobile brand on mobile */
+  .auth-mobile-brand { display: block; }
+}
+
+@media (min-width: 1024px) {
+  /* Hide mobile toggle and mobile brand on desktop */
+  .public-nav-mobile-toggle { display: none; }
+  .auth-mobile-brand { display: none; }
+  /* Ensure register btn is always visible on desktop */
+  .public-nav-register-btn { display: inline-flex; }
+}
