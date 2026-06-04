@@ -1,0 +1,20 @@
+{% load fa_labels %}
+{#
+  Status Badge Component
+  Replaces: includes/components/status_badge.html (old path still works — do not delete it)
+  Requires: {% load fa_labels %} — custom template tag in apps.common
+  Usage:
+    {% include "components/status_badge.html" with status=order.status %}
+    {% include "components/status_badge.html" with status=order.status label="سفارش تأیید شد" %}
+
+  Variables:
+    status  (required) — Status string key (e.g. "approved", "pending", "cancelled")
+    label   (optional) — Override the display label; falls back to status|status_fa
+#}
+<span class="{{ status|status_badge_classes }}">
+  {% if label %}
+    {{ label }}
+  {% else %}
+    {{ status|status_fa }}
+  {% endif %}
+</span>

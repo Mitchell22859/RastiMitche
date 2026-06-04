@@ -1,0 +1,17 @@
+{#
+  Section Header Component
+  Usage:
+    {% include "components/section_header.html" with title="عنوان بخش" %}
+    {% include "components/section_header.html" with title="عنوان بخش" action_label="مشاهده همه" action_url="/path/" %}
+
+  Variables:
+    title        (required) — Section heading
+    action_label (optional) — Link text (e.g. "مشاهده همه")
+    action_url   (optional) — Link href; if not provided, no link is rendered
+#}
+<div class="section-header">
+  <h2 class="section-header-title">{{ title }}</h2>
+  {% if action_url and action_label %}
+    <a href="{{ action_url }}" class="section-header-action">{{ action_label }}</a>
+  {% endif %}
+</div>

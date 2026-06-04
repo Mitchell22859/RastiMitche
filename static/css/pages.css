@@ -1,0 +1,364 @@
+/* =============================================================================
+   Rasti Service — Page-Specific Styles
+   Optional overrides scoped to individual page types.
+   Classes here are additive — they do not conflict with components.css or
+   layouts.css. Pages are NOT yet migrated to use these in Phase 1.
+   ============================================================================= */
+
+
+/* =============================================================================
+   PUBLIC LANDING PAGE
+   ============================================================================= */
+
+/* Hero section — full-width gradient banner */
+.hero-section {
+  padding: var(--space-20) 0;
+  background: linear-gradient(
+    135deg,
+    var(--color-slate-900) 0%,
+    var(--color-slate-800) 40%,
+    var(--color-brand-900) 100%
+  );
+  color: #fff;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 25% 50%, rgba(59,130,246,0.15) 0%, transparent 60%),
+                    radial-gradient(circle at 75% 20%, rgba(99,102,241,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.hero-title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--space-4);
+  color: #fff;
+}
+
+.hero-subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--color-slate-300);
+  max-width: 36rem;
+  margin: 0 auto var(--space-8);
+  line-height: var(--line-height-loose);
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* Stats bar below hero */
+.hero-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-10);
+  flex-wrap: wrap;
+  margin-top: var(--space-12);
+  padding-top: var(--space-8);
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.hero-stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  color: #fff;
+  line-height: 1;
+}
+
+.hero-stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-slate-400);
+  margin-top: var(--space-1);
+}
+
+/* Features section */
+.features-section {
+  padding: var(--space-20) 0;
+  background-color: #fff;
+}
+
+.section-eyebrow {
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-brand-600);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+  margin-bottom: var(--space-3);
+}
+
+.section-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-slate-800);
+  margin-bottom: var(--space-4);
+  line-height: var(--line-height-tight);
+}
+
+.section-description {
+  font-size: var(--font-size-md);
+  color: var(--color-slate-500);
+  max-width: 36rem;
+  line-height: var(--line-height-loose);
+}
+
+/* Features grid */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-12);
+}
+
+/* Pricing section */
+.pricing-section {
+  padding: var(--space-20) 0;
+  background-color: var(--color-surface-1);
+}
+
+.pricing-card {
+  background-color: var(--color-surface-0);
+  border-radius: var(--radius-xl);
+  border: var(--border-width) solid var(--color-slate-200);
+  padding: var(--space-8);
+  transition: var(--transition-base);
+}
+
+.pricing-card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-brand-300);
+}
+
+.pricing-card.featured {
+  background: linear-gradient(135deg, var(--color-brand-600) 0%, var(--color-brand-800) 100%);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: var(--shadow-brand);
+}
+
+.pricing-price {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+  margin-bottom: var(--space-2);
+  direction: ltr;
+  display: block;
+}
+
+.pricing-period {
+  font-size: var(--font-size-sm);
+  color: var(--color-slate-400);
+}
+
+
+/* =============================================================================
+   REGISTRATION PAGE
+   ============================================================================= */
+
+.register-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.register-step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-slate-400);
+}
+
+.register-step-number {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  background-color: var(--color-slate-200);
+  color: var(--color-slate-500);
+  flex-shrink: 0;
+}
+
+.register-step.active .register-step-number {
+  background-color: var(--color-brand-600);
+  color: #fff;
+}
+
+.register-step.done .register-step-number {
+  background-color: var(--color-success);
+  color: #fff;
+}
+
+.register-step-connector {
+  width: 2rem;
+  height: 2px;
+  background-color: var(--color-slate-200);
+}
+
+.register-step.done + .register-step-connector {
+  background-color: var(--color-success);
+}
+
+
+/* =============================================================================
+   DASHBOARD HOME WIDGETS
+   ============================================================================= */
+
+/* Stats row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+/* Quick actions grid */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-4);
+}
+
+.quick-action-card {
+  background-color: var(--color-surface-0);
+  border-radius: var(--radius-lg);
+  border: var(--border-width) solid var(--color-slate-100);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: inherit;
+  transition: var(--transition-base);
+}
+
+.quick-action-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-brand-200);
+  color: inherit;
+}
+
+.quick-action-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-brand-50);
+  color: var(--color-brand-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-action-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-slate-700);
+}
+
+.quick-action-sub {
+  font-size: var(--font-size-xs);
+  color: var(--color-slate-400);
+}
+
+
+/* =============================================================================
+   INVOICE PAGE
+   ============================================================================= */
+
+.invoice-total-card {
+  background: linear-gradient(135deg, var(--color-slate-800) 0%, var(--color-slate-900) 100%);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  color: #fff;
+}
+
+.invoice-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  font-size: var(--font-size-base);
+}
+
+.invoice-total-row.final {
+  padding-top: var(--space-4);
+  border-top: 1px solid rgba(255,255,255,0.15);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.invoice-total-row .amount {
+  direction: ltr;
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* =============================================================================
+   TECHNICIAN ORDER CARDS
+   ============================================================================= */
+
+.tech-order-card {
+  background-color: var(--color-surface-0);
+  border-radius: var(--radius-lg);
+  border: var(--border-width) solid var(--color-slate-200);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+  transition: var(--transition-base);
+}
+
+.tech-order-card:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-slate-300);
+}
+
+.tech-order-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.tech-order-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+}
+
+.tech-order-field {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.tech-order-field-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-slate-400);
+  flex-shrink: 0;
+}
+
+.tech-order-field-value {
+  color: var(--color-slate-700);
+  font-weight: var(--font-weight-medium);
+}

@@ -1,0 +1,25 @@
+{#
+  Page Header Component
+  Usage:
+    {% include "components/page_header.html" with title="عنوان صفحه" subtitle="توضیح اختیاری" %}
+
+  Variables:
+    title       (required) — Main page heading
+    subtitle    (optional) — Secondary description text
+    actions     — Use {% include ... %} then override block, or pass raw HTML via 'actions_html'
+                  For action buttons, prefer placing them after this include using the page-header-actions div.
+
+  Note: If you need action buttons alongside the title, wrap this component and add
+  .page-header-actions manually in your template — this keeps the component generic
+  and avoids passing URLs or button labels as template variables.
+#}
+<div class="page-header">
+  <div class="page-header-content">
+    {% if title %}
+      <h1 class="page-header-title">{{ title }}</h1>
+    {% endif %}
+    {% if subtitle %}
+      <p class="page-header-subtitle">{{ subtitle }}</p>
+    {% endif %}
+  </div>
+</div>

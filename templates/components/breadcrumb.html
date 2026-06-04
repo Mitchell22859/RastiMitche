@@ -1,0 +1,38 @@
+{#
+  Breadcrumb Component
+  Usage:
+    {% include "components/breadcrumb.html" with crumbs=breadcrumbs %}
+
+  The 'crumbs' variable should be a list of dicts passed from the view context:
+    crumbs = [
+        {"label": "داشبورد", "url": "/company/admin/"},
+        {"label": "سفارش‌ها",  "url": "/company/admin/orders/"},
+        {"label": "جزئیات سفارش"},  # no url = current/active item
+    ]
+
+  Alternatively, you can pass a simple list of 2-tuples:
+    crumbs = [("داشبورد", "/..."), ("سفارش‌ها", "/..."), ("جزئیات", None)]
+
+  Variables:
+    crumbs  (required) — Iterable of breadcrumb items (see above)
+
+  Renders nothing if crumbs is empty.
+#}
+{% if crumbs %}
+<nav class="breadcrumb" aria-label="مسیر ناوبری">
+  {% for crumb in crumbs %}
+    <span class="breadcrumb-item {% if forloop.last %}active{% endif %}">
+      {% if not forloop.last %}
+        {% if crumb.url %}
+          <a href="{{ crumb.url }}">{{ crumb.label }}</a>
+        {% else %}
+          <span>{{ crumb }}</span>
+        {% endif %}
+        <span class="breadcrumb-separator" aria-hidden="true">/</span>
+      {% else %}
+        {% if crumb.label %}{{ crumb.label }}{% else %}{{ crumb }}{% endif %}
+      {% endif %}
+    </span>
+  {% endfor %}
+</nav>
+{% endif %}

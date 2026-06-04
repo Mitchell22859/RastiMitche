@@ -1,0 +1,279 @@
+/* =============================================================================
+   Rasti Service — Responsive Overrides
+   Media queries ONLY. No new visual definitions; only overrides for existing
+   classes from components.css, layouts.css, and pages.css.
+   Breakpoints:
+     sm  — 640px   (small devices, large phones)
+     md  — 768px   (tablets)
+     lg  — 1024px  (desktop / large tablets)
+   ============================================================================= */
+
+
+/* =============================================================================
+   SMALL — max-width: 639px  (phones)
+   ============================================================================= */
+
+@media (max-width: 639px) {
+
+  /* --- Page Header --- */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-header-actions {
+    width: 100%;
+  }
+
+  /* --- Form Grids --- */
+  .form-grid-2,
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Table toolbar --- */
+  .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .table-toolbar-filters,
+  .table-toolbar-actions {
+    width: 100%;
+  }
+
+  .table-toolbar-actions {
+    justify-content: flex-end;
+  }
+
+  /* --- Stat cards — 2 columns on phone --- */
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* --- Quick actions — 2 columns on phone --- */
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* --- Cards — full width padding reduction --- */
+  .card {
+    padding: var(--space-4);
+  }
+
+  /* --- Hero --- */
+  .hero-title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .hero-subtitle {
+    font-size: var(--font-size-base);
+  }
+
+  .hero-stats {
+    gap: var(--space-6);
+  }
+
+  /* --- Features grid — 1 column on phone --- */
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Pagination --- */
+  .pagination-info {
+    display: none;
+  }
+
+  /* --- Breadcrumb — shorten on mobile --- */
+  .breadcrumb-item:not(:last-child):not(:nth-last-child(2)) {
+    display: none;
+  }
+
+}
+
+
+/* =============================================================================
+   TABLET — max-width: 1023px  (phones + tablets, below desktop)
+   ============================================================================= */
+
+@media (max-width: 1023px) {
+
+  /* --- Dashboard: sidebar becomes a mobile overlay --- */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    z-index: var(--z-overlay);
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    box-shadow: var(--shadow-2xl);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close-btn {
+    display: flex;
+  }
+
+  /* --- Topbar: show hamburger toggle --- */
+  .topbar-toggle {
+    display: flex;
+  }
+
+  /* --- Dashboard main: full width (no sidebar taking space) --- */
+  .dashboard-main {
+    width: 100%;
+  }
+
+  /* --- Auth panel: hide left decorative panel on tablet/mobile --- */
+  .auth-panel-left {
+    display: none;
+  }
+
+  .auth-panel-right {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  /* --- Public nav: hide desktop links --- */
+  .public-nav-links {
+    display: none;
+  }
+
+  /* --- Table: horizontal scroll on tablet --- */
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  /* --- Form grids: 2-col on tablet (from 3-col) --- */
+  .form-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+
+/* =============================================================================
+   DESKTOP — min-width: 1024px
+   ============================================================================= */
+
+@media (min-width: 1024px) {
+
+  /* --- Dashboard: sidebar is always visible, not a fixed overlay --- */
+  .sidebar {
+    position: relative;
+    transform: none;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .sidebar-overlay {
+    display: none !important;
+  }
+
+  .sidebar-close-btn {
+    display: none !important;
+  }
+
+  /* --- Topbar: hide hamburger on desktop --- */
+  .topbar-toggle {
+    display: none;
+  }
+
+  /* --- Auth: show left decorative panel on desktop --- */
+  .auth-panel-left {
+    display: flex;
+  }
+
+  /* --- Public nav: show desktop links --- */
+  .public-nav-links {
+    display: flex;
+  }
+
+  /* --- Technician shell: more padding on desktop --- */
+  .tech-shell {
+    padding-bottom: var(--space-6);
+  }
+
+  .tech-bottom-nav {
+    display: none;
+  }
+
+  /* --- Hero --- */
+  .hero-title {
+    font-size: var(--font-size-4xl);
+  }
+
+  /* --- Features grid: 3 columns on desktop --- */
+  .features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* --- Stats row: up to 4 columns on desktop --- */
+  .stats-row {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+}
+
+
+/* =============================================================================
+   EXTRA LARGE — min-width: 1280px
+   ============================================================================= */
+
+@media (min-width: 1280px) {
+
+  /* Wider content area */
+  .dashboard-content {
+    padding: var(--space-8);
+  }
+
+}
+
+
+/* =============================================================================
+   PRINT
+   ============================================================================= */
+
+@media print {
+
+  /* Dashboard elements that should not print */
+  .sidebar,
+  .topbar,
+  .topbar-toggle,
+  .tech-header,
+  .tech-bottom-nav,
+  .public-nav,
+  .public-footer,
+  .page-header-actions,
+  .table-toolbar-actions,
+  .btn,
+  .breadcrumb,
+  .pagination {
+    display: none !important;
+  }
+
+  /* Invoice print shell resets */
+  .invoice-print-shell {
+    padding: 0;
+    max-width: 100%;
+    box-shadow: none;
+  }
+
+  /* Force white background */
+  .card,
+  .stat-card,
+  .data-table {
+    box-shadow: none !important;
+    border-color: #ddd !important;
+  }
+
+  /* Ensure text is black on white */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+}

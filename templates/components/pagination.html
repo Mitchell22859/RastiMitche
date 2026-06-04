@@ -1,0 +1,68 @@
+{#
+  Pagination Component
+  Usage:
+    {% include "components/pagination.html" with page_obj=page_obj %}
+
+  Variables:
+    page_obj  (required) — Django Page object from a paginated queryset
+                           (the object returned by Paginator.get_page() or
+                           paginate_queryset() in ListView)
+
+  Renders nothing if there is only 1 page.
+  Preserves existing GET query parameters (e.g. search, filters) by reading
+  request.GET — requires 'request' in template context (enabled via
+  django.template.context_processors.request in settings).
+#}
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="pagination" aria-label="صفحه‌بندی">
+
+  {% if page_obj.has_previous %}
+    <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}"
+       class="pagination-item" aria-label="صفحه قبل">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+    </a>
+  {% else %}
+    <span class="pagination-item disabled" aria-disabled="true">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+    </span>
+  {% endif %}
+
+  {% for num in page_obj.paginator.page_range %}
+    {% if page_obj.number == num %}
+      <span class="pagination-item active" aria-current="page">{{ num }}</span>
+    {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+      <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}"
+         class="pagination-item">{{ num }}</a>
+    {% elif num == 1 or num == page_obj.paginator.num_pages %}
+      <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}"
+         class="pagination-item">{{ num }}</a>
+    {% elif num == page_obj.number|add:"-3" or num == page_obj.number|add:"3" %}
+      <span class="pagination-item disabled" aria-hidden="true">…</span>
+    {% endif %}
+  {% endfor %}
+
+  {% if page_obj.has_next %}
+    <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}"
+       class="pagination-item" aria-label="صفحه بعد">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+  {% else %}
+    <span class="pagination-item disabled" aria-disabled="true">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </span>
+  {% endif %}
+
+  <span class="pagination-info">
+    صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}
+  </span>
+
+</nav>
+{% endif %}

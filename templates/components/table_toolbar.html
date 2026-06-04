@@ -1,0 +1,49 @@
+{#
+  Table Toolbar Component
+  Filter bar above a data table. Renders a search input, optional filter form,
+  and an optional primary action button.
+  Usage:
+    {% include "components/table_toolbar.html" with search_value=request.GET.q %}
+    {% include "components/table_toolbar.html" with search_value=request.GET.q action_label="ایجاد سفارش" action_url="/orders/create/" %}
+
+  Variables:
+    search_value  (optional) — Current search query to pre-fill the input
+    search_name   (optional) — Input name attribute; default: "q"
+    search_placeholder (optional) — Placeholder text; default: "جستجو..."
+    action_label  (optional) — Primary button label; button hidden if not provided
+    action_url    (optional) — Primary button href; required if action_label is set
+
+  Note: The search form submits via GET to the current page (no action attribute).
+  Additional filter inputs should be placed outside this component in the template.
+#}
+<div class="table-toolbar">
+  <div class="table-toolbar-filters">
+    <form method="get" style="display:flex; align-items:center; gap:0.5rem; flex:1; max-width:20rem;">
+      <input
+        type="search"
+        name="{{ search_name|default:'q' }}"
+        value="{{ search_value|default:'' }}"
+        placeholder="{{ search_placeholder|default:'جستجو...' }}"
+        class="form-control"
+        style="max-width:100%;"
+        autocomplete="off">
+      <button type="submit" class="btn btn-outline btn-sm" style="flex-shrink:0;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </button>
+    </form>
+  </div>
+
+  {% if action_label and action_url %}
+  <div class="table-toolbar-actions">
+    <a href="{{ action_url }}" class="btn btn-primary btn-sm">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      {{ action_label }}
+    </a>
+  </div>
+  {% endif %}
+</div>
