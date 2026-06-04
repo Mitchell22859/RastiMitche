@@ -1,0 +1,68 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}{% if is_edit %}ویرایش{% else %}ایجاد{% endif %} شرکت - پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}{% if is_edit %}ویرایش شرکت{% else %}شرکت جدید{% endif %}{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-lg">
+    {% if error %}
+    <div class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 flex items-center gap-2">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label for="id_name" class="block text-sm font-medium text-gray-700 mb-1.5">نام شرکت</label>
+                <input type="text" name="name" id="id_name"
+                       class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth"
+                       value="{{ form.name.value|default:'' }}">
+            </div>
+            {% if not is_edit %}
+            <div>
+                <label for="id_code" class="block text-sm font-medium text-gray-700 mb-1.5">کد (URL)</label>
+                <input type="text" name="code" id="id_code" dir="ltr"
+                       class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth"
+                       value="{{ form.code.value|default:'' }}" placeholder="my-company">
+                <p class="text-xs text-gray-400 mt-1">این کد در URL شرکت استفاده می‌شود.</p>
+            </div>
+            {% endif %}
+            <div>
+                <label for="id_email" class="block text-sm font-medium text-gray-700 mb-1.5">ایمیل</label>
+                <input type="email" name="email" id="id_email" dir="ltr"
+                       class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth"
+                       value="{{ form.email.value|default:'' }}">
+            </div>
+            <div>
+                <label for="id_phone" class="block text-sm font-medium text-gray-700 mb-1.5">تلفن</label>
+                <input type="text" name="phone" id="id_phone" dir="ltr"
+                       class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth"
+                       value="{{ form.phone.value|default:'' }}">
+            </div>
+            <div>
+                <label for="id_address" class="block text-sm font-medium text-gray-700 mb-1.5">آدرس</label>
+                <textarea name="address" id="id_address" rows="3"
+                          class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth resize-y">{{ form.address.value|default:'' }}</textarea>
+            </div>
+            <div class="flex items-center gap-3 pt-2">
+                <button type="submit"
+                        class="px-5 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl hover:bg-brand-700 transition-smooth">
+                    {% if is_edit %}ذخیره تغییرات{% else %}ایجاد شرکت{% endif %}
+                </button>
+                <a href="/owner-platform/companies/" class="text-sm text-gray-500 hover:text-gray-700">انصراف</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

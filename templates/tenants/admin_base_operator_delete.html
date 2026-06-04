@@ -1,0 +1,9 @@
+{% extends "base_dashboard.html" %}
+{% block title %}حذف اپراتور - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block content %}
+<div class="page-header"><h1>حذف اپراتور</h1></div>
+<div class="card" style="max-width:680px;"><p>اپراتور «{{ operator.get_full_name|default:operator.phone }}» غیرفعال شود؟</p><form method="post">{% csrf_token %}<button class="btn btn-danger" type="submit">بله، غیرفعال شود</button><a class="btn btn-outline" href="/{{ company.code }}/admin/settings/operators/">انصراف</a></form></div>
+{% endblock %}

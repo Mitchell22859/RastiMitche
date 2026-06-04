@@ -1,0 +1,447 @@
+{% extends "base_dashboard.html" %}
+{% load fa_labels %}
+{% block title %}مدیریت سفارش‌ها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<style>
+/* ===== Page Header ===== */
+.orders-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    gap: .75rem;
+}
+.orders-page-header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+.orders-page-header .order-count {
+    font-size: .875rem;
+    color: #64748b;
+    font-weight: 600;
+    background: #f1f5f9;
+    padding: .35rem .75rem;
+    border-radius: 999px;
+}
+
+/* ===== Filter Card ===== */
+.filter-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 3px rgba(15,23,42,.04);
+}
+.filter-card summary {
+    cursor: pointer;
+    font-size: .9rem;
+    font-weight: 700;
+    color: #334155;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.filter-card summary::before {
+    content: "▸";
+    transition: transform .2s;
+}
+.filter-card[open] summary::before {
+    transform: rotate(90deg);
+}
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: .75rem;
+    margin-top: 1rem;
+}
+.filter-grid label {
+    display: block;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: .3rem;
+}
+.filter-grid input,
+.filter-grid select {
+    width: 100%;
+    padding: .55rem .75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: .6rem;
+    font-size: .85rem;
+    background: #f8fafc;
+    transition: border-color .15s;
+}
+.filter-grid input:focus,
+.filter-grid select:focus {
+    outline: none;
+    border-color: #6366f1;
+    background: #fff;
+}
+.filter-actions {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    padding-top: .75rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* ===== Column Selector ===== */
+.columns-section {
+    margin-top: 1rem;
+    padding-top: .75rem;
+    border-top: 1px solid #f1f5f9;
+}
+.columns-section strong {
+    font-size: .8rem;
+    color: #64748b;
+    display: block;
+    margin-bottom: .5rem;
+}
+.columns-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+.col-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .35rem .65rem;
+    border: 1px solid #e2e8f0;
+    border-radius: .5rem;
+    font-size: .78rem;
+    background: #fff;
+    cursor: pointer;
+    transition: all .15s;
+}
+.col-chip:has(input:checked) {
+    background: #eef2ff;
+    border-color: #a5b4fc;
+    color: #4338ca;
+}
+.col-chip input {
+    width: 14px;
+    height: 14px;
+    accent-color: #6366f1;
+}
+
+/* ===== Buttons ===== */
+.btn-primary {
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    padding: .55rem 1.1rem;
+    border-radius: .6rem;
+    font-size: .82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s;
+}
+.btn-primary:hover { background: #4338ca; }
+.btn-outline {
+    background: #fff;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    padding: .55rem 1.1rem;
+    border-radius: .6rem;
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .15s;
+}
+.btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; }
+.btn-sm {
+    padding: .35rem .7rem;
+    font-size: .75rem;
+    border-radius: .5rem;
+}
+.btn-create {
+    background: #059669;
+    color: #fff;
+    border: none;
+    padding: .55rem 1.1rem;
+    border-radius: .6rem;
+    font-size: .82rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+}
+.btn-create:hover { background: #047857; }
+
+/* ===== Orders Table ===== */
+.orders-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(15,23,42,.04);
+}
+.orders-card-header {
+    padding: .85rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.orders-card-header h2 {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+.orders-table-wrap {
+    overflow-x: auto;
+}
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .83rem;
+}
+.orders-table thead {
+    background: #f8fafc;
+}
+.orders-table th {
+    padding: .7rem .85rem;
+    text-align: right;
+    font-weight: 700;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+    font-size: .78rem;
+    text-transform: none;
+}
+.orders-table td {
+    padding: .65rem .85rem;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+.orders-table tbody tr:hover {
+    background: #f8fafc;
+}
+.orders-table tbody tr:nth-child(even) {
+    background: #fafbfc;
+}
+.orders-table tbody tr:nth-child(even):hover {
+    background: #f1f5f9;
+}
+
+/* ===== Status Badges ===== */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: .25rem .6rem;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-info, .status-new, .status-assigned, .status-in_progress, .status-started { background: #dbeafe; color: #1d4ed8; }
+.status-warning, .status-waiting, .status-pending, .status-draft, .status-issued, .status-unpaid, .status-queued, .status-cancel_requested { background: #fef3c7; color: #92400e; }
+.status-success, .status-done, .status-completed, .status-paid, .status-sent, .status-delivered, .status-accepted { background: #dcfce7; color: #166534; }
+.status-danger, .status-cancelled, .status-canceled, .status-failed, .status-rejected { background: #fee2e2; color: #991b1b; }
+.status-neutral, .status-skipped, .status-refunded { background: #f1f5f9; color: #475569; }
+
+.status-waiting { background: #fef3c7; color: #92400e; }
+.status-in_progress { background: #e0e7ff; color: #4338ca; }
+.status-done { background: #dcfce7; color: #166534; }
+.status-cancelled { background: #fee2e2; color: #991b1b; }
+.status-cancel_requested { background: #fff7ed; color: #c2410c; }
+
+/* ===== Actions ===== */
+.actions-cell {
+    display: flex;
+    gap: .35rem;
+    flex-wrap: nowrap;
+}
+.action-link {
+    padding: .3rem .6rem;
+    border-radius: .4rem;
+    font-size: .72rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all .12s;
+}
+.action-view {
+    background: #f1f5f9;
+    color: #334155;
+}
+.action-view:hover { background: #e2e8f0; }
+.action-edit {
+    background: #eef2ff;
+    color: #4338ca;
+}
+.action-edit:hover { background: #e0e7ff; }
+.action-assign {
+    background: #f0fdf4;
+    color: #166534;
+}
+.action-assign:hover { background: #dcfce7; }
+
+/* ===== Empty State ===== */
+.empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+    color: #94a3b8;
+}
+.empty-state svg {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 1rem;
+    opacity: .5;
+}
+.empty-state p {
+    font-size: .9rem;
+    margin: 0;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+    .orders-page-header { flex-direction: column; align-items: flex-start; }
+    .filter-grid { grid-template-columns: 1fr; }
+    .orders-table { font-size: .78rem; }
+    .orders-table th, .orders-table td { padding: .5rem .6rem; }
+}
+</style>
+
+{# ===== Page Header ===== #}
+<div class="orders-page-header">
+    <h1>مدیریت سفارش‌ها</h1>
+    <div style="display:flex;gap:.5rem;align-items:center;">
+        <span class="order-count">{{ result_count }} سفارش</span>
+        {% if can_create %}
+        <a href="/{{ company.code }}/admin/orders/create/" class="btn-create">+ سفارش جدید</a>
+        {% endif %}
+    </div>
+</div>
+
+{# ===== Filters ===== #}
+<details class="filter-card" {% if q or from_date or to_date or selected_technician or selected_status %}open{% endif %}>
+    <summary>فیلتر و ستون‌ها</summary>
+
+    <form method="get">
+        <div class="filter-grid">
+            <div>
+                <label>جستجو</label>
+                <input type="search" name="q" value="{{ q }}" placeholder="نام، شماره، آدرس...">
+            </div>
+            <div>
+                <label>از تاریخ</label>
+                <input type="text" name="from_date" value="{{ from_date }}" placeholder="1404/01/01" data-jalali-datepicker>
+            </div>
+            <div>
+                <label>تا تاریخ</label>
+                <input type="text" name="to_date" value="{{ to_date }}" placeholder="1404/12/29" data-jalali-datepicker>
+            </div>
+            <div>
+                <label>نیروی خدماتی</label>
+                <select name="technician">
+                    <option value="">همه</option>
+                    {% for tech in technician_options %}
+                    <option value="{{ tech.id }}" {% if selected_technician == tech.id %}selected{% endif %}>{{ tech.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>وضعیت</label>
+                <select name="status">
+                    <option value="">همه</option>
+                    {% for item in status_options %}
+                    <option value="{{ item.value }}" {% if selected_status == item.value %}selected{% endif %}>{{ item.value|status_fa }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="columns-section">
+            <strong>ستون‌های نمایشی:</strong>
+            <div class="columns-grid">
+                {% for col in columns %}
+                <label class="col-chip">
+                    <input type="checkbox" name="columns" value="{{ col.key }}" {% if col.key in selected_keys %}checked{% endif %}>
+                    <span>{{ col.title }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="filter-actions">
+            <button type="submit" class="btn-primary">اعمال فیلتر</button>
+            <a href="/{{ company.code }}/admin/orders/" class="btn-outline">حذف فیلتر</a>
+            <button type="submit" name="export" value="excel" class="btn-outline">خروجی اکسل</button>
+        </div>
+    </form>
+</details>
+
+{# ===== Orders Table ===== #}
+<div class="orders-card">
+    <div class="orders-card-header">
+        <h2>لیست سفارش‌ها</h2>
+        <span class="order-count">{{ result_count }} مورد</span>
+    </div>
+
+    {% if rows %}
+    <div class="orders-table-wrap">
+        <table class="orders-table">
+            <thead>
+                <tr>
+                    {% for col in selected_columns %}
+                    {% if col.key != "actions" %}
+                    <th>{{ col.title }}</th>
+                    {% endif %}
+                    {% endfor %}
+                    {% if "actions" in selected_keys %}
+                    <th>عملیات</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    {% for value in row.values %}
+                    {% if forloop.last and "actions" in selected_keys %}
+                    {# skip the empty actions placeholder — rendered separately below #}
+                    {% else %}
+                    <td>{% if forloop.counter0 in status_col_indices %}<span class="status-badge status-{{ row.status_raw|status_css }}">{{ row.status_raw|status_fa }}</span>{% else %}{{ value }}{% endif %}</td>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if "actions" in selected_keys %}
+                    <td>
+                        <div class="actions-cell">
+                            <a href="{{ row.detail_url }}" class="action-link action-view">مشاهده</a>
+                            {% if can_edit %}
+                            <a href="{{ row.edit_url }}" class="action-link action-edit">ویرایش</a>
+                            {% endif %}
+                            {% if can_assign %}
+                            <a href="{{ row.assign_url }}" class="action-link action-assign">تخصیص</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <p>سفارشی با این فیلترها پیدا نشد.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

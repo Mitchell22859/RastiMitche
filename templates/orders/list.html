@@ -1,0 +1,41 @@
+{% extends "base_dashboard.html" %}
+
+{% load fa_labels %}
+{% block title %}سفارش‌ها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/admin/orders/" class="active">سفارش‌ها</a></li>
+<li><a href="/{{ company.code }}/admin/invoices/">فاکتورها</a></li>
+<li><a href="/{{ company.code }}/admin/reports/">گزارش‌ها</a></li>
+<li><a href="/{{ company.code }}/admin/notifications/">اعلان‌ها</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>سفارش‌ها</h1>
+    {% if can_create_order %}
+    <a href="/{{ company.code }}/admin/orders/create/" class="btn btn-primary">+ سفارش جدید</a>
+    {% endif %}
+</div>
+
+{% if orders %}
+<div class="card">
+    <div class="table-wrapper"><table>
+        <thead><tr><th>#</th><th>عنوان</th><th>وضعیت</th><th>اولویت</th><th>تاریخ</th></tr></thead>
+        <tbody>{% for order in orders %}
+        <tr>
+            <td><a href="/{{ company.code }}/admin/orders/{{ order.id }}/">{{ order.id }}</a></td>
+            <td>{{ order.title }}</td>
+            <td><span class="badge badge-{{ order.status|status_css }}">{{ order.status|status_fa }}</span></td>
+            <td>{{ order.get_priority_display }}</td>
+            <td>{{ order.created_at|jalali_date }}</td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+</div>
+{% else %}
+<div class="card"><p style="color:#64748b;">سفارشی یافت نشد.</p></div>
+{% endif %}
+{% endblock %}

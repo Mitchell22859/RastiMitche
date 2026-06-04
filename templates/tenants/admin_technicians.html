@@ -1,0 +1,28 @@
+{% extends "base_dashboard.html" %}
+{% block title %}نیروهای خدماتی - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>نیروهای خدماتی</h1><a href="/{{ company.code }}/admin/technicians/create/" class="btn btn-primary">+ نیروی خدماتی جدید</a></div>
+{% if technicians %}
+<div class="card"><div class="table-wrapper"><table>
+<thead><tr><th>نام</th><th>نام کاربری</th><th>شماره موبایل</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+<tbody>{% for t in technicians %}<tr>
+<td>{{ t.user.get_full_name }}</td>
+<td style="direction:ltr;font-family:monospace;">{{ t.user.username }}</td>
+<td style="direction:ltr;">{{ t.user.phone|default:"-" }}</td>
+<td>{% if t.is_available and t.user.is_active %}<span class="badge badge-done">فعال</span>{% else %}<span class="badge badge-cancelled">غیرفعال</span>{% endif %}</td>
+<td class="inline-actions">
+<a href="/{{ company.code }}/admin/technicians/{{ t.id }}/edit/" class="btn btn-sm btn-outline">ویرایش</a>
+{% if t.is_available and t.user.is_active %}
+<form method="post" action="/{{ company.code }}/admin/technicians/{{ t.id }}/toggle-active/" style="display:inline;" onsubmit="return confirm('نیروی خدماتی غیرفعال می‌شود. ادامه می‌دهید؟');">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger">غیرفعال‌سازی</button></form>
+{% else %}
+<form method="post" action="/{{ company.code }}/admin/technicians/{{ t.id }}/toggle-active/" style="display:inline;">{% csrf_token %}<button type="submit" class="btn btn-sm btn-success">فعال‌سازی</button></form>
+{% endif %}
+</td>
+</tr>{% endfor %}</tbody>
+</table></div></div>
+{% else %}<div class="card"><p style="color:#64748b;">نیروی خدماتی تعریف نشده.</p></div>{% endif %}
+{% endblock %}

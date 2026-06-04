@@ -1,0 +1,44 @@
+{% extends "layouts/dashboard.html" %}
+{% block title %}نوع پیامک‌ها{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}نوع پیامک‌ها و ساعات ارسال{% endblock %}
+{% block page_description %}مالک پلتفرم ساعات ارسال و پیش‌فرض فعال بودن هر پیامک را تعیین می‌کند{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_platform.html" %}{% endblock %}
+{% block content %}
+{% if success %}<div class="mb-4 p-3 rounded bg-green-50 border border-green-200 text-green-700">{{ success }}</div>{% endif %}
+{% if error %}<div class="mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-700">{{ error }}</div>{% endif %}
+<form method="post">{% csrf_token %}
+<div class="bg-white rounded-xl border overflow-x-auto">
+<table class="w-full text-sm">
+<thead class="bg-gray-50"><tr><th class="p-3 text-right">پیام</th><th class="p-3 text-right">پرداخت‌کننده</th><th class="p-3 text-center">فعال سراسری</th><th class="p-3 text-center">پیش‌فرض شرکت‌ها</th><th class="p-3 text-center">از ساعت</th><th class="p-3 text-center">تا ساعت</th></tr></thead>
+<tbody>
+{% for row in settings %}
+<tr class="border-t">
+<td class="p-3"><strong>{{ row.title }}</strong><div class="text-xs text-gray-400 font-mono">{{ row.key }}</div></td>
+<td class="p-3">{{ row.get_payer_display }}</td>
+<td class="p-3 text-center"><input type="checkbox" name="is_active_{{ row.key }}" {% if row.is_active %}checked{% endif %}></td>
+<td class="p-3 text-center">
+{% if row.payer == payer_company %}
+<input type="checkbox" name="default_sms_{{ row.key }}" {% if row.default_company_sms_enabled %}checked{% endif %}>
+{% else %}
+<span class="text-gray-400">مالک پلتفرم</span>
+<input type="hidden" name="default_sms_{{ row.key }}" value="on">
+{% endif %}
+</td>
+<td class="p-3 text-center"><input type="time" name="start_{{ row.key }}" value="{% if row.send_start_time %}{{ row.send_start_time|time:'H:i' }}{% endif %}" class="border rounded px-2 py-1"></td>
+<td class="p-3 text-center"><input type="time" name="end_{{ row.key }}" value="{% if row.send_end_time %}{{ row.send_end_time|time:'H:i' }}{% endif %}" class="border rounded px-2 py-1"></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+<div class="mt-4 flex gap-2 flex-wrap">
+<button class="px-4 py-2 bg-brand-600 text-white rounded-lg" type="submit">ذخیره تنظیمات</button>
+<button class="px-4 py-2 bg-amber-600 text-white rounded-lg" type="submit" name="action" value="apply_company_defaults">اعمال پیش‌فرض برای همه شرکت‌ها</button>
+<a class="px-4 py-2 bg-white border rounded-lg" href="/owner-platform/platform-sms/">بازگشت</a>
+</div>
+</form>
+{% endblock %}

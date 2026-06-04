@@ -1,0 +1,70 @@
+{% extends "base_dashboard.html" %}
+
+{% load fa_labels %}
+{% block title %}{% if editing %}ویرایش قالب{% else %}قالب جدید{% endif %} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+{% include "includes/settings_center.html" %}
+
+<div class="page-header">
+    <h1>{% if editing %}ویرایش قالب: {{ template.title }}{% else %}قالب جدید{% endif %}</h1>
+</div>
+
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+
+        {% if not editing %}
+        <div class="form-group">
+            <label for="key">کلید رویداد</label>
+            <select name="key" id="key" required>
+                <option value="">انتخاب کنید...</option>
+                {% for value, label in key_choices %}
+                <option value="{{ value }}">{{ value|status_fa }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="title">عنوان</label>
+            <input type="text" name="title" id="title" value="{{ template.title|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="template_text">متن قالب</label>
+            <textarea name="template_text" id="template_text" rows="5" required>{{ template.template_text|default:'' }}</textarea>
+            <small>متغیرهای قابل استفاده: {{ order_id }}, {{ customer_name }}, {{ technician_name }}, {{ company_name }}</small>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="is_active" {% if template.is_active or not editing %}checked{% endif %}>
+                فعال
+            </label>
+            <small style="display:block;color:#64748b;margin-top:.25rem;">
+                این وضعیت با تنظیمات نوتیفیکیشن همین رویداد هماهنگ می‌شود.
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label for="send_start_time">ساعت شروع ارسال</label>
+            <input type="time" name="send_start_time" id="send_start_time"
+                   value="{% if template.send_start_time %}{{ template.send_start_time|time:'H:i' }}{% endif %}">
+        </div>
+
+        <div class="form-group">
+            <label for="send_end_time">ساعت پایان ارسال</label>
+            <input type="time" name="send_end_time" id="send_end_time"
+                   value="{% if template.send_end_time %}{{ template.send_end_time|time:'H:i' }}{% endif %}">
+        </div>
+
+        <button type="submit" class="btn btn-primary">{% if editing %}ذخیره{% else %}ایجاد{% endif %}</button>
+        <a href="/{{ company.code }}/admin/sms/templates/" class="btn">انصراف</a>
+    </form>
+</div>
+{% endblock %}

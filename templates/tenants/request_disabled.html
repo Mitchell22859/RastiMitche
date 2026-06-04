@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}درخواست غیرفعال - {{ company.name }}{% endblock %}
+
+{% block body %}
+<div class="page-center">
+    <div class="login-box" style="text-align: center;">
+        <h1 style="color: #f59e0b;">فرم درخواست غیرفعال است</h1>
+        <p style="margin: 1rem 0; color: #64748b;">{{ company.name }} در حال حاضر درخواست آنلاین نمی‌پذیرد.</p>
+        <a href="/{{ company.code }}/" class="btn btn-outline" style="margin-top: 1rem;">بازگشت</a>
+    </div>
+</div>
+{% endblock %}

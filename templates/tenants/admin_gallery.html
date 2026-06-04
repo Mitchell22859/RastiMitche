@@ -1,0 +1,23 @@
+{% extends "base_dashboard.html" %}
+{% block title %}گالری - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>تصاویر گالری</h1><a href="/{{ company.code }}/admin/gallery/create/" class="btn btn-primary">+ آپلود تصویر</a></div>
+
+{% if images %}
+<div class="card"><div class="table-wrapper"><table>
+<thead><tr><th>عنوان</th><th>ترتیب</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+<tbody>{% for img in images %}<tr>
+<td>{{ img.caption|default:"بدون عنوان" }}</td>
+<td>{{ img.sort_order }}</td>
+<td>{% if img.is_active %}<span class="badge badge-done">فعال</span>{% else %}<span class="badge badge-cancelled">غیرفعال</span>{% endif %}</td>
+<td>
+<a href="/{{ company.code }}/admin/gallery/{{ img.id }}/edit/" class="btn btn-sm btn-outline">ویرایش</a>
+<a href="/{{ company.code }}/admin/gallery/{{ img.id }}/delete/" class="btn btn-sm btn-danger">حذف</a>
+</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% else %}<div class="card"><p style="color:#64748b;">تصویری در گالری وجود ندارد.</p></div>{% endif %}
+{% endblock %}

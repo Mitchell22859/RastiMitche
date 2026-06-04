@@ -1,0 +1,295 @@
+{% extends "base_dashboard.html" %}
+{% block title %}رسته‌های خدماتی و آیتم‌های سفارش - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>رسته‌های خدماتی و آیتم‌های سفارش</h1>
+        <p>رسته‌ها به‌صورت درختی نمایش داده می‌شوند. هر رسته را باز کنید تا آیتم‌های سفارش همان رسته را ببینید.</p>
+    </div>
+    <a href="/{{ company.code }}/admin/base-data/categories/create/" class="btn btn-primary">+ رسته جدید</a>
+</div>
+
+<div class="card" style="margin-bottom:1rem;">
+    <div class="card-header">راهنما</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.75rem;">
+        <div style="padding:.75rem;border:1px solid #e2e8f0;border-radius:.75rem;">
+            <strong>باز کردن رسته</strong>
+            <p style="color:#64748b;margin:.35rem 0 0;">روی عنوان هر رسته کلیک کنید تا آیتم‌های سفارش زیرمجموعه آن نمایش داده شود.</p>
+        </div>
+        <div style="padding:.75rem;border:1px solid #e2e8f0;border-radius:.75rem;">
+            <strong>غیرفعال</strong>
+            <p style="color:#64748b;margin:.35rem 0 0;">رسته در فرم‌های جدید نمایش داده نمی‌شود، اما اطلاعات و آیتم‌های آن باقی می‌ماند.</p>
+        </div>
+        <div style="padding:.75rem;border:1px solid #fee2e2;border-radius:.75rem;">
+            <strong>حذف</strong>
+            <p style="color:#64748b;margin:.35rem 0 0;">رسته واقعاً حذف می‌شود و آیتم‌های سفارش زیرمجموعه آن هم حذف می‌شوند.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.category-tree-toolbar {
+    display:flex;
+    gap:.5rem;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:1rem;
+}
+.category-tree {
+    display:flex;
+    flex-direction:column;
+    gap:.75rem;
+}
+.category-node {
+    border:1px solid #e2e8f0;
+    border-radius:1rem;
+    background:#fff;
+    box-shadow:0 1px 2px rgba(15,23,42,.04);
+    overflow:hidden;
+}
+.category-node[open] {
+    border-color:#bfdbfe;
+    box-shadow:0 8px 24px rgba(15,23,42,.06);
+}
+.category-node summary {
+    list-style:none;
+    cursor:pointer;
+    padding:1rem 1.15rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    background:#fff;
+}
+.category-node summary::-webkit-details-marker {
+    display:none;
+}
+.category-summary-main {
+    display:flex;
+    align-items:center;
+    gap:.75rem;
+    flex-wrap:wrap;
+    min-width:0;
+}
+.category-chevron {
+    width:1.75rem;
+    height:1.75rem;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:#eff6ff;
+    color:#1d4ed8;
+    font-weight:800;
+    flex:0 0 auto;
+    transition:transform .15s ease;
+}
+.category-node[open] .category-chevron {
+    transform:rotate(90deg);
+}
+.category-title {
+    font-weight:800;
+    font-size:1.02rem;
+    color:#0f172a;
+}
+.category-meta {
+    color:#64748b;
+    font-size:.88rem;
+}
+.category-body {
+    border-top:1px solid #e2e8f0;
+    padding:1rem 1.15rem 1.15rem;
+    background:#f8fafc;
+}
+.category-actions {
+    display:flex;
+    gap:.45rem;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:1rem;
+}
+.item-tree-list {
+    display:flex;
+    flex-direction:column;
+    gap:.5rem;
+}
+.item-row-tree {
+    display:grid;
+    grid-template-columns:minmax(200px,1fr) 140px 110px 180px;
+    gap:.75rem;
+    align-items:center;
+    padding:.75rem;
+    border:1px solid #e2e8f0;
+    border-radius:.75rem;
+    background:#fff;
+}
+.item-title {
+    font-weight:700;
+    color:#0f172a;
+}
+.item-muted {
+    color:#64748b;
+    font-size:.88rem;
+}
+.empty-items {
+    border:1px dashed #cbd5e1;
+    border-radius:.75rem;
+    padding:1rem;
+    background:#fff;
+    color:#64748b;
+}
+@media (max-width: 900px) {
+    .category-node summary {
+        align-items:flex-start;
+        flex-direction:column;
+    }
+    .item-row-tree {
+        grid-template-columns:1fr;
+    }
+}
+</style>
+
+{% if category_rows %}
+    <div class="category-tree-toolbar">
+        <button type="button" class="btn btn-outline" id="openAllCategories">باز کردن همه</button>
+        <button type="button" class="btn btn-outline" id="closeAllCategories">بستن همه</button>
+        <span style="color:#64748b;">برای تمرکز بهتر، با باز کردن یک رسته، رسته‌های دیگر بسته می‌شوند.</span>
+    </div>
+
+    <div class="category-tree" id="categoryTree">
+        {% for row in category_rows %}
+            {% with category=row.category items=row.items %}
+            <details class="category-node" {% if forloop.first %}open{% endif %}>
+                <summary>
+                    <div class="category-summary-main">
+                        <span class="category-chevron">›</span>
+                        <span class="category-title">{{ category.title }}</span>
+                        <span class="badge {% if category.is_active %}badge-done{% else %}badge-cancelled{% endif %}">
+                            {% if category.is_active %}فعال{% else %}غیرفعال{% endif %}
+                        </span>
+                        <span class="category-meta">آیتم‌ها: {{ items|length }}</span>
+                        <span class="category-meta">ترتیب: {{ category.sort_order }}</span>
+                    </div>
+                    <div class="category-meta">برای مشاهده آیتم‌ها کلیک کنید</div>
+                </summary>
+
+                <div class="category-body">
+                    {% if category.description %}
+                        <p style="color:#64748b;margin-top:0;">{{ category.description }}</p>
+                    {% endif %}
+
+                    <div class="category-actions">
+                        <a href="/{{ company.code }}/admin/base-data/categories/{{ category.id }}/edit/" class="btn btn-sm btn-outline">ویرایش رسته</a>
+                        <a href="/{{ company.code }}/admin/base-data/items/create/?category_id={{ category.id }}" class="btn btn-sm btn-primary">+ آیتم سفارش</a>
+
+                        <form method="post" action="/{{ company.code }}/admin/base-data/categories/{{ category.id }}/toggle-active/" style="display:inline;">{% csrf_token %}
+                            {% if category.is_active %}
+                                <input type="hidden" name="action" value="deactivate">
+                                <button type="submit" class="btn btn-sm btn-outline">غیرفعال</button>
+                            {% else %}
+                                <input type="hidden" name="action" value="activate">
+                                <button type="submit" class="btn btn-sm btn-outline">فعال‌سازی</button>
+                            {% endif %}
+                        </form>
+
+                        <a href="/{{ company.code }}/admin/base-data/categories/{{ category.id }}/delete/" class="btn btn-sm btn-danger">حذف</a>
+                    </div>
+
+                    <div class="card-header" style="padding-right:0;padding-left:0;">آیتم‌های سفارش این رسته</div>
+
+                    {% if items %}
+                        <div class="item-tree-list">
+                            {% for item in items %}
+                            <div class="item-row-tree">
+                                <div>
+                                    <div class="item-title">{{ item.title }}</div>
+                                    <div class="item-muted">ترتیب: {{ item.sort_order }}</div>
+                                </div>
+
+                                <div>
+                                    {% if item.kind == 'number' %}عدد / تعداد
+                                    {% elif item.kind == 'money' %}مبلغ
+                                    {% elif item.kind == 'text' %}متن
+                                    {% elif item.kind == 'bool' %}بله/خیر
+                                    {% else %}{{ item.get_kind_display }}{% endif %}
+                                </div>
+
+                                <div>
+                                    {% if item.is_active %}
+                                        <span class="badge badge-done">فعال</span>
+                                    {% else %}
+                                        <span class="badge badge-cancelled">غیرفعال</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="inline-actions">
+                                    <a href="/{{ company.code }}/admin/base-data/items/{{ item.id }}/edit/" class="btn btn-sm btn-outline">ویرایش</a>
+                                    <a href="/{{ company.code }}/admin/base-data/items/{{ item.id }}/delete/" class="btn btn-sm btn-outline">غیرفعال‌سازی</a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-items">
+                            برای این رسته هنوز آیتم سفارش تعریف نشده است.
+                            <div style="margin-top:.75rem;">
+                                <a href="/{{ company.code }}/admin/base-data/items/create/?category_id={{ category.id }}" class="btn btn-sm btn-outline">اولین آیتم را بساز</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </details>
+            {% endwith %}
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card">
+        <p style="color:#64748b;">هنوز رسته‌ای تعریف نشده است.</p>
+        <a href="/{{ company.code }}/admin/base-data/categories/create/" class="btn btn-primary">+ ساخت اولین رسته</a>
+    </div>
+{% endif %}
+
+<script>
+(function () {
+    const tree = document.getElementById("categoryTree");
+    if (!tree) return;
+
+    const nodes = Array.from(tree.querySelectorAll("details.category-node"));
+    const openAll = document.getElementById("openAllCategories");
+    const closeAll = document.getElementById("closeAllCategories");
+
+    nodes.forEach((node) => {
+        node.addEventListener("toggle", function () {
+            if (!node.open) return;
+            if (tree.dataset.bulk === "1") return;
+
+            nodes.forEach((other) => {
+                if (other !== node) {
+                    other.open = false;
+                }
+            });
+        });
+    });
+
+    if (openAll) {
+        openAll.addEventListener("click", function () {
+            tree.dataset.bulk = "1";
+            nodes.forEach((node) => { node.open = true; });
+            window.setTimeout(() => { tree.dataset.bulk = "0"; }, 0);
+        });
+    }
+
+    if (closeAll) {
+        closeAll.addEventListener("click", function () {
+            tree.dataset.bulk = "1";
+            nodes.forEach((node) => { node.open = false; });
+            window.setTimeout(() => { tree.dataset.bulk = "0"; }, 0);
+        });
+    }
+})();
+</script>
+{% endblock %}

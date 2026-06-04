@@ -1,0 +1,25 @@
+{% load fa_labels %}
+<div class="space-y-3">
+  {% if notifications %}
+    {% for n in notifications %}
+      <div class="bg-white border {% if not n.is_read %}border-brand-200 bg-brand-50/30{% else %}border-gray-100{% endif %} rounded-2xl p-4 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+          <div class="min-w-0">
+            <div class="font-bold text-gray-900">{{ n.title }}</div>
+            <div class="text-sm text-gray-600 mt-1 leading-7">{{ n.message }}</div>
+          </div>
+          <div class="md:text-left shrink-0">
+            <div class="text-xs text-gray-500">{{ n.created_at|jalali_datetime }}</div>
+            {% if not n.is_read %}
+              <a href="{{ notification_base }}{{ n.id }}/read/" class="inline-flex mt-2 px-3 py-1.5 rounded-lg border bg-white text-xs font-medium hover:bg-gray-50">خوانده شد</a>
+            {% else %}
+              <span class="inline-flex mt-2 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-xs">خوانده شده</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="bg-white border border-gray-100 rounded-2xl p-6 text-gray-500">اعلانی وجود ندارد.</div>
+  {% endif %}
+</div>

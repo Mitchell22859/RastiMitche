@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}درخواست ثبت شد - {{ company.name }}{% endblock %}
+
+{% block body %}
+<div class="page-center">
+    <div class="login-box" style="text-align: center; max-width: 450px;">
+        <h1 style="color: #16a34a;">درخواست با موفقیت ثبت شد</h1>
+        <p style="margin: 1rem 0;">{{ service_request.customer_name }} عزیز، درخواست شما ثبت شد.</p>
+
+        {% if order %}
+        <div class="card" style="margin: 1.5rem 0; text-align: center;">
+            <p style="color: #64748b; font-size: 0.85rem;">شماره پیگیری سفارش:</p>
+            <p style="font-size: 1.5rem; font-weight: 700; color: #2563eb;">#{{ order.id }}</p>
+        </div>
+        {% endif %}
+
+        <p style="color: #64748b;">به‌زودی با شماره {{ service_request.customer_phone }} تماس خواهیم گرفت.</p>
+
+        <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/{{ company.code }}/" class="btn btn-outline">صفحه اصلی</a>
+            <a href="/{{ company.code }}/request/status/" class="btn btn-primary">پیگیری وضعیت</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

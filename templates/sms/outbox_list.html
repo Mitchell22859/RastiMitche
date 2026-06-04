@@ -1,0 +1,67 @@
+{% extends "base_dashboard.html" %}
+{% load jalali_tags  fa_labels %}
+
+{% block title %}صندوق پیامک - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>صندوق پیامک</h1></div>
+
+
+{% if messages %}
+<div class="card">
+    <div class="table-wrapper"><table>
+        <thead><tr><th>شماره</th><th>وضعیت</th><th>پیام</th><th>تاریخ</th></tr></thead>
+        <tbody>{% for msg in messages %}
+        <tr>
+            <td>{{ msg.phone_number }}</td>
+            <td><span class="badge badge-{{ msg.status|status_css }}">{{ msg.status|status_fa }}</span></td>
+            <td>{{ msg.message|truncatewords:10 }}</td>
+            <td>{{ msg.created_at|jalali_datetime }}</td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+</div>
+{% else %}
+<div class="card"><p style="color:#64748b;">پیامکی ارسال نشده.</p></div>
+{% endif %}
+
+<!-- discount_outbox_display_amount_format_7c4 -->
+
+<script>
+(function () {
+    function normalizeDigits(value) {
+        value = (value || "").toString();
+        var fa = "۰۱۲۳۴۵۶۷۸۹";
+        var ar = "٠١٢٣٤٥٦٧٨٩";
+        for (var i = 0; i < 10; i++) {
+            value = value.replaceAll(fa[i], String(i)).replaceAll(ar[i], String(i));
+        }
+        return value;
+    }
+
+    function comma(n) {
+        n = normalizeDigits(n).replace(/[^\d]/g, "");
+        if (!n) return n;
+        return n.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function fixTextNode(node) {
+        var text = node.nodeValue || "";
+        var next = text.replace(/تا سقف\s+([0-9۰-۹٠-٩]{4,})\s+ریال/g, function (_, num) {
+            return "تا سقف " + comma(num) + " ریال";
+        });
+        if (next !== text) node.nodeValue = next;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(fixTextNode);
+    });
+})();
+</script>
+
+{% endblock %}

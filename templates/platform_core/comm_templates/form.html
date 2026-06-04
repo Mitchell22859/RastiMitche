@@ -1,0 +1,147 @@
+{% extends "layouts/dashboard.html" %}
+
+{% load fa_labels %}
+{% block title %}{% if is_edit %}ویرایش{% else %}ایجاد{% endif %} قالب پیام - پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}{% if is_edit %}ویرایش قالب پیام{% else %}قالب پیام جدید{% endif %}{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    {% if errors %}
+    <div class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+        <div class="flex items-center gap-2 mb-1">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="font-medium">خطا در فرم:</span>
+        </div>
+        <ul class="list-disc list-inside mr-5">
+        {% for field, msg in errors.items %}
+            <li>{{ msg }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label for="id_event_key" class="block text-sm font-medium text-gray-700 mb-1.5">رویداد</label>
+                    <select name="event_key" id="id_event_key" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth">
+                        <option value="">انتخاب کنید</option>
+                        {% for value, label in event_key_choices %}
+                        <option value="{{ value }}" {% if form_data.event_key == value %}selected{% endif %}>{{ value|status_fa }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="id_channel" class="block text-sm font-medium text-gray-700 mb-1.5">کانال</label>
+                    <select name="channel" id="id_channel" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth">
+                        <option value="">انتخاب کنید</option>
+                        {% for value, label in channel_choices %}
+                        <option value="{{ value }}" {% if form_data.channel == value %}selected{% endif %}>{{ value|status_fa }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="id_recipient_type" class="block text-sm font-medium text-gray-700 mb-1.5">نوع گیرنده</label>
+                    <select name="recipient_type" id="id_recipient_type" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth">
+                        <option value="">انتخاب کنید</option>
+                        {% for value, label in recipient_type_choices %}
+                        <option value="{{ value }}" {% if form_data.recipient_type == value %}selected{% endif %}>{{ value|status_fa }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label for="id_title_template" class="block text-sm font-medium text-gray-700 mb-1.5">عنوان قالب</label>
+                <input type="text" name="title_template" id="id_title_template"
+                       class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth"
+                       value="{{ form_data.title_template|default:'' }}"
+                       placeholder="مثال: سفارش {{ order_id }} ایجاد شد">
+            </div>
+
+            <div>
+                <label for="id_body_template" class="block text-sm font-medium text-gray-700 mb-1.5">متن قالب</label>
+                <textarea name="body_template" id="id_body_template" rows="5"
+                          class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth resize-y"
+                          placeholder="متن پیام با استفاده از متغیرها...">{{ form_data.body_template|default:'' }}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="id_action_label" class="block text-sm font-medium text-gray-700 mb-1.5">متن دکمه (اختیاری)</label>
+                    <input type="text" name="action_label" id="id_action_label"
+                           class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth"
+                           value="{{ form_data.action_label|default:'' }}"
+                           placeholder="مشاهده سفارش">
+                </div>
+                <div>
+                    <label for="id_action_url_template" class="block text-sm font-medium text-gray-700 mb-1.5">آدرس لینک (اختیاری)</label>
+                    <input type="text" name="action_url_template" id="id_action_url_template" dir="ltr"
+                           class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth"
+                           value="{{ form_data.action_url_template|default:'' }}"
+                           placeholder="/admin/orders/{{ order_id }}/">
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 pt-4">
+                <p class="text-xs font-medium text-gray-500 mb-3">تنظیمات</p>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 text-sm text-gray-700">
+                        <input type="checkbox" name="is_active" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                               {% if form_data.is_active == True or form_data.is_active == "on" or not is_edit and not errors %}checked{% endif %}>
+                        <span>فعال</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm text-gray-700">
+                        <input type="checkbox" name="is_required" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                               {% if form_data.is_required == True or form_data.is_required == "on" %}checked{% endif %}>
+                        <span>اجباری (غیرقابل غیرفعال‌سازی توسط شرکت)</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm text-gray-700">
+                        <input type="checkbox" name="allow_company_toggle" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                               {% if form_data.allow_company_toggle == True or form_data.allow_company_toggle == "on" or not is_edit and not errors %}checked{% endif %}>
+                        <span>قابل تنظیم توسط شرکت</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 pt-4">
+                <p class="text-xs text-gray-400 mb-2">متغیرهای مجاز:</p>
+                <div class="flex flex-wrap gap-1.5">
+                    <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600">company_name</code>
+                    <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600">company_code</code>
+                    <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600">operator_name</code>
+                    <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600">technician_name</code>
+                    <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600">order_id</code>
+                    <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600">order_status</code>
+                    <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600">invoice_id</code>
+                    <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600">invoice_amount</code>
+                    <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600">payment_status</code>
+                    <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600">sms_balance</code>
+                    <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600">sms_remaining_count</code>
+                    <code class="px-1.5 py-0.5 bg-gray-100 rounded text-xs text-gray-600">tracking_code</code>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">فرمت استفاده: <code class="bg-gray-100 px-1 rounded">{% templatetag openvariable %} variable_name {% templatetag closevariable %}</code></p>
+            </div>
+
+            <div class="flex items-center gap-3 pt-2">
+                <button type="submit"
+                        class="px-5 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl hover:bg-brand-700 transition-smooth">
+                    {% if is_edit %}ذخیره تغییرات{% else %}ایجاد قالب{% endif %}
+                </button>
+                <a href="/owner-platform/communication-templates/" class="text-sm text-gray-500 hover:text-gray-700">انصراف</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

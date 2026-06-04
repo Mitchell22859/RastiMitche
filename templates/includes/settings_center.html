@@ -1,0 +1,14 @@
+<div class="card settings-center-card" style="margin-bottom:1rem;">
+    <div class="card-header">مرکز تنظیمات</div>
+    <p style="color:#64748b;margin-top:0;">
+        تنظیمات پیامک، نوتیفیکیشن و قوانین عملیاتی شرکت از این بخش در دسترس هستند.
+    </p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem;">
+        <a class="btn btn-outline" href="/{{ company.code }}/admin/settings/">تنظیمات سایت</a>
+        <a class="btn btn-outline" href="/{{ company.code }}/admin/sms/templates/">تنظیمات پیامک و قالب‌ها</a>
+        <a class="btn btn-outline" href="/{{ company.code }}/admin/sms/diagnostics/">تشخیص و تست پیامک</a>
+        <a class="btn btn-outline" href="/{{ company.code }}/admin/settings/notifications/">تنظیمات نوتیفیکیشن</a>
+            <a class="btn btn-outline" href="/{{ company.code }}/admin/settings/operators/">مدیریت اپراتورها و دسترسی‌ها</a>
+    </div>
+</div>

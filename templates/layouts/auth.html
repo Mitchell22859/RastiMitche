@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="min-h-screen flex">
+    {# Left Panel - Branding (hidden on mobile) #}
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 items-center justify-center relative overflow-hidden">
+        {# Background Pattern #}
+        <div class="absolute inset-0 opacity-10">
+            <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/>
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid)"/>
+            </svg>
+        </div>
+
+        <div class="relative z-10 text-center px-8 max-w-md">
+            <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center">
+                <svg class="w-10 h-10 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-extrabold text-white mb-3">{% block brand_title %}رستی سرویس{% endblock %}</h1>
+            <p class="text-slate-300 text-base leading-relaxed">{% block brand_description %}سامانه هوشمند مدیریت خدمات و سفارشات{% endblock %}</p>
+
+            <div class="mt-10 grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <div class="text-2xl font-bold text-brand-400">+۱۰۰</div>
+                    <div class="text-xs text-slate-400 mt-1">شرکت فعال</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-emerald-400">+۵K</div>
+                    <div class="text-xs text-slate-400 mt-1">سفارش ماهانه</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-amber-400">۹۹٪</div>
+                    <div class="text-xs text-slate-400 mt-1">رضایت مشتری</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Right Panel - Login Form #}
+    <div class="flex-1 flex items-center justify-center p-6 bg-gray-50">
+        <div class="w-full max-w-sm">
+            {# Mobile Brand #}
+            <div class="lg:hidden text-center mb-8">
+                <div class="w-14 h-14 mx-auto mb-4 rounded-xl bg-brand-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <h1 class="text-xl font-bold text-gray-800">{% block mobile_brand %}رستی سرویس{% endblock %}</h1>
+            </div>
+
+            {% block auth_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers %}
+
+{% block title %}سفارش جدید - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/orders/" class="active">سفارش‌ها</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>سفارش جدید</h1></div>
+
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+
+<div class="card" style="max-width: 600px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>مشتری</label>
+            <select name="customer_id" class="form-control" required>
+                <option value="">-- انتخاب مشتری --</option>
+                {% for c in customers %}
+                <option value="{{ c.id }}">{{ c.first_name }} {{ c.last_name }} ({{ c.phone }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group"><label>عنوان</label>{{ form.title }}</div>
+        <div class="form-group"><label>توضیحات</label>{{ form.description }}</div>
+        <div class="form-group"><label>آدرس</label>{{ form.address }}</div>
+        <div class="form-group"><label>اولویت</label>{{ form.priority }}</div>
+        <div class="form-group"><label>قیمت تخمینی</label>{{ form.price_estimate|smart_number }}</div>
+        <div class="form-group"><label>مهارت مورد نیاز</label>{{ form.required_skill }}</div>
+        <button type="submit" class="btn btn-primary">ایجاد سفارش</button>
+    </form>
+</div>
+{% endblock %}

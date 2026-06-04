@@ -1,0 +1,76 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}پیام جدید - پنل پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}ارسال پیام جدید{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-lg">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">نوع گیرنده</label>
+                <select name="recipient_type" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth">
+                    <option value="COMPANY" {% if form_data.recipient_type == "COMPANY" %}selected{% endif %}>شرکت</option>
+                    <option value="COMPANY_ADMIN" {% if form_data.recipient_type == "COMPANY_ADMIN" %}selected{% endif %}>مدیر شرکت</option>
+                    <option value="TECHNICIAN" {% if form_data.recipient_type == "TECHNICIAN" %}selected{% endif %}>تکنسین</option>
+                    <option value="CUSTOMER" {% if form_data.recipient_type == "CUSTOMER" %}selected{% endif %}>مشتری</option>
+                    <option value="CUSTOM" {% if form_data.recipient_type == "CUSTOM" %}selected{% endif %}>سفارشی</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">شرکت گیرنده (اختیاری)</label>
+                <select name="recipient_company" class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth">
+                    <option value="">-- انتخاب شرکت --</option>
+                    {% for company in companies %}
+                    <option value="{{ company.id }}" {% if form_data.recipient_company == company.id|stringformat:"d" %}selected{% endif %}>{{ company.name }} ({{ company.code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">عنوان پیام <span class="text-red-500">*</span></label>
+                <input type="text" name="subject" value="{{ form_data.subject|default:'' }}"
+                       class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth"
+                       placeholder="عنوان پیام">
+                {% if errors.subject %}<p class="text-xs text-red-600 mt-1">{{ errors.subject }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">متن پیام <span class="text-red-500">*</span></label>
+                <textarea name="body" rows="6"
+                          class="block w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-smooth resize-y"
+                          placeholder="متن پیام خود را بنویسید...">{{ form_data.body|default:'' }}</textarea>
+                {% if errors.body %}<p class="text-xs text-red-600 mt-1">{{ errors.body }}</p>{% endif %}
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-3 text-xs text-gray-500">
+                <strong>کانال ارسال:</strong> داخلی (پیام فقط در سیستم ذخیره می‌شود)
+                <br><span class="text-gray-400">ارسال از طریق پیامک و ایمیل در نسخه‌های آینده فعال خواهد شد.</span>
+            </div>
+
+            <div class="flex items-center gap-3 pt-2">
+                <button type="submit" name="action" value="send"
+                        class="px-5 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-xl hover:bg-brand-700 transition-smooth">
+                    ارسال پیام
+                </button>
+                <button type="submit" name="action" value="draft"
+                        class="px-5 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition-smooth">
+                    ذخیره پیش‌نویس
+                </button>
+                <a href="/owner-platform/messages/outbox/" class="text-sm text-gray-500 hover:text-gray-700">انصراف</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

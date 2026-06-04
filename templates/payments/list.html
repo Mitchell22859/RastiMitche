@@ -1,0 +1,33 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers  fa_labels %}
+
+{% block title %}پرداخت‌ها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/invoices/">فاکتورها</a></li>
+<li><a href="/{{ company.code }}/payments/" class="active">پرداخت‌ها</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>پرداخت‌ها</h1></div>
+
+{% if payments %}
+<div class="card">
+    <div class="table-wrapper"><table>
+        <thead><tr><th>#</th><th>مبلغ</th><th>وضعیت</th><th>کد پیگیری</th><th>تاریخ</th></tr></thead>
+        <tbody>{% for p in payments %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.amount|smart_number }} ریال</td>
+            <td><span class="badge badge-{{ p.status|status_css }}">{{ p.status|status_fa }}</span></td>
+            <td>{{ p.tracking_code|default:"-" }}</td>
+            <td>{{ p.created_at|jalali_date }}</td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+</div>
+{% else %}
+<div class="card"><p style="color:#64748b;">پرداختی یافت نشد.</p></div>
+{% endif %}
+{% endblock %}

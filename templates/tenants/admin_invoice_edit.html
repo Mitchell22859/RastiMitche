@@ -1,0 +1,72 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers %}
+{% block title %}ویرایش فاکتور {{ invoice.invoice_number }} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>ویرایش فاکتور {{ invoice.invoice_number }}</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+<style>
+.readonly-value { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:0.65rem 0.75rem; min-height:42px; color:#334155; }
+.readonly-value.multi-line { white-space:pre-wrap; min-height:58px; }
+</style>
+
+
+{% if invoice.status != "draft" %}
+<div class="alert alert-error">فقط فاکتور پیش‌نویس قابل ویرایش است.</div>
+<p><a href="/{{ company.code }}/admin/invoices/{{ invoice.id }}/">بازگشت به فاکتور</a></p>
+{% else %}
+<form method="post">{% csrf_token %}
+<div class="card"><div class="card-header">اطلاعات فاکتور</div>
+<p style="color:#64748b; margin-top:0;">این اطلاعات از سفارش کپی شده و برای حفظ اعتبار فاکتور قابل تغییر نیست. فقط آیتم‌ها و جمع‌بندی مالی از همین صفحه ویرایش می‌شوند.</p>
+<div class="form-grid readonly-grid">
+<div class="form-group"><label>نام مشتری</label><div class="readonly-value">{{ invoice.customer_name_snapshot|default:"-" }}</div></div>
+<div class="form-group"><label>شماره تماس مشتری</label><div class="readonly-value">{{ invoice.customer_phone_snapshot|default:"-" }}</div></div>
+<div class="form-group"><label>نام نیروی خدماتی</label><div class="readonly-value">{{ invoice.technician_name_snapshot|default:"-" }}</div></div>
+<div class="form-group"><label>شماره تماس نیرو</label><div class="readonly-value">{{ invoice.technician_phone_snapshot|default:"-" }}</div></div>
+<div class="form-group"><label>عنوان خدمت</label><div class="readonly-value">{{ invoice.service_title_snapshot|default:"-" }}</div></div>
+</div>
+<div class="form-group"><label>آدرس</label><div class="readonly-value multi-line">{{ invoice.address_snapshot|default:"-" }}</div></div>
+<div class="form-group"><label>یادداشت</label><div class="readonly-value multi-line">{{ invoice.notes|default:"-" }}</div></div>
+<div class="form-group"><label>متن پایین فاکتور</label><div class="readonly-value multi-line">{{ invoice.footer_text|default:"-" }}</div></div>
+</div>
+
+<div class="card"><div class="card-header">آیتم‌های فاکتور</div>
+<p style="color:#64748b;">ردیف‌های خالی ذخیره نمی‌شوند. قیمت‌ها اینجا وارد می‌شوند، نه در فرم سفارش.</p>
+<div class="table-wrapper"><table>
+<thead><tr><th>شرح</th><th style="width:100px;">تعداد</th><th style="width:140px;">قیمت واحد</th><th style="width:140px;">تخفیف ردیف</th></tr></thead>
+<tbody>
+{% for item in items %}
+<tr>
+<td><input name="item_description" class="form-control" value="{{ item.description }}"></td>
+<td><input name="item_quantity" class="form-control" type="number" step="0.01" value="{{ item.quantity|smart_number }}"></td>
+<td><input name="item_unit_price" class="form-control" type="number" step="1" value="{{ item.unit_price|smart_number }}"></td>
+<td><input name="item_discount_amount" class="form-control" type="number" step="1" value="{{ item.discount_amount|smart_number }}"></td>
+</tr>
+{% endfor %}
+{% for _ in blank_rows %}
+<tr>
+<td><input name="item_description" class="form-control" placeholder="مثلاً اجرت نصب پکیج"></td>
+<td><input name="item_quantity" class="form-control" type="number" step="0.01" value="1"></td>
+<td><input name="item_unit_price" class="form-control" type="number" step="1" value="0"></td>
+<td><input name="item_discount_amount" class="form-control" type="number" step="1" value="0"></td>
+</tr>
+{% endfor %}
+</tbody>
+</table></div>
+</div>
+
+<div class="card"><div class="card-header">جمع‌بندی</div>
+<div class="form-grid">
+<div class="form-group"><label>مالیات / افزوده</label><input name="tax_amount" class="form-control" type="number" value="{{ invoice.tax_amount|smart_number }}" step="1"></div>
+<div class="form-group"><label>تخفیف کل فاکتور</label><input name="discount_amount" class="form-control" type="number" value="{{ invoice.discount_amount|smart_number }}" step="1"></div>
+</div>
+</div>
+
+<button class="btn btn-primary" type="submit">ذخیره فاکتور</button>
+<a href="/{{ company.code }}/admin/invoices/{{ invoice.id }}/" class="btn btn-outline">انصراف</a>
+</form>
+{% endif %}
+{% endblock %}

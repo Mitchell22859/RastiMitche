@@ -1,0 +1,36 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers %}
+{% block title %}حذف رسته خدمات - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>حذف رسته خدمات</h1>
+</div>
+
+<div class="card" style="max-width:760px;">
+    <h2 style="margin-top:0;">رسته «{{ category.title }}» واقعاً حذف شود؟</h2>
+
+    <div class="alert" style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;">
+        این عملیات با «غیرفعال‌سازی» فرق دارد. با حذف رسته، خود رسته و آیتم‌های سفارش زیرمجموعه آن حذف می‌شوند.
+    </div>
+
+    <ul style="line-height:2;">
+        <li>تعداد آیتم‌های سفارش زیرمجموعه: <strong>{{ item_count }}</strong></li>
+        <li>تعداد زیررسته‌ها: <strong>{{ subcategory_count }}</strong></li>
+        <li>تعداد سفارش‌هایی که قبلاً با این رسته ثبت شده‌اند: <strong>{{ order_count|smart_number }}</strong></li>
+    </ul>
+
+    <p style="color:#64748b;">
+        اگر فقط نمی‌خواهید این رسته در سفارش‌های جدید دیده شود، از دکمه «غیرفعال» در لیست رسته‌ها استفاده کنید.
+        اگر مطمئن هستید باید از دیتابیس حذف شود، دکمه قرمز زیر را بزنید.
+    </p>
+
+    <form method="post" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">{% csrf_token %}
+        <button class="btn btn-danger" type="submit">بله، حذف واقعی انجام شود</button>
+        <a class="btn btn-outline" href="/{{ company.code }}/admin/base-data/categories/">انصراف</a>
+    </form>
+</div>
+{% endblock %}

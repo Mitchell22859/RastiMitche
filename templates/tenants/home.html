@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load smart_numbers %}
+
+{% block title %}{{ page.title|default:company.name }}{% endblock %}
+
+{% block body %}
+<div class="page-full" style="max-width: 900px; margin: 0 auto;">
+
+    {% if page.hero_image %}
+    <div class="public-hero" style="background-image: url('{{ page.hero_image.url }}'); background-size: cover; background-position: center;">
+        {% if page.logo %}<img src="{{ page.logo.url }}" alt="{{ company.name }}" style="max-height: 80px; margin-bottom: 1rem; border-radius: 8px;">{% endif %}
+        <h1>{{ page.title|default:company.name }}</h1>
+        {% if page.intro_text %}<p>{{ page.intro_text }}</p>{% endif %}
+    </div>
+    {% else %}
+    <div class="public-hero">
+        {% if page.logo %}<img src="{{ page.logo.url }}" alt="{{ company.name }}" style="max-height: 80px; margin-bottom: 1rem; border-radius: 8px;">{% endif %}
+        <h1>{{ page.title|default:company.name }}</h1>
+        {% if page.intro_text %}<p>{{ page.intro_text }}</p>{% endif %}
+    </div>
+    {% endif %}
+
+    {% if services %}
+    <h2 style="margin-bottom: 1rem; color: #1e293b;">خدمات ما</h2>
+    <div class="service-grid">
+        {% for svc in services %}
+        <div class="service-card">
+            <h3>{{ svc.title }}</h3>
+            {% if svc.description %}<p>{{ svc.description }}</p>{% endif %}
+            {% if svc.base_price %}<div class="price">{{ svc.base_price|smart_number }} ریال</div>{% endif %}
+            <a href="/{{ company.code }}/request/?service={{ svc.id }}" class="btn btn-sm btn-primary" style="margin-top: 0.75rem;">درخواست</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if page.is_request_form_enabled %}
+    <div style="text-align: center; margin: 2rem 0;">
+        <a href="/{{ company.code }}/request/" class="btn btn-primary" style="padding: 0.8rem 2.5rem; font-size: 1rem;">درخواست خدمات</a>
+    </div>
+    {% endif %}
+
+    {% if gallery %}
+    <h2 style="margin-bottom: 1rem; color: #1e293b;">گالری</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        {% for img in gallery %}
+        <div class="card" style="padding: 0; overflow: hidden;">
+            {% if img.image %}
+            <img src="{{ img.image.url }}" alt="{{ img.caption|default:'تصویر' }}" style="width: 100%; height: 160px; object-fit: cover;">
+            {% endif %}
+            {% if img.caption %}<p style="padding: 0.5rem 0.75rem; font-size: 0.85rem; color: #475569;">{{ img.caption }}</p>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if page.contact_phone or page.contact_email or page.address %}
+    <div class="card">
+        <div class="card-header">اطلاعات تماس</div>
+        {% if page.contact_phone %}<p>تلفن: {{ page.contact_phone }}</p>{% endif %}
+        {% if page.contact_email %}<p>ایمیل: {{ page.contact_email }}</p>{% endif %}
+        {% if page.address %}<p>آدرس: {{ page.address }}</p>{% endif %}
+        {% if page.working_hours %}<p>ساعات کاری: {{ page.working_hours }}</p>{% endif %}
+    </div>
+    {% endif %}
+
+    <div style="text-align: center; padding: 2rem 0; color: #94a3b8; font-size: 0.8rem;">
+        <a href="/{{ company.code }}/login/" style="color: #64748b;">ورود کارکنان</a>
+    </div>
+</div>
+{% endblock %}

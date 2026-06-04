@@ -1,0 +1,62 @@
+{% extends "layouts/dashboard.html" %}
+
+{% load fa_labels %}
+{% block title %}صندوق ورودی - پیام‌ها{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}صندوق ورودی{% endblock %}
+{% block page_description %}پیام‌های دریافتی{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block navbar_actions %}
+<a href="/owner-platform/messages/create/"
+   class="inline-flex items-center gap-2 px-3 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-smooth">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    پیام جدید
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-3 mb-4">
+    <a href="/owner-platform/messages/inbox/" class="text-sm font-semibold text-brand-600 border-b-2 border-brand-600 pb-1">ورودی</a>
+    <a href="/owner-platform/messages/outbox/" class="text-sm font-medium text-gray-500 hover:text-gray-700 pb-1">ارسالی</a>
+</div>
+
+{% if messages %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full data-table">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">فرستنده</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">عنوان</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">وضعیت</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">تاریخ</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for msg in messages %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-5 py-3 text-sm text-gray-700">{{ msg.sender.get_full_name|default:"سیستم" }}</td>
+                    <td class="px-5 py-3">
+                        <a href="/owner-platform/messages/{{ msg.id }}/" class="text-sm font-medium text-brand-600 hover:text-brand-700">{{ msg.subject }}</a>
+                    </td>
+                    <td class="px-5 py-3">
+                        {% include "includes/components/badge.html" with status=msg.status label=msg.get_status_display %}
+                    </td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ msg.created_at|jalali_datetime }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+{% include "includes/components/empty_state.html" with title="پیامی در صندوق ورودی نیست" description="هنوز پیامی دریافت نکرده‌اید." icon="bell" %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "layouts/dashboard.html" %}
+
+{% load fa_labels %}
+{% block title %}شرکت‌ها - پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}مدیریت شرکت‌ها{% endblock %}
+{% block page_description %}لیست تمام شرکت‌های ثبت‌شده{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block navbar_actions %}
+<a href="/owner-platform/companies/create/"
+   class="inline-flex items-center gap-2 px-3 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-smooth">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    <span class="hidden sm:inline">شرکت جدید</span>
+</a>
+{% endblock %}
+
+{% block content %}
+{% if companies %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full data-table">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">نام</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">کد</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">وضعیت</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">تلفن</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">تاریخ</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">عملیات</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for c in companies %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ c.name }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500 font-mono">{{ c.code }}</td>
+                    <td class="px-5 py-3">
+                        {% if c.is_active %}
+                        {% include "includes/components/badge.html" with status="active" label="فعال" %}
+                        {% else %}
+                        {% include "includes/components/badge.html" with status="inactive" label="غیرفعال" %}
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ c.phone|default:"-" }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ c.created_at|jalali_date }}</td>
+                    <td class="px-5 py-3">
+                        <a href="/owner-platform/companies/{{ c.id }}/" class="text-sm text-brand-600 hover:text-brand-700 font-medium">جزئیات</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm">
+    {% include "includes/components/empty_state.html" with title="شرکتی ثبت نشده" description="اولین شرکت را ایجاد کنید." icon="company" action_url="/owner-platform/companies/create/" action_label="شرکت جدید" %}
+</div>
+{% endif %}
+{% endblock %}

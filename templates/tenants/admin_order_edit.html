@@ -1,0 +1,102 @@
+{% extends "base_dashboard.html" %}
+{% load fa_labels %}
+{% block title %}ویرایش سفارش #{{ order.id }} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>ویرایش سفارش #{{ order.id }}</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+
+<div class="card" style="max-width:760px;"><form method="post">{% csrf_token %}
+
+<div class="form-group"><label>رسته خدمات *</label>
+<select name="service_category_id" class="form-control" id="categorySelect" onchange="updateDynamicItems(existingItemValues);" required>
+<option value="">-- انتخاب رسته خدمات --</option>
+{% for cat in categories %}<option value="{{ cat.id }}" {% if order.service_category_id == cat.id %}selected{% endif %}>{{ cat.title }}</option>{% endfor %}
+</select>
+<small style="color:#64748b;">با تغییر رسته، آیتم‌های همان رسته نمایش داده می‌شود.</small>
+</div>
+
+<div class="form-group"><label>تاریخ انجام سفارش *</label>
+<input name="service_date_jalali" value="{{ service_date_jalali }}" class="form-control" placeholder="مثلاً 1405/03/04" required>
+<small style="color:#64748b;">تاریخ را شمسی وارد کنید؛ مثال: 1405/03/04</small>
+</div>
+
+<h3 style="margin:1.5rem 0 1rem;color:#475569;">اطلاعات مشتری</h3>
+<div class="form-group"><label>نام مشتری *</label><input name="customer_name" value="{{ order.display_customer_name }}" class="form-control" required></div>
+<div class="form-group"><label>شماره تماس مشتری *</label><input name="customer_phone" value="{{ order.display_customer_phone }}" class="form-control" required></div>
+<div class="form-group"><label>آدرس مشتری *</label><textarea name="address" class="form-control" rows="2" required>{{ order.address }}</textarea></div>
+
+<div id="dynamicItemsContainer" style="display:none;">
+<h3 style="margin:1.5rem 0 1rem;color:#475569;">🧾 آیتم‌های سفارش</h3>
+<p style="color:#64748b;margin-top:-0.5rem;">همه آیتم‌های رسته انتخاب‌شده اینجا نمایش داده می‌شود؛ مثلاً رادیاتور = ۵، پکیج ایران = ۱۲.</p>
+<div id="dynamicItemsFields"></div>
+</div>
+
+<h3 style="margin:1.5rem 0 1rem;color:#475569;">جزئیات سفارش</h3>
+<div class="form-group"><label>توضیحات</label><textarea name="description" class="form-control" rows="3">{{ order.description }}</textarea></div>
+<div class="form-group"><label>پرداخت مازاد</label><input type="number" name="extra_payment" value="{{ order.extra_payment }}" class="form-control" step="1"></div>
+<div class="form-group"><label>کسر از دستمزد</label><input type="number" name="wage_deduction" value="{{ order.wage_deduction }}" class="form-control" step="1"></div>
+
+<h3 style="margin:1.5rem 0 1rem;color:#475569;">نیروی خدماتی و وضعیت</h3>
+<div class="form-group"><label>نیروی خدماتی <span style="color:#64748b;font-weight:400;">(اختیاری)</span></label>
+<select name="technician_id" class="form-control">
+<option value="">-- بدون تغییر / بدون تخصیص --</option>
+{% for t in technicians %}<option value="{{ t.id }}" {% if order.technician_id == t.id %}selected{% endif %}>{{ t.user.get_full_name|default:t.user.phone }}</option>{% endfor %}
+</select>
+<small style="color:#64748b;">اگر ادمین نیرو را تخصیص دهد، سفارش همان لحظه به «در انتظار خدمت» می‌رود و اعلان‌های تخصیص اجرا می‌شود.</small>
+</div>
+
+<div class="form-group"><label>وضعیت</label>
+<select name="status" class="form-control">
+{% for val, label in statuses %}<option value="{{ val }}" {% if order.status == val %}selected{% endif %}>{{ val|status_fa }}</option>{% endfor %}
+</select></div>
+
+<div class="form-group"><label>یادداشت داخلی</label><textarea name="internal_note" class="form-control" rows="2">{{ order.internal_note }}</textarea></div>
+
+<button type="submit" class="btn btn-primary">ذخیره و خروج</button>
+<a href="/{{ company.code }}/admin/orders/{{ order.id }}/" class="btn btn-outline" style="margin-right:0.5rem;">انصراف</a>
+</form></div>
+
+<script>
+var allItemDefinitions = {{ item_definitions_json|safe }};
+var existingItemValues = {{ existing_item_values_json|safe }};
+
+function buildItemInput(item, existingValues) {
+    var div = document.createElement('div'); div.className = 'form-group';
+    var label = document.createElement('label'); label.textContent = item.title + (item.kind === 'number' ? ' / تعداد' : (item.kind === 'money' ? ' / مبلغ' : '')); div.appendChild(label);
+    var existVal = existingValues ? existingValues[item.id] : undefined;
+    if (item.kind === 'number' || item.kind === 'money') {
+        var input = document.createElement('input'); input.type = 'number'; input.name = 'item_' + item.id; input.className = 'form-control'; input.step = item.kind === 'money' ? '1' : 'any'; input.placeholder = '0';
+        if (existVal !== undefined && existVal !== '') input.value = existVal; div.appendChild(input);
+    } else if (item.kind === 'text') {
+        var textarea = document.createElement('textarea'); textarea.name = 'item_' + item.id; textarea.className = 'form-control'; textarea.rows = 2;
+        if (existVal !== undefined && existVal !== '') textarea.value = existVal; div.appendChild(textarea);
+    } else if (item.kind === 'bool') {
+        var chk = document.createElement('input'); chk.type = 'checkbox'; chk.name = 'item_' + item.id; chk.value = 'on'; chk.id = 'item_' + item.id;
+        if (existVal === true) chk.checked = true;
+        var chkLabel = document.createElement('label'); chkLabel.htmlFor = 'item_' + item.id; chkLabel.textContent = ' بله'; chkLabel.style.marginRight = '0.5rem'; chkLabel.style.fontWeight = 'normal';
+        div.appendChild(chk); div.appendChild(chkLabel);
+    }
+    return div;
+}
+
+function updateDynamicItems(existingValues) {
+    var catId = document.getElementById('categorySelect').value;
+    var container = document.getElementById('dynamicItemsContainer');
+    var fields = document.getElementById('dynamicItemsFields');
+    fields.innerHTML = '';
+    if (!catId) { container.style.display = 'none'; return; }
+    var items = allItemDefinitions.filter(function(d) { return String(d.category_id) === String(catId); });
+    container.style.display = 'block';
+    if (items.length === 0) {
+        fields.innerHTML = '<div class="alert" style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;">برای این رسته هنوز آیتم سفارش تعریف نشده است. از «ورود اطلاعات پایه ← آیتم‌های سفارش» آیتم‌های این رسته را بسازید.</div>';
+        return;
+    }
+    items.forEach(function(item) { fields.appendChild(buildItemInput(item, existingValues || {})); });
+}
+updateDynamicItems(existingItemValues);
+</script>
+{% endblock %}

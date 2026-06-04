@@ -1,0 +1,46 @@
+{% extends "layouts/dashboard.html" %}
+{% load fa_labels %}
+{% block title %}صندوق ارسال پیامک پلتفرم{% endblock %}{% block sidebar_brand %}رستی سرویس{% endblock %}{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}{% block user_role_label %}مدیر پلتفرم{% endblock %}{% block page_title %}صندوق ارسال مالک پلتفرم{% endblock %}{% block page_description %}این پیامک‌ها از اعتبار شرکت‌ها کم نمی‌شوند و فقط برای مالک پلتفرم قابل مشاهده‌اند.{% endblock %}{% block logout_url %}/owner-platform/logout/{% endblock %}{% block sidebar_nav %}{% include "includes/nav_platform.html" %}{% endblock %}
+{% block content %}
+<style>.sms-status{display:inline-flex;align-items:center;border-radius:999px;padding:.25rem .65rem;font-size:.78rem;font-weight:700;white-space:nowrap}.sms-status.queued{background:#fef3c7;color:#92400e}.sms-status.sending{background:#dbeafe;color:#1d4ed8}.sms-status.sent{background:#dcfce7;color:#166534}.sms-status.delivered{background:#d1fae5;color:#065f46}.sms-status.failed{background:#fee2e2;color:#991b1b}.sms-status.cancelled{background:#e5e7eb;color:#374151}.sms-id{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;direction:ltr;display:inline-block}</style>
+<div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3 mb-4 text-sm">پردازش گروهی از این صفحه حذف شد. ارسال‌های عادی باید با worker/command انجام شوند. فقط پیامک ناموفق از کنار همان ردیف قابل ارسال مجدد است.</div>
+<div class="bg-white rounded-xl border overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50"><tr><th class="p-3 text-right">شناسه</th><th class="p-3 text-right">شرکت گیرنده</th><th class="p-3 text-right">گیرنده</th><th class="p-3 text-right">نوع</th><th class="p-3 text-right">وضعیت</th><th class="p-3 text-right">تلاش</th><th class="p-3 text-right">خطا</th><th class="p-3 text-right">عملیات</th></tr></thead><tbody>{% for msg in messages %}<tr class="border-t hover:bg-gray-50"><td class="p-3"><a class="sms-id text-brand-700 font-bold" href="/owner-platform/platform-sms/outbox/{{ msg.id }}/">P-{{ msg.id }}</a></td><td class="p-3">{% if msg.recipient_company %}{{ msg.recipient_company.name }} / {{ msg.recipient_company.code }}{% else %}-{% endif %}</td><td class="p-3 ltr">{{ msg.phone_number }}</td><td class="p-3">{{ msg.get_template_key_display }}</td><td class="p-3"><span class="sms-status status-{{ msg.status|status_css }}">{{ msg.status|status_fa }}</span></td><td class="p-3">{{ msg.attempt_count }}</td><td class="p-3">{{ msg.error_message|default:"-"|truncatechars:80 }}</td><td class="p-3"><div class="flex gap-2"><a class="px-3 py-1 bg-white border rounded-lg" href="/owner-platform/platform-sms/outbox/{{ msg.id }}/">مشاهده</a>{% if msg.status == "failed" %}<form method="post" action="/owner-platform/platform-sms/outbox/{{ msg.id }}/send-now/">{% csrf_token %}<button class="px-3 py-1 bg-green-600 text-white rounded-lg">ارسال مجدد</button></form>{% endif %}</div></td></tr>{% empty %}<tr><td class="p-4 text-gray-500" colspan="8">پیامی وجود ندارد.</td></tr>{% endfor %}</tbody></table></div>
+
+<!-- discount_outbox_display_amount_format_7c4 -->
+
+<script>
+(function () {
+    function normalizeDigits(value) {
+        value = (value || "").toString();
+        var fa = "۰۱۲۳۴۵۶۷۸۹";
+        var ar = "٠١٢٣٤٥٦٧٨٩";
+        for (var i = 0; i < 10; i++) {
+            value = value.replaceAll(fa[i], String(i)).replaceAll(ar[i], String(i));
+        }
+        return value;
+    }
+
+    function comma(n) {
+        n = normalizeDigits(n).replace(/[^\d]/g, "");
+        if (!n) return n;
+        return n.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function fixTextNode(node) {
+        var text = node.nodeValue || "";
+        var next = text.replace(/تا سقف\s+([0-9۰-۹٠-٩]{4,})\s+ریال/g, function (_, num) {
+            return "تا سقف " + comma(num) + " ریال";
+        });
+        if (next !== text) node.nodeValue = next;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(fixTextNode);
+    });
+})();
+</script>
+
+{% endblock %}

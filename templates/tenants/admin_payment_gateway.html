@@ -1,0 +1,80 @@
+{% extends "base_dashboard.html" %}
+{% load fa_labels %}
+{% block title %}درگاه پرداخت - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>تنظیمات درگاه پرداخت</h1>
+    <p>درگاه پرداخت آنلاین برای دریافت وجه از مشتریان (فاکتور/سفارش) را از اینجا تنظیم کنید.</p>
+</div>
+
+<!-- Warning -->
+<div class="alert alert-warning" style="margin-bottom:1.5rem;">
+    <strong>توجه:</strong> درگاه پرداخت واقعی در نسخه آینده فعال خواهد شد.
+    این تنظیمات فقط برای آماده‌سازی ذخیره می‌شوند.
+</div>
+
+{% if success %}
+<div class="alert alert-success">تنظیمات با موفقیت ذخیره شد.</div>
+{% endif %}
+
+<form method="post" class="settings-form">{% csrf_token %}
+    <div class="card" style="margin-bottom:1rem;">
+        <div class="card-header">اطلاعات درگاه</div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>ارائه‌دهنده درگاه</label>
+                <select name="provider" class="form-control">
+                    {% for value, label in providers %}
+                    <option value="{{ value }}" {% if gateway.provider == value %}selected{% endif %}>{{ value|status_fa }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="is_active" {% if gateway.is_active %}checked{% endif %}>
+                    درگاه فعال باشد
+                </label>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Merchant ID / کلید API</label>
+                <input class="form-control" name="merchant_id" dir="ltr" placeholder="{{ gateway.merchant_id_masked }}">
+                <small>برای تغییر، مقدار جدید وارد کنید. خالی = بدون تغییر</small>
+            </div>
+            <div class="form-group">
+                <label>Terminal ID</label>
+                <input class="form-control" name="terminal_id" dir="ltr" value="{{ gateway.terminal_id }}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>آدرس بازگشت (Callback URL)</label>
+            <input class="form-control" name="callback_base_url" dir="ltr" value="{{ gateway.callback_base_url }}" placeholder="https://example.com">
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="sandbox_mode" {% if gateway.sandbox_mode %}checked{% endif %}>
+                حالت آزمایشی (Sandbox)
+            </label>
+        </div>
+
+        <div class="form-group full-width">
+            <label>توضیحات</label>
+            <textarea class="form-control" name="description" rows="3">{{ gateway.description }}</textarea>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:.5rem;align-items:center;">
+        <button type="submit" class="btn btn-primary">ذخیره تنظیمات</button>
+        <a href="/{{ company.code }}/admin/payment-gateway/test/" class="btn btn-outline">تست اتصال</a>
+        <a href="/{{ company.code }}/admin/" class="btn btn-outline">بازگشت</a>
+    </div>
+</form>
+{% endblock %}

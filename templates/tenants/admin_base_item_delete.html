@@ -1,0 +1,9 @@
+{% extends "base_dashboard.html" %}
+{% block title %}حذف آیتم سفارش - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block content %}
+<div class="page-header"><h1>حذف آیتم سفارش</h1></div>
+<div class="card" style="max-width:680px;"><p>آیتم «{{ item.title }}» از فرم سفارش حذف/غیرفعال شود؟</p><p style="color:#64748b;">برای حفظ سفارش‌های قبلی، این عملیات آیتم را غیرفعال می‌کند و مقدارهای ثبت‌شده قبلی را پاک نمی‌کند.</p><form method="post">{% csrf_token %}<button class="btn btn-danger" type="submit">بله، غیرفعال شود</button><a class="btn btn-outline" href="/{{ company.code }}/admin/base-data/items/">انصراف</a></form></div>
+{% endblock %}

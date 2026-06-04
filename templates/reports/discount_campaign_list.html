@@ -1,0 +1,56 @@
+{% extends "layouts/dashboard.html" %}
+{% load fa_labels smart_numbers jalali_tags %}
+{% block title %}کمپین‌های تخفیف - {{ company.name }}{% endblock %}
+{% block page_title %}کمپین‌های تخفیف{% endblock %}
+{% block page_description %}تاریخچه ارسال‌های هدفمند تخفیف، گیرنده‌ها، وضعیت پیامک‌ها و مصرف کدها{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block user_role_label %}{% if request.user.role == "COMPANY_ADMIN" %}مدیر{% else %}کاربر{% endif %}{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block content %}
+<div class="bg-white border rounded-2xl p-5 shadow-sm mb-4">
+  <div class="flex justify-between items-center gap-3 flex-wrap">
+    <div>
+      <div class="font-black text-slate-900">ارسال‌های هدفمند قبلی</div>
+      <div class="text-sm text-slate-500 mt-1">کد واقعی تخفیف در این صفحات نمایش داده نمی‌شود.</div>
+    </div>
+    <a href="/{{ company.code }}/admin/reports/customer-segments/" class="btn btn-primary">ساخت کمپین از گزارش هدفمند</a>
+  </div>
+</div>
+
+<div class="bg-white border rounded-2xl p-5 shadow-sm">
+  {% if campaigns %}
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50"><tr>
+        <th class="p-3 text-right">عنوان</th>
+        <th class="p-3 text-right">نوع</th>
+        <th class="p-3 text-right">وضعیت</th>
+        <th class="p-3 text-right">گیرنده</th>
+        <th class="p-3 text-right">حذف‌شده</th>
+        <th class="p-3 text-right">کد/پیامک</th>
+        <th class="p-3 text-right">انقضا</th>
+        <th class="p-3 text-right">عملیات</th>
+      </tr></thead>
+      <tbody>
+      {% for c in campaigns %}
+      <tr class="border-t">
+        <td class="p-3"><div class="font-bold">{{ c.title }}</div><div class="text-xs text-slate-500">{{ c.created_at|jalali_datetime }}</div></td>
+        <td class="p-3">{{ c.get_source_display }}</td>
+        <td class="p-3">{% include "includes/components/status_badge.html" with status=c.status %}</td>
+        <td class="p-3">{{ c.recipient_total|smart_number }}</td>
+        <td class="p-3">{{ c.excluded_total|smart_number }}</td>
+        <td class="p-3">{{ c.code_total|smart_number }} / {{ c.sms_queued_total|smart_number }}</td>
+        <td class="p-3">{{ c.expires_at|jalali_datetime }}</td>
+        <td class="p-3"><a class="btn btn-sm btn-outline" href="/{{ company.code }}/admin/reports/discount-campaigns/{{ c.id }}/">جزئیات</a></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-slate-500">هنوز کمپین تخفیفی ساخته نشده است.</p>
+  {% endif %}
+</div>
+{% endblock %}

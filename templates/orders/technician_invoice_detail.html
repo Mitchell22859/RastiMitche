@@ -1,0 +1,822 @@
+{% extends "layouts/technician.html" %}
+{% load static  fa_labels %}
+{% load jalali_tags %}
+{% load smart_numbers %}
+
+{% block title %}فاکتور #{{ invoice.id }}{% endblock %}
+
+{% block content %}
+
+{% if invoice.status == "issued" %}
+<div class="card" id="payment_flow_prepare_7d1_cash">
+    <div class="card-header">دریافت وجه</div>
+    <p style="color:#64748b;">اگر مشتری مبلغ فاکتور را نقدی به شما پرداخت کرده است، دریافت نقدی را ثبت کنید.</p>
+    <form method="post" action="/{{ company.code }}/tech/invoices/{{ invoice.id }}/cash-paid/">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success" onclick="return confirm('دریافت نقدی این فاکتور ثبت شود؟');">ثبت دریافت نقدی</button>
+    </form>
+</div>
+{% endif %}
+{% if invoice.status == "paid" %}
+<div class="card">
+    <div class="card-header">وضعیت پرداخت</div>
+    <span class="status-badge status-success">پرداخت شده</span>
+    {% if latest_payment %}
+        <p style="margin-top:.75rem;color:#475569;">
+            شماره سند / کد پیگیری:
+            <strong style="direction:ltr;unicode-bidi:plaintext;">{{ latest_payment.tracking_code|default:latest_payment.reference_id|default:"-" }}</strong>
+            {% if latest_payment.metadata.method == "cash" %}
+                <br>روش پرداخت: دریافت نقدی توسط تکنسین
+            {% elif latest_payment.metadata.method == "online" %}
+                <br>روش پرداخت: پرداخت اینترنتی
+            {% endif %}
+            {% if latest_payment.paid_at %}
+                <br>تاریخ پرداخت: {{ latest_payment.paid_at|jalali_datetime }}
+            {% endif %}
+        </p>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="mobile-invoice-page" dir="rtl">
+
+  <header class="mi-hero">
+    <div>
+      <span class="mi-kicker">فاکتور خدمات</span>
+      <h1>فاکتور #{{ invoice.id }}</h1>
+      <p>سفارش #{{ invoice.order.id }}</p>
+    </div>
+
+    <span class="mi-status">{{ invoice.status|status_fa }}</span>
+  </header>
+
+  <section class="mi-card mi-compact-info">
+    <div class="mi-info-row">
+      <span>تاریخ ایجاد</span>
+      <strong>{{ invoice.created_at|jalali_datetime }}</strong>
+    </div>
+
+    {% if invoice.issued_at %}
+    <div class="mi-info-row">
+      <span>تاریخ صدور</span>
+      <strong>{{ invoice.issued_at|jalali_datetime }}</strong>
+    </div>
+    {% endif %}
+
+    <div class="mi-info-row">
+      <span>مشتری</span>
+      <strong>{{ invoice.customer_name_snapshot|default:invoice.order.customer_name }}</strong>
+    </div>
+
+    <div class="mi-info-row">
+      <span>شماره مشتری</span>
+      <strong class="ltr-inline">{{ invoice.customer_phone_snapshot|default:invoice.order.customer_phone }}</strong>
+    </div>
+
+    <div class="mi-info-row">
+      <span>نیروی خدماتی</span>
+      <strong>{{ technician_name|default:"-" }}</strong>
+    </div>
+
+    <div class="mi-info-row">
+      <span>شماره نیرو</span>
+      <strong class="ltr-inline">{{ technician_phone|default:"-" }}</strong>
+    </div>
+
+    <div class="mi-info-row mi-info-full">
+      <span>آدرس</span>
+      <strong>{{ invoice.address_snapshot|default:invoice.order.address_text|default:invoice.order.address }}</strong>
+    </div>
+  </section>
+
+  <section class="mi-card">
+    <div class="mi-section-title">آیتم‌های فاکتور</div>
+
+    <div class="mi-items">
+      {% for item in invoice_items %}
+      <article class="mi-lineitem">
+        <div class="mi-lineitem-title">
+          {{ item.description }}
+        </div>
+
+        <div class="mi-lineitem-grid">
+          <div class="mi-lineitem-cell">
+            <span>تعداد</span>
+            <strong>{{ item.quantity|smart_number }}</strong>
+          </div>
+
+          <div class="mi-lineitem-cell">
+            <span>فی</span>
+            <strong>{{ item.unit_price|smart_number }}</strong>
+          </div>
+
+          <div class="mi-lineitem-cell">
+            <span>تخفیف</span>
+            <strong>{{ item.discount_amount|smart_number }}</strong>
+          </div>
+
+          <div class="mi-lineitem-cell mi-lineitem-net">
+            <span>مبلغ خالص</span>
+            <strong>{{ item.total_price|smart_number }}</strong>
+          </div>
+        </div>
+      </article>
+      {% empty %}
+      <div class="mi-empty">آیتمی برای این فاکتور ثبت نشده است.</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="mi-card mi-summary">
+    <div class="mi-section-title">جمع‌بندی فاکتور</div>
+
+    <div class="mi-summary-row">
+      <span>جمع کل ردیف‌ها</span>
+      <strong>{{ invoice_summary.rows_gross_total|smart_number }}</strong>
+    </div>
+
+    <div class="mi-summary-row">
+      <span>مجموع تخفیف ردیف‌ها</span>
+      <strong>{{ invoice_summary.row_discount_total|smart_number }}</strong>
+    </div>
+
+    <div class="mi-summary-row">
+      <span>مبلغ خالص ردیف‌ها</span>
+      <strong>{{ invoice_summary.net_amount_before_invoice_discounts|smart_number }}</strong>
+    </div>
+
+    <div class="mi-summary-row">
+      <span>تخفیف مازاد</span>
+      <strong>{{ invoice_summary.extra_discount_total|smart_number }}</strong>
+    </div>
+
+    <div class="mi-summary-row">
+      <span>تخفیف کمپین</span>
+      <strong>{{ invoice_summary.campaign_discount_total|smart_number }}</strong>
+    </div>
+
+    <div class="mi-summary-row">
+      <span>مجموع تخفیف فاکتور</span>
+      <strong>{{ invoice_summary.total_invoice_discount|smart_number }}</strong>
+    </div>
+
+    <div class="mi-summary-row mi-payable">
+      <span>مبلغ نهایی قابل پرداخت</span>
+      <strong>{{ invoice_summary.payable_amount|smart_number }}</strong>
+    </div>
+  </section>
+
+  <section class="mi-card mi-notes">
+    <div class="mi-section-title">توضیحات فاکتور</div>
+    {% if invoice.notes %}
+      <p>{{ invoice.notes|linebreaksbr }}</p>
+    {% else %}
+      <p class="mi-muted">توضیحاتی برای این فاکتور ثبت نشده است.</p>
+    {% endif %}
+  </section>
+
+  <section class="mi-card mi-terms">
+    <div class="mi-section-title">شرایط و مسئولیت‌ها</div>
+    <p>{{ company_invoice_terms|linebreaksbr }}</p>
+  </section>
+
+  <section class="mi-actions-card">
+    <a class="mi-primary"
+       href="sms:{{ invoice.customer_phone_snapshot }}?body={{ public_invoice_url|urlencode }}">
+      ارسال لینک فاکتور
+    </a>
+
+    <button type="button" class="mi-secondary" id="copySmsBody">
+      کپی لینک فاکتور
+    </button>
+
+    <textarea id="smsBodyText" class="mi-hidden-copy-text" readonly>{{ public_invoice_url }}</textarea>
+    <a class="mi-secondary" href="/{{ invoice.order.company.code }}/tech/invoices/">فاکتورهای من</a>
+    <a class="mi-secondary" href="/{{ invoice.order.company.code }}/tech/orders/my/">سفارش‌های من</a>
+  </section>
+
+</div>
+
+<style>
+.mobile-invoice-page {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 14px 14px 130px;
+  color: #0f172a;
+  overflow-x: hidden;
+}
+
+.mi-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #f8fafc, #eef2ff);
+  border: 1px solid #dbe3ef;
+  border-radius: 22px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.mi-kicker {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mi-hero h1 {
+  margin: 4px 0;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.mi-hero p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.mi-status {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  font-weight: 800;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.mi-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, .05);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.mi-section-title {
+  font-size: 16px;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+
+.mi-compact-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.mi-info-row {
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 14px;
+  padding: 9px 10px;
+  min-width: 0;
+}
+
+.mi-info-row span {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.mi-info-row strong {
+  display: block;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.mi-info-full {
+  grid-column: 1 / -1;
+}
+
+.mi-items {
+  display: grid;
+  gap: 10px;
+}
+
+/* Invoice row layout like a compact official invoice row */
+.mi-lineitem {
+  border: 1px solid #111827;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.mi-lineitem-title {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 900;
+  padding: 8px 10px;
+  border-bottom: 1px solid #111827;
+  background: #fff;
+  overflow-wrap: anywhere;
+}
+
+.mi-lineitem-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.mi-lineitem-cell {
+  min-width: 0;
+  border-left: 1px solid #111827;
+}
+
+.mi-lineitem-cell:last-child {
+  border-left: 0;
+}
+
+.mi-lineitem-cell span {
+  display: block;
+  text-align: center;
+  padding: 5px 4px;
+  font-size: 12px;
+  color: #334155;
+  background: #f8fafc;
+  border-bottom: 1px solid #111827;
+  font-weight: 800;
+}
+
+.mi-lineitem-cell strong {
+  display: block;
+  text-align: center;
+  padding: 8px 4px;
+  direction: ltr;
+  font-size: 14px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.mi-lineitem-net strong {
+  color: #0f172a;
+}
+
+.mi-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.mi-summary-row:last-child {
+  border-bottom: 0;
+}
+
+.mi-summary-row span {
+  color: #334155;
+  font-weight: 700;
+}
+
+.mi-summary-row strong {
+  direction: ltr;
+  font-weight: 900;
+}
+
+.mi-payable {
+  background: #eaf3ff;
+  margin: 8px -6px -6px;
+  padding: 14px 10px;
+  border-radius: 14px;
+  border-bottom: 0;
+}
+
+.mi-payable span,
+.mi-payable strong {
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.mi-notes p,
+.mi-terms p {
+  margin: 0;
+  line-height: 2;
+  color: #334155;
+  font-size: 14px;
+}
+
+.mi-muted {
+  color: #94a3b8 !important;
+}
+
+.mi-actions-card {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.mi-primary,
+.mi-secondary {
+  min-height: 52px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  font-weight: 900;
+}
+
+.mi-primary {
+  color: #fff;
+  background: linear-gradient(135deg, #635bff, #8b7cff);
+}
+
+.mi-secondary {
+  color: #0f172a;
+  background: #fff;
+  border: 1px solid #dbe3ef;
+}
+
+.mi-hidden-copy-text {
+  position: fixed;
+  right: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.mi-secondary.is-copied {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.ltr-inline {
+  direction: ltr;
+  unicode-bidi: plaintext;
+}
+
+@media (min-width: 760px) {
+  .mobile-invoice-page {
+    max-width: 820px;
+  }
+
+  .mi-actions-card {
+    grid-template-columns: 1.2fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 380px) {
+  .mi-lineitem-cell span {
+    font-size: 11px;
+  }
+
+  .mi-lineitem-cell strong {
+    font-size: 12px;
+  }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var copyButton = document.getElementById("copySmsBody");
+  var smsText = document.getElementById("smsBodyText");
+
+  if (!copyButton || !smsText) return;
+
+  copyButton.addEventListener("click", function () {
+    var value = smsText.value || smsText.textContent || "";
+
+    function markCopied() {
+      copyButton.textContent = "کپی شد";
+      copyButton.classList.add("is-copied");
+      setTimeout(function () {
+        copyButton.textContent = "کپی لینک فاکتور";
+        copyButton.classList.remove("is-copied");
+      }, 1800);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(value).then(markCopied).catch(function () {
+        smsText.focus();
+        smsText.select();
+        document.execCommand("copy");
+        markCopied();
+      });
+    } else {
+      smsText.focus();
+      smsText.select();
+      document.execCommand("copy");
+      markCopied();
+    }
+  });
+})();
+</script>
+
+
+
+<!-- discount_campaign_form_fix_7c5 -->
+
+<script>
+(function () {
+    function onReady(fn) {
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", fn);
+        } else {
+            fn();
+        }
+    }
+
+    onReady(function () {
+        var rawCompanyName = "{{ company.name|default:company.code|escapejs }}";
+        var companyLine = rawCompanyName.indexOf("شرکت ") === 0 ? rawCompanyName : ("شرکت " + rawCompanyName);
+
+        function normalizeDigits(value) {
+            value = (value || "").toString();
+            var fa = "۰۱۲۳۴۵۶۷۸۹";
+            var ar = "٠١٢٣٤٥٦٧٨٩";
+            for (var i = 0; i < 10; i++) {
+                value = value.replaceAll(fa[i], String(i)).replaceAll(ar[i], String(i));
+            }
+            return value;
+        }
+
+        function digitsOnly(value) {
+            return normalizeDigits(value).replace(/[^\d]/g, "");
+        }
+
+        function formatRial(value) {
+            var raw = digitsOnly(value);
+            if (!raw) return "";
+            raw = raw.replace(/^0+(?=\d)/, "");
+            if (!raw || /^0+$/.test(raw)) return "";
+            return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function findByName(names) {
+            for (var i = 0; i < names.length; i++) {
+                var item = document.querySelector('[name="' + names[i] + '"]');
+                if (item) return item;
+            }
+            return null;
+        }
+
+        function findByLabel(labelPart) {
+            var labels = Array.from(document.querySelectorAll("label"));
+            for (var i = 0; i < labels.length; i++) {
+                if ((labels[i].textContent || "").indexOf(labelPart) !== -1) {
+                    var box = labels[i].closest("div") || labels[i].parentElement;
+                    if (box) {
+                        var field = box.querySelector("input, select, textarea");
+                        if (field) return field;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function field(names, labelPart) {
+            return findByName(names) || findByLabel(labelPart);
+        }
+
+        var titleEl = field(["title", "campaign_title", "name"], "عنوان کمپین");
+        var percentEl = field(["discount_percent", "percent", "percentage"], "درصد تخف");
+        var capEl = field(["max_discount_rial", "max_discount", "max_discount_amount", "discount_cap_rial", "cap"], "سقف تخفیف");
+        var expiresEl = field(["expires_at", "expires_on", "expires_date", "expires_at_jalali", "expires_jalali"], "تاریخ انقضا");
+        var smsEl = document.getElementById("discountSmsPreview") ||
+            field(["sms_text", "message_text", "sms_message", "message", "text", "body"], "متن پیامک") ||
+            document.querySelector("textarea");
+
+        var required = [
+            {el: titleEl, name: "عنوان کمپین"},
+            {el: percentEl, name: "درصد تخفیف"},
+            {el: capEl, name: "سقف تخفیف ریال"},
+            {el: expiresEl, name: "تاریخ انقضا"}
+        ];
+
+        required.forEach(function (r) {
+            if (r.el) r.el.setAttribute("required", "required");
+        });
+
+        if (titleEl && !titleEl.getAttribute("placeholder")) {
+            titleEl.setAttribute("placeholder", "مثلاً کمپین تخفیف وفاداری خرداد");
+        }
+
+        if (percentEl) {
+            percentEl.setAttribute("inputmode", "numeric");
+            if (!percentEl.getAttribute("placeholder")) percentEl.setAttribute("placeholder", "20");
+        }
+
+        if (capEl) {
+            capEl.setAttribute("inputmode", "numeric");
+            capEl.setAttribute("placeholder", "300,000");
+            var capRaw = digitsOnly(capEl.value);
+            if (!capRaw || /^0+$/.test(capRaw)) {
+                capEl.value = "";
+            } else {
+                capEl.value = formatRial(capEl.value);
+            }
+        }
+
+        if (expiresEl) {
+            expiresEl.setAttribute("placeholder", "1405/12/21");
+            expiresEl.setAttribute("pattern", "^[0-9۰-۹٠-٩]{4}/[0-9۰-۹٠-٩]{2}/[0-9۰-۹٠-٩]{2}$");
+            expiresEl.setAttribute("title", "تاریخ را دقیقاً به صورت 1405/12/21 وارد کنید.");
+        }
+
+        if (smsEl) {
+            smsEl.id = "discountSmsPreview";
+            smsEl.setAttribute("readonly", "readonly");
+            smsEl.style.minHeight = "125px";
+        }
+
+        function validDate(value) {
+            value = normalizeDigits((value || "").trim());
+            if (!/^\d{4}\/\d{2}\/\d{2}$/.test(value)) return false;
+            var parts = value.split("/");
+            var m = parseInt(parts[1], 10);
+            var d = parseInt(parts[2], 10);
+            return m >= 1 && m <= 12 && d >= 1 && d <= 31;
+        }
+
+        function previewText() {
+            var percent = percentEl ? digitsOnly(percentEl.value) : "";
+            var cap = capEl ? formatRial(capEl.value) : "";
+            var expires = expiresEl ? (expiresEl.value || "").trim() : "";
+
+            if (!percent) percent = "20";
+            if (!cap) cap = "300,000";
+            if (!expires) expires = "1405/12/21";
+
+            return [
+                companyLine,
+                "کد تخفیف شما: ********",
+                "تخفیف " + percent + "٪ تا سقف " + cap + " ریال",
+                "اعتبار تا " + expires
+            ].join("\n");
+        }
+
+        function updatePreview() {
+            if (!smsEl) return;
+            var next = previewText();
+            if (smsEl.value !== next) smsEl.value = next;
+        }
+
+        if (percentEl) percentEl.addEventListener("input", updatePreview);
+        if (expiresEl) expiresEl.addEventListener("input", updatePreview);
+
+        if (capEl) {
+            capEl.addEventListener("input", updatePreview);
+            capEl.addEventListener("blur", function () {
+                capEl.value = formatRial(capEl.value);
+                updatePreview();
+            });
+        }
+
+        var formSeed = titleEl || percentEl || capEl || expiresEl || smsEl;
+        var form = formSeed ? formSeed.closest("form") : document.querySelector("form");
+
+        if (form) {
+            form.addEventListener("submit", function (event) {
+                for (var i = 0; i < required.length; i++) {
+                    var r = required[i];
+                    if (r.el && !String(r.el.value || "").trim()) {
+                        event.preventDefault();
+                        alert(r.name + " الزامی است.");
+                        r.el.focus();
+                        return false;
+                    }
+                }
+
+                if (expiresEl && !validDate(expiresEl.value)) {
+                    event.preventDefault();
+                    alert("تاریخ انقضا باید دقیقاً به صورت 1405/12/21 وارد شود.");
+                    expiresEl.focus();
+                    return false;
+                }
+
+                if (capEl) {
+                    var formatted = formatRial(capEl.value);
+                    if (!formatted) {
+                        event.preventDefault();
+                        alert("سقف تخفیف ریال الزامی است.");
+                        capEl.focus();
+                        return false;
+                    }
+                    capEl.value = formatted;
+                }
+
+                updatePreview();
+                return true;
+            });
+        }
+
+        updatePreview();
+    });
+})();
+</script>
+
+
+
+
+
+<!-- discount_campaign_candidate_rows_7c8 -->
+<style>
+.discount-recipient-card{margin-top:1rem;background:#fff;border:1px solid #e5e7eb;border-radius:1rem;overflow:hidden}
+.discount-recipient-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:1rem;border-bottom:1px solid #e5e7eb;background:#f8fafc}
+.discount-recipient-title{font-weight:900;color:#0f172a}
+.discount-recipient-muted{color:#64748b;font-size:.84rem;margin-top:.25rem}
+.discount-recipient-actions{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.discount-recipient-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.discount-recipient-table th,.discount-recipient-table td{padding:.75rem;border-bottom:1px solid #eef2f7;text-align:right;vertical-align:middle}
+.discount-recipient-table th{background:#f8fafc;color:#475569;font-size:.78rem;font-weight:900}
+.discount-recipient-phone{direction:ltr;unicode-bidi:plaintext;font-weight:800}
+.discount-recipient-submit{padding:1rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;border-top:1px solid #e5e7eb;background:#fff}
+@media(max-width:800px){.discount-recipient-table{min-width:760px}.discount-recipient-scroll{overflow-x:auto}}
+</style>
+
+<div class="discount-recipient-card">
+    <div class="discount-recipient-head">
+        <div>
+            <div class="discount-recipient-title">مشتریان انتخاب‌شده برای ارسال کد تخفیف</div>
+            <div class="discount-recipient-muted">قبل از ثبت، هر مشتری‌ای را که نمی‌خواهی پیامک بگیرد از حالت انتخاب خارج کن.</div>
+        </div>
+        {% if candidate_view_rows %}
+            <div class="discount-recipient-actions">
+                <button type="button" class="btn btn-outline" id="discountSelectAll">انتخاب همه</button>
+                <button type="button" class="btn btn-outline" id="discountUnselectAll">حذف انتخاب همه</button>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if candidate_view_rows %}
+        <div class="discount-recipient-scroll">
+            <table class="discount-recipient-table">
+                <thead>
+                    <tr>
+                        <th style="width:70px;">ارسال</th>
+                        <th>مشتری</th>
+                        <th>موبایل</th>
+                        <th>سفارش مطابق</th>
+                        <th>فاکتور مطابق</th>
+                        <th>آخرین آدرس</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in candidate_view_rows %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="discount-customer-checkbox" name="selected_customer_ids" value="{{ row.customer_id }}" checked>
+                            </td>
+                            <td><strong>{{ row.name|default:"-" }}</strong></td>
+                            <td><span class="discount-recipient-phone">{{ row.phone|default:"-" }}</span></td>
+                            <td>{{ row.order_count|default:0|smart_number }}</td>
+                            <td>{{ row.invoice_count|default:0|smart_number }}</td>
+                            <td>{{ row.last_address|default:"-" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="discount-recipient-submit">
+            <button type="submit" name="submit_campaign" value="1" class="btn btn-primary">ساخت کد و ثبت پیامک برای افراد تیک‌خورده</button>
+            <a href="/{{ company.code }}/admin/reports/customer-segments/" class="btn btn-outline">بازگشت به گزارش هدفمند</a>
+            <span class="discount-recipient-muted">کد واقعی در پنل نمایش داده نمی‌شود و فقط برای مشتری ارسال می‌شود.</span>
+        </div>
+    {% else %}
+        <div style="padding:1rem;">
+            <p class="discount-recipient-muted" style="margin:0 0 .75rem;">هنوز مشتری‌ای برای این کمپین انتخاب نشده است. برای ساخت کمپین هدفمند، اول از گزارش هدفمند مشتریان فیلتر بگیر و از همان‌جا وارد ساخت کمپین شو.</p>
+            <a href="/{{ company.code }}/admin/reports/customer-segments/" class="btn btn-primary">رفتن به گزارش هدفمند مشتریان</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+(function () {
+    function ready(fn) {
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn);
+        else fn();
+    }
+    ready(function () {
+        var boxes = Array.from(document.querySelectorAll(".discount-customer-checkbox"));
+        var allBtn = document.getElementById("discountSelectAll");
+        var noneBtn = document.getElementById("discountUnselectAll");
+        var formSeed = boxes[0] || document.querySelector('[name="percent"]') || document.querySelector('[name="discount_percent"]');
+        var form = formSeed ? formSeed.closest("form") : document.querySelector("form");
+        if (allBtn) allBtn.addEventListener("click", function () { boxes.forEach(function (b) { b.checked = true; }); });
+        if (noneBtn) noneBtn.addEventListener("click", function () { boxes.forEach(function (b) { b.checked = false; }); });
+        if (form) {
+            form.addEventListener("submit", function (event) {
+                if (!boxes.length) return true;
+                var checked = boxes.filter(function (b) { return b.checked; });
+                if (!checked.length) {
+                    event.preventDefault();
+                    alert("حداقل یک مشتری باید برای ارسال انتخاب شود.");
+                    return false;
+                }
+                return true;
+            });
+        }
+    });
+})();
+</script>
+<!-- /discount_campaign_candidate_rows_7c8 -->
+
+{% endblock %}

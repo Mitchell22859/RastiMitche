@@ -1,0 +1,61 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}قالب‌های پیامک - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+{% include "includes/settings_center.html" %}
+
+<div class="page-header">
+    <h1>قالب‌های پیامک</h1>
+    <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+<a href="/{{ company.code }}/admin/sms/templates/create/" class="btn btn-primary">قالب جدید</a>
+    </div>
+
+</div>
+
+<div class="card" style="margin-bottom:1rem;">
+    <p style="color:#64748b;margin:0;">
+        وضعیت فعال/غیرفعال پیامک‌ها با صفحه تنظیمات نوتیفیکیشن هماهنگ است.
+        اگر پیامک یک رویداد را از هر کدام از این دو صفحه خاموش یا روشن کنید، صفحه دیگر هم همان وضعیت را نشان می‌دهد.
+    </p>
+</div>
+
+{% if templates %}
+<div class="card">
+    <div class="table-wrapper"><table>
+        <thead><tr><th>عنوان</th><th>کلید</th><th>وضعیت</th><th>بازه ارسال</th><th>عملیات</th></tr></thead>
+        <tbody>{% for tpl in templates %}
+        <tr>
+            <td>{{ tpl.title }}</td>
+            <td><code>{{ tpl.key }}</code></td>
+            <td>
+                {% if tpl.is_active %}
+                <span class="badge badge-sent">فعال</span>
+                {% else %}
+                <span class="badge badge-failed">غیرفعال</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if tpl.send_start_time and tpl.send_end_time %}
+                {{ tpl.send_start_time|time:"H:i" }} - {{ tpl.send_end_time|time:"H:i" }}
+                {% else %}
+                -
+                {% endif %}
+            </td>
+            <td>
+                <a href="/{{ company.code }}/admin/sms/templates/{{ tpl.pk }}/edit/">ویرایش</a>
+                |
+                <a href="/{{ company.code }}/admin/sms/templates/{{ tpl.pk }}/toggle/">
+                    {% if tpl.is_active %}غیرفعال{% else %}فعال{% endif %}
+                </a>
+            </td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+</div>
+{% else %}
+<div class="card"><p style="color:#64748b;">قالبی تعریف نشده. از دکمه «قالب جدید» استفاده کنید.</p></div>
+{% endif %}
+{% endblock %}

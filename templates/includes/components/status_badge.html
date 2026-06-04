@@ -1,0 +1,9 @@
+{% load fa_labels %}
+{# Central status badge component - no include to avoid recursion #}
+<span class="{{ status|status_badge_classes }}">
+    {% if label %}
+        {{ label|status_fa }}
+    {% else %}
+        {{ status|status_fa }}
+    {% endif %}
+</span>

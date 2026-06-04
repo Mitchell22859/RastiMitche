@@ -1,0 +1,26 @@
+{% extends "base_dashboard.html" %}
+{% block title %}اپراتورها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>اپراتورها</h1><a href="/{{ company.code }}/admin/settings/operators/create/" class="btn btn-primary">+ اپراتور جدید</a></div>
+<div class="card">
+{% if operators %}
+<div class="table-wrapper"><table>
+<thead><tr><th>یوزر ورود</th><th>نام</th><th>نقش</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+<tbody>
+{% for operator in operators %}
+<tr>
+    <td>{{ operator.phone }}</td>
+    <td>{{ operator.get_full_name|default:"-" }}</td>
+    <td>{% if operator.role == 'COMPANY_ADMIN' %}مدیر شرکت{% else %}اپراتور{% endif %}</td>
+    <td>{% if operator.is_active %}<span class="badge badge-done">فعال</span>{% else %}<span class="badge badge-cancelled">غیرفعال</span>{% endif %}</td>
+    <td class="inline-actions"><a href="/{{ company.code }}/admin/settings/operators/{{ operator.id }}/edit/" class="btn btn-sm btn-outline">ویرایش</a><a href="/{{ company.code }}/admin/settings/operators/{{ operator.id }}/delete/" class="btn btn-sm btn-danger">حذف</a></td>
+</tr>
+{% endfor %}
+</tbody></table></div>
+{% else %}<p style="color:#64748b;">اپراتوری ثبت نشده است.</p>{% endif %}
+</div>
+{% endblock %}

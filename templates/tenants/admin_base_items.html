@@ -1,0 +1,29 @@
+{% extends "base_dashboard.html" %}
+{% block title %}آیتم‌های سفارش - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block content %}
+<div class="page-header"><h1>آیتم‌های سفارش</h1><a href="/{{ company.code }}/admin/base-data/items/create/{% if selected_category_id %}?category_id={{ selected_category_id }}{% endif %}" class="btn btn-primary">+ آیتم جدید</a></div>
+<div class="card">
+<form method="get" class="compact-form" style="margin-bottom:1rem;">
+    <div class="form-group"><label>فیلتر بر اساس رسته</label><select name="category_id" class="form-control" onchange="this.form.submit()"><option value="">همه رسته‌ها</option>{% for category in categories %}<option value="{{ category.id }}" {% if selected_category_id == category.id|stringformat:'s' %}selected{% endif %}>{{ category.title }}</option>{% endfor %}</select></div>
+</form>
+{% if items %}
+<div class="table-wrapper"><table>
+<thead><tr><th>رسته</th><th>ترتیب</th><th>عنوان آیتم</th><th>نوع</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+<tbody>
+{% for item in items %}
+<tr>
+    <td>{{ item.category.title }}</td>
+    <td>{{ item.sort_order }}</td>
+    <td><strong>{{ item.title }}</strong></td>
+    <td>{% if item.kind == 'number' %}عدد / تعداد{% elif item.kind == 'money' %}مبلغ{% elif item.kind == 'text' %}متن{% elif item.kind == 'bool' %}بله/خیر{% else %}{{ item.get_kind_display }}{% endif %}</td>
+    <td>{% if item.is_active %}<span class="badge badge-done">فعال</span>{% else %}<span class="badge badge-cancelled">غیرفعال</span>{% endif %}</td>
+    <td class="inline-actions"><a href="/{{ company.code }}/admin/base-data/items/{{ item.id }}/edit/" class="btn btn-sm btn-outline">ویرایش</a><a href="/{{ company.code }}/admin/base-data/items/{{ item.id }}/delete/" class="btn btn-sm btn-danger">حذف</a></td>
+</tr>
+{% endfor %}
+</tbody></table></div>
+{% else %}<p style="color:#64748b;">برای این رسته هنوز آیتم سفارش تعریف نشده است.</p>{% endif %}
+</div>
+{% endblock %}

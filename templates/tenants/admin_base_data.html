@@ -1,0 +1,42 @@
+{% extends "base_dashboard.html" %}
+{% block title %}ورود اطلاعات پایه - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>ورود اطلاعات پایه</h1></div>
+
+<div class="stats-grid">
+    <div class="stat-card accent"><div class="stat-value">{{ counts.categories }}</div><div class="stat-label">رسته خدمات</div></div>
+    <div class="stat-card success"><div class="stat-value">{{ counts.items }}</div><div class="stat-label">آیتم سفارش</div></div>
+    <div class="stat-card warning"><div class="stat-value">{{ counts.technicians }}</div><div class="stat-label">نیروی خدماتی</div></div>
+    <div class="stat-card"><div class="stat-value">{{ counts.operators }}</div><div class="stat-label">اپراتور</div></div>
+</div>
+
+<div class="card">
+    <div class="card-header">بخش‌های اصلی</div>
+    <div class="service-grid">
+        <div class="service-card">
+            <h3>رسته‌های خدماتی</h3>
+            <p>رسته‌های اصلی سفارش را تعریف کنید؛ مثل نصب پکیج و رادیاتور.</p>
+            <a href="/{{ company.code }}/admin/base-data/categories/" class="btn btn-primary btn-sm">لیست رسته‌ها</a>
+        </div>
+        <div class="service-card">
+            <h3>آیتم‌های سفارش</h3>
+            <p>آیتم‌هایی که داخل فرم سفارش نمایش داده می‌شوند؛ مثل رادیاتور، پکیج ایران، کوپل‌بندی.</p>
+            <a href="/{{ company.code }}/admin/base-data/items/" class="btn btn-primary btn-sm">لیست آیتم‌ها</a>
+        </div>
+        <div class="service-card">
+            <h3>نیروهای خدماتی</h3>
+            <p>نیروها را تعریف کنید و برای هر رسته، اولویت نوتیفیکیشن و نمایش سفارش را مشخص کنید.</p>
+            <a href="/{{ company.code }}/admin/technicians/" class="btn btn-primary btn-sm">لیست نیروها</a>
+        </div>
+        <div class="service-card">
+            <h3>اپراتورها</h3>
+            <p>کاربران داخلی شرکت را برای ورود به پنل و ثبت سفارش‌ها تعریف کنید.</p>
+            <a href="/{{ company.code }}/admin/settings/operators/" class="btn btn-primary btn-sm">لیست اپراتورها</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

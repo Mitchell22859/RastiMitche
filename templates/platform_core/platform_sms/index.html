@@ -1,0 +1,62 @@
+{% extends "layouts/dashboard.html" %}
+{% block title %}پیامک پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}پیامک پلتفرم{% endblock %}
+{% block page_description %}صندوق ارسال و تنظیمات پیامک‌های پرداخت‌شده توسط مالک پلتفرم{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_platform.html" %}{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <div class="bg-white rounded-xl border p-5"><div class="text-sm text-gray-500">در صف</div><div class="text-2xl font-bold">{{ queued }}</div></div>
+  <div class="bg-white rounded-xl border p-5"><div class="text-sm text-gray-500">ارسال شده</div><div class="text-2xl font-bold">{{ sent }}</div></div>
+  <div class="bg-white rounded-xl border p-5"><div class="text-sm text-gray-500">ناموفق</div><div class="text-2xl font-bold">{{ failed }}</div></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+  <a class="bg-white rounded-xl border p-5 hover:shadow" href="/owner-platform/platform-sms/message-types/">نوع پیامک‌ها و ساعات ارسال</a>
+  <a class="bg-white rounded-xl border p-5 hover:shadow" href="/owner-platform/platform-sms/provider/">ارائه‌دهنده پیامک پلتفرم</a>
+  <a class="bg-white rounded-xl border p-5 hover:shadow" href="/owner-platform/platform-sms/outbox/">صندوق ارسال مالک پلتفرم</a>
+</div>
+<div class="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+پیامک‌های این بخش از اعتبار شرکت‌ها کم نمی‌کنند و باید توسط مالک پلتفرم پرداخت شوند.
+</div>
+
+<!-- discount_outbox_display_amount_format_7c4 -->
+
+<script>
+(function () {
+    function normalizeDigits(value) {
+        value = (value || "").toString();
+        var fa = "۰۱۲۳۴۵۶۷۸۹";
+        var ar = "٠١٢٣٤٥٦٧٨٩";
+        for (var i = 0; i < 10; i++) {
+            value = value.replaceAll(fa[i], String(i)).replaceAll(ar[i], String(i));
+        }
+        return value;
+    }
+
+    function comma(n) {
+        n = normalizeDigits(n).replace(/[^\d]/g, "");
+        if (!n) return n;
+        return n.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function fixTextNode(node) {
+        var text = node.nodeValue || "";
+        var next = text.replace(/تا سقف\s+([0-9۰-۹٠-٩]{4,})\s+ریال/g, function (_, num) {
+            return "تا سقف " + comma(num) + " ریال";
+        });
+        if (next !== text) node.nodeValue = next;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(fixTextNode);
+    });
+})();
+</script>
+
+{% endblock %}

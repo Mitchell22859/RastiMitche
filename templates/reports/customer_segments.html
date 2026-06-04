@@ -1,0 +1,141 @@
+{% extends "layouts/dashboard.html" %}
+{% load fa_labels smart_numbers jalali_tags %}
+{% block title %}گزارش هدفمند مشتریان - {{ company.name }}{% endblock %}
+{% block page_title %}گزارش هدفمند مشتریان{% endblock %}
+{% block page_description %}فیلتر ترکیبی مشتریان برای گزارش‌گیری، خروجی CSV و آماده‌سازی کمپین تخفیف{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block user_role_label %}{% if request.user.role == "COMPANY_ADMIN" %}مدیر{% else %}کاربر{% endif %}{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<style>
+.segment-card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;padding:1rem;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.segment-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem}
+.segment-field label{display:block;font-size:.78rem;font-weight:800;color:#475569;margin-bottom:.35rem}
+.segment-field input,.segment-field select{width:100%;border:1px solid #cbd5e1;border-radius:.65rem;padding:.55rem .7rem;background:#fff}
+.segment-actions{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-top:1rem}
+.segment-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin-bottom:1rem}
+.segment-stat{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;padding:1rem}
+.segment-stat .num{font-size:1.35rem;font-weight:900;color:#0f172a}
+.segment-stat .lbl{font-size:.78rem;color:#64748b;margin-top:.25rem}
+.customer-phone{direction:ltr;unicode-bidi:plaintext;font-weight:800}
+.segment-muted{color:#64748b;font-size:.82rem}
+.segment-hint{background:#f8fafc;border:1px dashed #cbd5e1;border-radius:1rem;padding:.85rem;color:#475569;font-size:.86rem;margin-bottom:1rem}
+@media(max-width:1000px){.segment-grid,.segment-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.segment-grid,.segment-stats{grid-template-columns:1fr}}
+</style>
+
+<div class="segment-hint">
+این گزارش برای انتخاب دقیق مشتریان هدف طراحی شده است؛ مثلاً مشتریانی که نامشان «علی» است، آدرسشان «والفجر» دارد، در یک بازه فاکتور با مبلغ مشخص داشته‌اند و در یک رسته خاص تعداد مشخصی سفارش ثبت کرده‌اند.
+</div>
+
+<div class="segment-stats">
+    <div class="segment-stat"><div class="num">{{ stats.total_customers|smart_number }}</div><div class="lbl">مشتریان پیدا شده</div></div>
+    <div class="segment-stat"><div class="num">{{ stats.total_order_matches|smart_number }}</div><div class="lbl">سفارش‌های مطابق فیلتر</div></div>
+    <div class="segment-stat"><div class="num">{{ stats.total_invoice_matches|smart_number }}</div><div class="lbl">فاکتورهای مطابق فیلتر</div></div>
+    <div class="segment-stat"><div class="num">{{ stats.total_invoice_amount|smart_number }}</div><div class="lbl">مجموع مبلغ فاکتورها</div></div>
+</div>
+
+<form method="get" class="segment-card" style="margin-bottom:1rem;">
+    <div class="font-black text-slate-900 mb-3">فیلتر اطلاعات مشتری</div>
+    <div class="segment-grid">
+        <div class="segment-field"><label>نام مشتری شامل</label><input name="name" value="{{ filters.name }}" placeholder="مثلاً علی"></div>
+        <div class="segment-field"><label>موبایل شامل</label><input name="phone" value="{{ filters.phone }}" placeholder="0912..."></div>
+        <div class="segment-field" style="grid-column:span 2;"><label>آدرس شامل</label><input name="address" value="{{ filters.address }}" placeholder="مثلاً والفجر"></div>
+    </div>
+
+    <div class="font-black text-slate-900 mt-5 mb-3">فیلتر فاکتور</div>
+    <div class="segment-grid">
+        <div class="segment-field"><label>از تاریخ فاکتور</label><input name="invoice_from" value="{{ filters.invoice_from }}" placeholder="1405/03/01"></div>
+        <div class="segment-field"><label>تا تاریخ فاکتور</label><input name="invoice_to" value="{{ filters.invoice_to }}" placeholder="1405/03/31"></div>
+        <div class="segment-field"><label>از مبلغ</label><input name="invoice_amount_min" value="{{ filters.invoice_amount_min }}" placeholder="1000000"></div>
+        <div class="segment-field"><label>تا مبلغ</label><input name="invoice_amount_max" value="{{ filters.invoice_amount_max }}" placeholder="5000000"></div>
+        <div class="segment-field">
+            <label>وضعیت فاکتور</label>
+            <select name="invoice_status">
+                <option value="">همه</option>
+                {% for value,label in invoice_statuses %}
+                    <option value="{{ value }}" {% if filters.invoice_status == value %}selected{% endif %}>{{ value|status_fa }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="font-black text-slate-900 mt-5 mb-3">فیلتر سفارش</div>
+    <div class="segment-grid">
+        <div class="segment-field"><label>از تاریخ سفارش</label><input name="order_from" value="{{ filters.order_from }}" placeholder="1405/03/01"></div>
+        <div class="segment-field"><label>تا تاریخ سفارش</label><input name="order_to" value="{{ filters.order_to }}" placeholder="1405/03/31"></div>
+        <div class="segment-field"><label>تعداد سفارش از</label><input name="order_count_min" value="{{ filters.order_count_min }}" placeholder="2"></div>
+        <div class="segment-field"><label>تعداد سفارش تا</label><input name="order_count_max" value="{{ filters.order_count_max }}" placeholder="5"></div>
+        <div class="segment-field">
+            <label>رسته خدمات</label>
+            <select name="service_category">
+                <option value="">همه رسته‌ها</option>
+                {% for cat in service_categories %}
+                    <option value="{{ cat.id }}" {% if filters.service_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="segment-field">
+            <label>وضعیت سفارش</label>
+            <select name="order_status">
+                <option value="">همه</option>
+                {% for value,label in order_statuses %}
+                    <option value="{{ value }}" {% if filters.order_status == value %}selected{% endif %}>{{ value|status_fa }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="segment-actions">
+        <button class="btn btn-primary" type="submit">اجرای گزارش</button>
+        <button class="btn btn-outline" type="submit" name="export" value="csv">خروجی CSV شماره‌ها</button>
+        <a class="btn btn-primary" href="/{{ company.code }}/admin/reports/discount-campaigns/new/?{{ request.GET.urlencode }}">ساخت کمپین تخفیف از همین نتیجه</a>
+        <a class="btn btn-outline" href="/{{ company.code }}/admin/reports/customer-segments/">پاک کردن فیلتر</a>
+    </div>
+</form>
+
+<div class="segment-card">
+    <div class="flex items-center justify-between mb-3">
+        <div class="font-black text-slate-900">نتیجه گزارش</div>
+        <div class="text-sm text-slate-500">{{ results|length|smart_number }} مشتری</div>
+    </div>
+
+    {% if results %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="p-3 text-right">مشتری</th>
+                    <th class="p-3 text-right">موبایل</th>
+                    <th class="p-3 text-right">سفارش مطابق</th>
+                    <th class="p-3 text-right">فاکتور مطابق</th>
+                    <th class="p-3 text-right">مبلغ فاکتور</th>
+                    <th class="p-3 text-right">آخرین سفارش</th>
+                    <th class="p-3 text-right">آخرین آدرس</th>
+                    <th class="p-3 text-right">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in results %}
+                <tr class="border-t">
+                    <td class="p-3"><div class="font-bold">{{ row.name }}</div><div class="segment-muted">{{ row.email|default:"-" }}</div></td>
+                    <td class="p-3"><span class="customer-phone">{{ row.phone }}</span></td>
+                    <td class="p-3">{{ row.order_count|smart_number }}</td>
+                    <td class="p-3">{{ row.invoice_count|smart_number }}</td>
+                    <td class="p-3">{{ row.invoice_sum|smart_number }}</td>
+                    <td class="p-3">{% if row.last_order_at %}{{ row.last_order_at|jalali_datetime }}{% else %}-{% endif %}</td>
+                    <td class="p-3" style="min-width:220px;">{{ row.last_address|default:"-"|truncatechars:80 }}</td>
+                    <td class="p-3"><a class="btn btn-sm btn-outline" href="/{{ company.code }}/admin/customers/{{ row.customer_id }}/">پرونده</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p class="text-slate-500">با این فیلترها مشتری‌ای پیدا نشد. فیلترها را کمی بازتر کن.</p>
+    {% endif %}
+</div>
+{% endblock %}

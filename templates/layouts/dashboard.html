@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="flex min-h-screen" id="app">
+
+    {# ===== SIDEBAR (Desktop: fixed, Mobile: overlay) ===== #}
+    <aside id="sidebar"
+           class="admin-sidebar no-print fixed inset-y-0 right-0 z-40 w-64 bg-slate-900 text-slate-200 flex flex-col
+                  transform translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:relative lg:inset-auto">
+
+        {# Brand Header #}
+        <div class="admin-sidebar-brand flex items-center gap-3 px-5 py-5 border-b border-slate-700/50">
+            <div class="w-9 h-9 rounded-lg bg-brand-600 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+            </div>
+            <div class="min-w-0">
+                <h2 class="text-sm font-bold text-white truncate">{% block sidebar_brand %}رستی سرویس{% endblock %}</h2>
+                <p class="text-xs text-slate-400 truncate">{% block sidebar_subtitle %}پنل مدیریت{% endblock %}</p>
+            </div>
+            <button type="button" class="sidebar-close-btn lg:hidden" onclick="closeSidebar()" aria-label="بستن منو">×</button>
+        </div>
+
+        {# Navigation #}
+        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            {% block sidebar_nav %}{% if request.user.role == "COMPANY_ADMIN" or request.user.role == "COMPANY_STAFF" %}{% include "includes/nav_admin.html" %}{% endif %}{% endblock %}
+        </nav>
+
+        {# Sidebar Footer #}
+        <div class="border-t border-slate-700/50 px-4 py-3">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs font-medium text-slate-200 truncate">{{ request.user.get_full_name }}</p>
+                    <p class="text-xs text-slate-400 truncate">{% block user_role_label %}کاربر{% endblock %}</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    {# Sidebar Overlay (Mobile) #}
+    <div id="sidebarOverlay"
+         class="no-print fixed inset-0 z-30 bg-black/50 hidden lg:hidden sidebar-overlay"
+         onclick="closeSidebar()"></div>
+
+    {# ===== MAIN CONTENT AREA ===== #}
+    <div class="flex-1 flex flex-col min-w-0">
+
+        {# ===== TOP NAVBAR ===== #}
+        <header class="no-print sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
+            <div class="flex items-center justify-between h-16 px-4 lg:px-6">
+                {# Right Side: Menu toggle + Page title #}
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()"
+                            class="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-smooth">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="text-sm lg:text-base font-bold text-gray-800">{% block page_title %}داشبورد{% endblock %}</h1>
+                        {% block page_subtitle %}<p class="text-xs text-gray-500 hidden sm:block">{% block page_description %}{% endblock %}</p>{% endblock %}
+                    </div>
+                </div>
+
+                {# Left Side: Actions #}
+                <div class="flex items-center gap-2">
+                    {% block navbar_actions %}{% endblock %}
+
+                    {# Logout Button #}
+                    <a href="{% block logout_url %}/{% endblock %}"
+                       class="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-smooth"
+                       title="خروج">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span class="hidden sm:inline">خروج</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        {# ===== PAGE CONTENT ===== #}
+        <main class="flex-1 p-4 lg:p-6">
+            {% block content %}{% endblock %}
+        </main>
+
+        {# ===== FOOTER ===== #}
+        <footer class="no-print border-t border-gray-100 px-4 py-3">
+            <p class="text-xs text-gray-400 text-center">&copy; رستی سرویس &mdash; سامانه مدیریت خدمات</p>
+        </footer>
+    </div>
+</div>
+
+{# ===== SIDEBAR JS ===== #}
+<script>
+function getSidebarElements() {
+    return {
+        sidebar: document.getElementById('sidebar'),
+        overlay: document.getElementById('sidebarOverlay')
+    };
+}
+function openSidebar() {
+    const { sidebar, overlay } = getSidebarElements();
+    if (!sidebar || !overlay) return;
+    sidebar.classList.remove('translate-x-full');
+    sidebar.classList.add('sidebar-opened');
+    overlay.classList.remove('hidden');
+    document.body.classList.add('admin-sidebar-is-open');
+}
+function closeSidebar() {
+    const { sidebar, overlay } = getSidebarElements();
+    if (!sidebar || !overlay) return;
+    sidebar.classList.add('translate-x-full');
+    sidebar.classList.remove('sidebar-opened');
+    overlay.classList.add('hidden');
+    document.body.classList.remove('admin-sidebar-is-open');
+}
+function toggleSidebar() {
+    const { sidebar } = getSidebarElements();
+    if (!sidebar) return;
+    if (sidebar.classList.contains('translate-x-full')) openSidebar();
+    else closeSidebar();
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSidebar(); });
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.innerWidth < 1024) closeSidebar();
+});
+window.addEventListener('resize', function() {
+    if (window.innerWidth >= 1024) {
+        document.body.classList.remove('admin-sidebar-is-open');
+        const { overlay } = getSidebarElements();
+        if (overlay) overlay.classList.add('hidden');
+    } else {
+        closeSidebar();
+    }
+});
+</script>
+{% endblock %}

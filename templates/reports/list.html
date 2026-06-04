@@ -1,0 +1,70 @@
+{% extends "layouts/dashboard.html" %}
+
+{% load fa_labels %}
+{% block title %}گزارش‌ها - {{ company.name }}
+<div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm mt-4">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+            <div class="font-bold mb-1">گزارش هدفمند مشتریان</div>
+            <p class="text-sm text-gray-600">جستجوی ترکیبی بر اساس نام، آدرس، فاکتور، مبلغ، رسته خدمات و تعداد سفارش برای آماده‌سازی کمپین تخفیف.</p>
+        </div>
+        <a href="/{{ company.code }}/admin/reports/customer-segments/" class="btn btn-primary">ورود به گزارش</a>
+    </div>
+</div>
+
+{% endblock %}
+{% block page_title %}گزارش‌ها{% endblock %}
+{% block page_description %}خلاصه سفارش‌ها، فاکتورها و عملکرد نیروهای خدماتی{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block user_role_label %}{% if request.user.role == "COMPANY_ADMIN" %}مدیر{% else %}کاربر{% endif %}{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
+    <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div class="text-2xl font-black">{{ order_summary.total }}</div><div class="text-sm text-gray-500 mt-1">کل سفارش‌ها</div></div>
+    <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div class="text-2xl font-black">{{ order_summary.new }}</div><div class="text-sm text-gray-500 mt-1">جدید</div></div>
+    <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div class="text-2xl font-black">{{ order_summary.in_progress }}</div><div class="text-sm text-gray-500 mt-1">در حال انجام</div></div>
+    <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div class="text-2xl font-black">{{ order_summary.done }}</div><div class="text-sm text-gray-500 mt-1">تکمیل شده</div></div>
+    <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm"><div class="text-2xl font-black">{{ order_summary.cancelled }}</div><div class="text-sm text-gray-500 mt-1">لغو شده</div></div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+    <div class="font-bold mb-4">درآمد</div>
+    <div class="space-y-3 text-sm">
+      <div class="flex items-center justify-between"><span class="text-gray-500">درآمد کل فاکتورهای پرداخت‌شده</span><b class="text-green-700">{{ revenue_summary.total_revenue }} ریال</b></div>
+      <div class="flex items-center justify-between"><span class="text-gray-500">تعداد فاکتور پرداخت‌شده</span><b>{{ revenue_summary.paid_invoice_count }}</b></div>
+    </div>
+  </div>
+
+  <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+    <div class="font-bold mb-4">وضعیت فاکتورها</div>
+    <div class="space-y-3 text-sm">
+      <div class="flex items-center justify-between"><span class="text-gray-500">مجموع</span><b>{{ invoice_summary.total }}</b></div>
+      <div class="flex items-center justify-between"><span class="text-gray-500">پیش‌نویس</span><b>{{ invoice_summary.draft }}</b></div>
+      <div class="flex items-center justify-between"><span class="text-gray-500">صادر شده</span><b>{{ invoice_summary.issued }}</b></div>
+      <div class="flex items-center justify-between"><span class="text-gray-500">پرداخت شده</span><b>{{ invoice_summary.paid }}</b></div>
+      <div class="flex items-center justify-between"><span class="text-gray-500">لغو شده</span><b>{{ invoice_summary.cancelled }}</b></div>
+    </div>
+  </div>
+</div>
+
+{% if technician_performance %}
+<div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm mt-4 overflow-x-auto">
+    <div class="font-bold mb-4">عملکرد نیروهای خدماتی</div>
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50"><tr><th class="p-3 text-right">نیروی خدماتی</th><th class="p-3 text-right">تکمیل شده</th><th class="p-3 text-right">فعال</th></tr></thead>
+        <tbody>{% for tp in technician_performance %}
+        <tr class="border-t"><td class="p-3">{{ tp.technician.user.get_full_name }}</td><td class="p-3">{{ tp.completed_orders }}</td><td class="p-3">{{ tp.active_orders }}</td></tr>
+        {% endfor %}</tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm mt-4">
+    <div class="font-bold mb-2">درخواست‌های خدمات</div>
+    <p class="text-sm text-gray-600">مجموع درخواست‌ها: <b>{{ request_summary.total_requests }}</b></p>
+</div>
+{% endblock %}

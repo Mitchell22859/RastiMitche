@@ -1,0 +1,67 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers fa_labels jalali_tags %}
+
+{% block title %}فاکتور {{ invoice.invoice_number }} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/invoices/" class="active">فاکتورها</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>فاکتور {{ invoice.invoice_number }}</h1></div>
+
+<div class="card">
+    <div class="table-wrapper"><table>
+        <tr><td style="font-weight:600;width:150px;">وضعیت</td><td><span class="badge badge-{{ invoice.status|status_css }}">{{ invoice.status|status_fa }}</span></td></tr>
+        <tr><td style="font-weight:600;">مشتری</td><td>{{ invoice.customer|default:"-" }}</td></tr>
+        <tr><td style="font-weight:600;">جمع جزء</td><td>{{ invoice.subtotal|smart_number }} ریال</td></tr>
+        <tr><td style="font-weight:600;">مالیات</td><td>{{ invoice.tax_amount|smart_number }} ریال</td></tr>
+        <tr><td style="font-weight:600;">تخفیف</td><td>{{ invoice.discount_amount|smart_number }} ریال</td></tr>
+        <tr><td style="font-weight:600;">مبلغ کل</td><td style="font-weight:700;color:#2563eb;">{{ invoice.total_amount|smart_number }} ریال</td></tr>
+        <tr><td style="font-weight:600;">صدور</td><td>{{ invoice.issued_at|jalali_date|default:"-" }}</td></tr>
+        <tr><td style="font-weight:600;">پرداخت</td><td>{{ invoice.paid_at|jalali_date|default:"-" }}</td></tr>
+    </table></div>
+</div>
+
+{% if invoice.status == "paid" %}
+<div class="card" id="paid_invoice_display_9c_invoice_detail">
+    <div class="card-header">وضعیت پرداخت</div>
+    <span class="status-badge status-success">پرداخت شده</span>
+    <p style="margin-top:.75rem;color:#475569;line-height:2;">
+        روش پرداخت: <strong>{{ payment_info.method_label|default:"-" }}</strong><br>
+        شماره سند / کد پیگیری: <strong style="direction:ltr;unicode-bidi:plaintext;">{{ payment_info.reference|default:"-" }}</strong>
+        {% if payment_info.paid_at %}<br>تاریخ پرداخت: {{ payment_info.paid_at|jalali_datetime }}{% elif invoice.paid_at %}<br>تاریخ پرداخت: {{ invoice.paid_at|jalali_datetime }}{% endif %}
+        {% if payment_info.is_cash and payment_info.received_by %}<br>ثبت‌کننده دریافت نقدی: {{ payment_info.received_by }}{% endif %}
+    </p>
+</div>
+{% endif %}
+
+{% if invoice.items.all %}
+<div class="card">
+    <div class="card-header">اقلام فاکتور</div>
+    <div class="table-wrapper"><table>
+        <thead><tr><th>شرح</th><th>تعداد</th><th>قیمت واحد</th><th>جمع</th></tr></thead>
+        <tbody>{% for item in invoice.items.all %}
+        <tr><td>{{ item.description }}</td><td>{{ item.quantity|smart_number }}</td><td>{{ item.unit_price|smart_number }}</td><td>{{ item.total_price|smart_number }}</td></tr>
+        {% endfor %}</tbody>
+    </table></div>
+</div>
+{% endif %}
+
+{% if messages %}
+<div class="card">{% for message in messages %}<div class="status-badge {% if message.tags == 'success' %}status-success{% else %}status-danger{% endif %}">{{ message }}</div>{% endfor %}</div>
+{% endif %}
+{% if invoice.is_payable %}
+<a href="/{{ company.code }}/invoices/{{ invoice.id }}/pay/" class="btn btn-success">پرداخت اینترنتی</a>
+{% endif %}
+
+{% if invoice.status != "cancelled" %}
+{% if invoice.public_code %}
+<a href="/{{ company.code }}/invoices/public/{{ invoice.public_code }}/print/" class="btn btn-primary">🖨️ چاپ / دانلود فاکتور</a>
+{% endif %}
+{% endif %}
+
+<p style="margin-top:1.5rem;"><a href="/{{ company.code }}/invoices/">بازگشت به لیست</a></p>
+{% endblock %}

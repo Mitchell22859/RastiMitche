@@ -1,0 +1,27 @@
+{% extends "base_dashboard.html" %}
+{% block title %}{% if is_edit %}ویرایش{% else %}آپلود{% endif %} تصویر - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>{% if is_edit %}ویرایش تصویر{% else %}آپلود تصویر جدید{% endif %}</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+
+<div class="card" style="max-width:600px;">
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
+
+<div class="form-group">
+    <label>تصویر{% if not is_edit %} (الزامی){% else %} (اختیاری - برای تغییر){% endif %}</label>
+    {% if is_edit and image.image %}<p style="font-size:0.8rem;color:#64748b;">فایل فعلی: {{ image.image.name }}</p>{% endif %}
+    <input type="file" name="image" accept="image/*" class="form-control" {% if not is_edit %}required{% endif %}>
+</div>
+<div class="form-group"><label>عنوان</label><input name="caption" value="{% if is_edit %}{{ image.caption }}{% endif %}" class="form-control" placeholder="عنوان تصویر"></div>
+<div class="form-group"><label>ترتیب نمایش</label><input type="number" name="sort_order" value="{% if is_edit %}{{ image.sort_order }}{% else %}0{% endif %}" class="form-control"></div>
+<div class="form-group"><label><input type="checkbox" name="is_active" {% if not is_edit or image.is_active %}checked{% endif %}> فعال (نمایش در صفحه عمومی)</label></div>
+
+<button type="submit" class="btn btn-primary">{% if is_edit %}ذخیره{% else %}آپلود{% endif %}</button>
+<a href="/{{ company.code }}/admin/gallery/" class="btn btn-outline" style="margin-right:0.5rem;">انصراف</a>
+</form>
+</div>
+{% endblock %}

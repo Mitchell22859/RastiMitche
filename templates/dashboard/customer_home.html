@@ -1,0 +1,88 @@
+{% extends "layouts/dashboard.html" %}
+
+{% load fa_labels %}
+{% block title %}حساب من - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block sidebar_subtitle %}حساب مشتری{% endblock %}
+{% block user_role_label %}مشتری{% endblock %}
+{% block page_title %}حساب کاربری{% endblock %}
+{% block page_description %}سفارش‌ها و فاکتورهای شما{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_customer.html" %}
+{% endblock %}
+
+{% block navbar_actions %}
+<a href="/{{ company.code }}/request/"
+   class="hidden sm:inline-flex items-center gap-2 px-3 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-smooth">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    درخواست خدمت
+</a>
+{% endblock %}
+
+{% block content %}
+{# Stats Grid #}
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    {% include "includes/components/stat_card.html" with value=stats.total_orders|default:"0" label="کل سفارش‌ها" icon="orders" color="blue" %}
+    {% include "includes/components/stat_card.html" with value=stats.unpaid_invoices|default:"0" label="فاکتور پرداخت نشده" icon="invoice" color="red" %}
+    {% include "includes/components/stat_card.html" with value=stats.paid_invoices|default:"0" label="فاکتور پرداخت شده" icon="check" color="green" %}
+</div>
+
+{# Quick Actions #}
+<div class="grid grid-cols-2 gap-3 mb-6">
+    <a href="/{{ company.code }}/request/" class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-brand-200 transition-smooth group">
+        <div class="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center group-hover:bg-brand-100">
+            <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        </div>
+        <div>
+            <p class="text-sm font-semibold text-gray-800">درخواست خدمت</p>
+            <p class="text-xs text-gray-500">ثبت درخواست جدید</p>
+        </div>
+    </a>
+    <a href="/{{ company.code }}/request/status/" class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-brand-200 transition-smooth group">
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+        <div>
+            <p class="text-sm font-semibold text-gray-800">پیگیری درخواست</p>
+            <p class="text-xs text-gray-500">بررسی وضعیت</p>
+        </div>
+    </a>
+</div>
+
+{# Recent Orders Table #}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-gray-800">سفارش‌های اخیر</h3>
+    </div>
+    {% if recent_orders %}
+    <div class="overflow-x-auto">
+        <table class="w-full data-table">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">#</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">عنوان</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">وضعیت</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">تاریخ</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for order in recent_orders %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ order.id }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-700">{{ order.title }}</td>
+                    <td class="px-5 py-3">
+                        {% include "includes/components/badge.html" with status=order.status label=order.get_status_display %}
+                    </td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ order.created_at|jalali_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    {% include "includes/components/empty_state.html" with title="سفارشی ثبت نشده" description="هنوز سفارشی ثبت نشده است." icon="orders" %}
+    {% endif %}
+</div>
+{% endblock %}

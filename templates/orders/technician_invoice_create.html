@@ -1,0 +1,653 @@
+{% extends "layouts/technician.html" %}
+{% load static %}
+{% load jalali_tags %}
+
+{% block title %}صدور فاکتور سفارش #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="ti-page" dir="rtl">
+
+  <header class="ti-header">
+    <a class="ti-close" href="/{{ company.code }}/tech/orders/my/" aria-label="بازگشت">×</a>
+    <div>
+      <h1>صدور فاکتور</h1>
+      <p>سفارش #{{ order.id }}</p>
+    </div>
+  </header>
+
+  <section class="ti-customer-card">
+    <div class="ti-avatar">{{ order.display_customer_name|default:order.customer_name|slice:":1" }}</div>
+    <div>
+      <strong>{{ order.display_customer_name|default:order.customer_name }}</strong>
+      <span class="ltr">{{ order.display_customer_phone|default:order.customer_phone }}</span>
+    </div>
+  </section>
+
+  <form method="post" id="invoiceForm" class="ti-form">
+    {% csrf_token %}
+
+    <div id="rows" class="ti-rows">
+      <article class="ti-row" data-row>
+        <input type="hidden" name="row_type" value="service" data-row-type>
+
+        <div class="ti-row-top">
+          <span class="ti-row-index">1</span>
+
+          <div class="ti-segment" role="radiogroup" aria-label="نوع ردیف">
+            <button type="button" class="ti-segment-btn is-active" data-type="service">خدمات</button>
+            <button type="button" class="ti-segment-btn" data-type="product">کالا</button>
+          </div>
+
+          <button type="button" class="ti-remove" data-remove aria-label="حذف ردیف">×</button>
+        </div>
+
+        <label class="ti-field ti-field-full">
+          <span>شرح خدمات یا کالا</span>
+          <textarea name="description" rows="2" required placeholder="شرح کالا یا خدمت را وارد کنید"></textarea>
+        </label>
+
+        <div class="ti-grid-3">
+          <label class="ti-field">
+            <span>تعداد</span>
+            <input type="number" inputmode="decimal" step="0.01" min="0.01" name="quantity" placeholder="0" data-qty>
+          </label>
+
+          <label class="ti-field">
+            <span>قیمت واحد</span>
+            <input type="number" inputmode="numeric" step="1" min="0" name="unit_price" placeholder="0" data-price>
+          </label>
+
+          <label class="ti-field">
+            <span>تخفیف</span>
+            <input type="number" inputmode="numeric" step="1" min="0" name="discount_amount" placeholder="0" data-discount>
+          </label>
+        </div>
+
+        <div class="ti-row-total">
+          <span>جمع این ردیف</span>
+          <strong><b data-row-total>۰</b> ریال</strong>
+        </div>
+      </article>
+    </div>
+
+    <button type="button" id="addRow" class="ti-add-row">+ افزودن ردیف جدید</button>
+
+    <section class="ti-notes-card">
+      <label class="ti-field ti-field-full">
+        <span>توضیحات اختیاری</span>
+        <textarea name="notes" rows="3" placeholder="توضیحات فاکتور"></textarea>
+      </label>
+    </section>
+
+    <section class="ti-summary">
+      <div class="ti-summary-row">
+        <span>جمع کل آیتم‌ها</span>
+        <strong><b id="sumRows">۰</b> ریال</strong>
+      </div>
+
+      <div class="ti-summary-row">
+        <span>مجموع تخفیف ردیف‌ها</span>
+        <strong><b id="sumDiscount">۰</b> ریال</strong>
+      </div>
+
+      <div class="ti-summary-box">
+        <div class="ti-summary-box-title">ایاب و ذهاب</div>
+
+        <div class="ti-summary-two">
+          <label class="ti-field">
+            <span>تعداد ایاب‌وذهاب</span>
+            <input id="travelQuantity" type="number" inputmode="decimal" step="0.01" min="0" name="travel_quantity" placeholder="0">
+          </label>
+
+          <label class="ti-field">
+            <span>مبلغ هر ایاب‌وذهاب</span>
+            <input id="travelFee" type="number" inputmode="numeric" step="1" min="0" name="travel_fee" placeholder="0">
+          </label>
+        </div>
+
+        <div class="ti-summary-row ti-summary-row-light">
+          <span>جمع ایاب‌وذهاب</span>
+          <strong><b id="travelTotal">۰</b> ریال</strong>
+        </div>
+      </div>
+
+      <div class="ti-summary-row">
+        <label for="extraDiscount">تخفیف مازاد</label>
+        <div class="ti-travel-input">
+          <input id="extraDiscount" type="number" inputmode="numeric" step="1" min="0" name="extra_discount" placeholder="0">
+          <span>ریال</span>
+        </div>
+      </div>
+
+      <div class="ti-summary-row">
+        <span>مجموع کل تخفیف</span>
+        <strong><b id="discountTotal">۰</b> ریال</strong>
+      </div>
+
+      <div class="ti-payable">
+        <span>مبلغ قابل پرداخت</span>
+        <strong><b id="payable">۰</b> ریال</strong>
+      </div>
+    </section>
+
+    <div class="ti-sticky-actions">
+      <button type="submit" class="ti-submit">ثبت فاکتور</button>
+      <a class="ti-cancel" href="/{{ company.code }}/tech/orders/my/">انصراف</a>
+    </div>
+
+  </form>
+
+</div>
+
+<template id="rowTemplate">
+  <article class="ti-row" data-row>
+    <input type="hidden" name="row_type" value="service" data-row-type>
+
+    <div class="ti-row-top">
+      <span class="ti-row-index">1</span>
+
+      <div class="ti-segment" role="radiogroup" aria-label="نوع ردیف">
+        <button type="button" class="ti-segment-btn is-active" data-type="service">خدمات</button>
+        <button type="button" class="ti-segment-btn" data-type="product">کالا</button>
+      </div>
+
+      <button type="button" class="ti-remove" data-remove aria-label="حذف ردیف">×</button>
+    </div>
+
+    <label class="ti-field ti-field-full">
+      <span>شرح خدمات یا کالا</span>
+      <textarea name="description" rows="2" required placeholder="شرح کالا یا خدمت را وارد کنید"></textarea>
+    </label>
+
+    <div class="ti-grid-3">
+      <label class="ti-field">
+        <span>تعداد</span>
+        <input type="number" inputmode="decimal" step="0.01" min="0.01" name="quantity" placeholder="0" data-qty>
+      </label>
+
+      <label class="ti-field">
+        <span>قیمت واحد</span>
+        <input type="number" inputmode="numeric" step="1" min="0" name="unit_price" placeholder="0" data-price>
+      </label>
+
+      <label class="ti-field">
+        <span>تخفیف</span>
+        <input type="number" inputmode="numeric" step="1" min="0" name="discount_amount" placeholder="0" data-discount>
+      </label>
+    </div>
+
+    <div class="ti-row-total">
+      <span>جمع این ردیف</span>
+      <strong><b data-row-total>۰</b> ریال</strong>
+    </div>
+  </article>
+</template>
+
+<style>
+.ti-page {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px 16px 230px;
+  color: #111827;
+  overflow-x: hidden;
+}
+.ti-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 18px;
+}
+.ti-header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  text-align: center;
+}
+.ti-header p {
+  margin: 4px 0 0;
+  color: #64748b;
+  text-align: center;
+}
+.ti-close {
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  color: #334155;
+  font-size: 30px;
+}
+.ti-customer-card,
+.ti-row,
+.ti-notes-card,
+.ti-summary {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, .05);
+}
+.ti-customer-card {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+.ti-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  background: #6257f6;
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  font-weight: 900;
+}
+.ti-customer-card strong {
+  display: block;
+  font-size: 18px;
+}
+.ti-customer-card span {
+  display: block;
+  color: #64748b;
+  margin-top: 4px;
+}
+.ltr {
+  direction: ltr;
+  unicode-bidi: plaintext;
+}
+.ti-rows {
+  display: grid;
+  gap: 14px;
+}
+.ti-row {
+  padding: 16px;
+}
+.ti-row-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.ti-row-index {
+  width: 34px;
+  height: 34px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #dbe4ff;
+  color: #4f46e5;
+  font-weight: 900;
+}
+.ti-segment {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #f1f5f9;
+  border-radius: 16px;
+  padding: 4px;
+  gap: 4px;
+}
+.ti-segment-btn {
+  height: 42px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  font-weight: 800;
+  color: #64748b;
+}
+.ti-segment-btn.is-active {
+  background: #fff;
+  color: #111827;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .12);
+}
+.ti-remove {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  border: 1px solid #fee2e2;
+  background: #fff1f2;
+  color: #e11d48;
+  font-size: 22px;
+}
+.ti-field {
+  display: block;
+  min-width: 0;
+}
+.ti-field span,
+.ti-field label {
+  display: block;
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+.ti-field textarea,
+.ti-field input,
+.ti-travel-input input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+  color: #111827;
+  font-size: 16px;
+  outline: none;
+}
+.ti-field textarea::placeholder,
+.ti-field input::placeholder,
+.ti-travel-input input::placeholder {
+  color: #94a3b8;
+}
+.ti-field textarea:focus,
+.ti-field input:focus,
+.ti-travel-input input:focus {
+  border-color: #635bff;
+  box-shadow: 0 0 0 3px rgba(99, 91, 255, .12);
+}
+.ti-grid-3,
+.ti-summary-two {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+.ti-row-total {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 16px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 800;
+}
+.ti-add-row {
+  width: 100%;
+  margin: 16px 0;
+  min-height: 58px;
+  border-radius: 20px;
+  border: 2px dashed #cbd5e1;
+  background: #fff;
+  color: #475569;
+  font-size: 17px;
+  font-weight: 900;
+}
+.ti-notes-card,
+.ti-summary {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.ti-summary-box {
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+.ti-summary-box-title {
+  font-weight: 900;
+  color: #334155;
+}
+.ti-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+.ti-summary-row-light {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.ti-travel-input {
+  display: flex;
+  align-items: center;
+  max-width: 180px;
+  border: 1px solid #dbe3ef;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+.ti-travel-input input {
+  border: 0;
+  border-radius: 0;
+  text-align: center;
+}
+.ti-travel-input span {
+  padding: 0 12px;
+  color: #64748b;
+  white-space: nowrap;
+}
+.ti-payable {
+  padding-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 900;
+}
+.ti-payable strong {
+  color: #16a34a;
+}
+.ti-sticky-actions {
+  position: fixed;
+  left: 50%;
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(520px, calc(100vw - 24px));
+  display: grid;
+  grid-template-columns: 1.4fr .9fr;
+  gap: 12px;
+  background: rgba(255, 255, 255, .92);
+  backdrop-filter: blur(14px);
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  padding: 12px;
+  z-index: 60;
+  box-shadow: 0 14px 35px rgba(15, 23, 42, .14);
+}
+.ti-submit,
+.ti-cancel {
+  min-height: 56px;
+  border-radius: 16px;
+  border: 0;
+  font-size: 17px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+}
+.ti-submit {
+  color: #fff;
+  background: linear-gradient(135deg, #635bff, #9b8cff);
+}
+.ti-cancel {
+  color: #111827;
+  background: #fff;
+  border: 1px solid #dbe3ef;
+}
+@media (min-width: 700px) {
+  .ti-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .ti-summary-two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+</style>
+
+<script>
+(function () {
+  "use strict";
+
+  function normalizeDigits(value) {
+    return String(value || "")
+      .replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); })
+      .replace(/[٠-٩]/g, function (d) { return "٠١٢٣٤٥٦٧٨٩".indexOf(d); })
+      .replace(/٬/g, ",")
+      .replace(/،/g, ",");
+  }
+
+  function toNumber(value) {
+    var normalized = normalizeDigits(value).replace(/,/g, "").trim();
+    if (normalized === "") return 0;
+    var n = Number(normalized);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function formatNumber(value, maxDecimals) {
+    var n = Number(value);
+    if (!Number.isFinite(n)) n = 0;
+    n = Math.max(0, n);
+    return n.toLocaleString("fa-IR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: maxDecimals == null ? 2 : maxDecimals
+    });
+  }
+
+  function getRows() {
+    return Array.prototype.slice.call(document.querySelectorAll("[data-row]"));
+  }
+
+  function refreshIndexes() {
+    getRows().forEach(function (row, index) {
+      var badge = row.querySelector(".ti-row-index");
+      if (badge) badge.textContent = formatNumber(index + 1, 0);
+    });
+  }
+
+  function calculate() {
+    var sumRows = 0;
+    var rowDiscount = 0;
+
+    getRows().forEach(function (row) {
+      var qty = Math.max(0, toNumber(row.querySelector("[data-qty]") ? row.querySelector("[data-qty]").value : 0));
+      var price = Math.max(0, toNumber(row.querySelector("[data-price]") ? row.querySelector("[data-price]").value : 0));
+      var discount = Math.max(0, toNumber(row.querySelector("[data-discount]") ? row.querySelector("[data-discount]").value : 0));
+      var rowTotal = Math.max(0, (qty * price) - discount);
+
+      sumRows += rowTotal;
+      rowDiscount += discount;
+
+      var totalEl = row.querySelector("[data-row-total]");
+      if (totalEl) totalEl.textContent = formatNumber(rowTotal, 2);
+    });
+
+    var travelQty = Math.max(0, toNumber(document.getElementById("travelQuantity") ? document.getElementById("travelQuantity").value : 0));
+    var travelUnit = Math.max(0, toNumber(document.getElementById("travelFee") ? document.getElementById("travelFee").value : 0));
+    var travelTotal = travelQty * travelUnit;
+
+    var extraDiscount = Math.max(0, toNumber(document.getElementById("extraDiscount") ? document.getElementById("extraDiscount").value : 0));
+    var totalDiscount = rowDiscount + extraDiscount;
+    var payable = Math.max(0, sumRows + travelTotal - extraDiscount);
+
+    document.getElementById("sumRows").textContent = formatNumber(sumRows, 2);
+    document.getElementById("sumDiscount").textContent = formatNumber(rowDiscount, 2);
+    document.getElementById("travelTotal").textContent = formatNumber(travelTotal, 2);
+    document.getElementById("discountTotal").textContent = formatNumber(totalDiscount, 2);
+    document.getElementById("payable").textContent = formatNumber(payable, 2);
+  }
+
+  function bindRowType(button) {
+    var row = button.closest("[data-row]");
+    if (!row) return;
+
+    var selectedType = button.getAttribute("data-type") || "service";
+    var hiddenInput = row.querySelector("[data-row-type]");
+
+    row.querySelectorAll("[data-type]").forEach(function (btn) {
+      btn.classList.remove("is-active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+
+    button.classList.add("is-active");
+    button.setAttribute("aria-pressed", "true");
+    if (hiddenInput) hiddenInput.value = selectedType;
+  }
+
+  function addRow() {
+    var template = document.getElementById("rowTemplate");
+    var container = document.getElementById("rows");
+    if (!template || !container || !template.content) return;
+
+    var clone = template.content.firstElementChild.cloneNode(true);
+    container.appendChild(clone);
+    refreshIndexes();
+    calculate();
+
+    var firstInput = clone.querySelector("textarea, input");
+    if (firstInput) {
+      try { firstInput.focus({ preventScroll: true }); } catch (e) { firstInput.focus(); }
+    }
+    try { clone.scrollIntoView({ behavior: "smooth", block: "center" }); } catch (e) {}
+  }
+
+  function removeRow(button) {
+    var allRows = getRows();
+    if (allRows.length <= 1) return;
+
+    var row = button.closest("[data-row]");
+    if (!row) return;
+
+    row.remove();
+    refreshIndexes();
+    calculate();
+  }
+
+  document.addEventListener("click", function (event) {
+    var typeButton = event.target.closest("[data-type]");
+    if (typeButton) {
+      event.preventDefault();
+      bindRowType(typeButton);
+      return;
+    }
+
+    var removeButton = event.target.closest("[data-remove]");
+    if (removeButton) {
+      event.preventDefault();
+      removeRow(removeButton);
+      return;
+    }
+
+    var addButton = event.target.closest("#addRow");
+    if (addButton) {
+      event.preventDefault();
+      addRow();
+      return;
+    }
+  });
+
+  document.addEventListener("input", function (event) {
+    if (
+      event.target.matches("[data-qty]") ||
+      event.target.matches("[data-price]") ||
+      event.target.matches("[data-discount]") ||
+      event.target.matches("#travelQuantity") ||
+      event.target.matches("#travelFee") ||
+      event.target.matches("#extraDiscount")
+    ) {
+      calculate();
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    refreshIndexes();
+    calculate();
+  });
+
+  refreshIndexes();
+  calculate();
+})();
+</script>
+{% endblock %}

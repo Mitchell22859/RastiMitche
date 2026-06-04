@@ -1,0 +1,105 @@
+{% extends "base_dashboard.html" %}
+{% block title %}تنظیمات سایت - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+{% include "includes/settings_center.html" %}
+
+<div class="page-header">
+    <h1>تنظیمات سایت</h1>
+    <p>اطلاعات شرکت و قوانین نمایش/پذیرش سفارش برای نیروهای خدماتی را از این بخش کنترل کنید.</p>
+</div>
+
+
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+{% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+
+
+<form method="post" class="settings-form">{% csrf_token %}
+    <div class="card" style="margin-bottom:1rem;">
+        <div class="card-header">اطلاعات شرکت</div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>نام شرکت</label>
+                <input class="form-control" name="name" value="{{ company.name }}" required>
+            </div>
+            <div class="form-group">
+                <label>تلفن</label>
+                <input class="form-control" name="phone" value="{{ company.phone }}" placeholder="مثلاً 09177305910">
+            </div>
+            <div class="form-group">
+                <label>کد اقتصادی</label>
+                <input class="form-control" name="economic_code" value="{{ company.economic_code }}">
+            </div>
+            <div class="form-group">
+                <label>وب‌سایت</label>
+                <input class="form-control" name="website" value="{{ company.website }}" placeholder="www.RastiService.ir">
+            </div>
+            <div class="form-group">
+                <label>ایمیل</label>
+                <input class="form-control" name="email" value="{{ company.email }}">
+            </div>
+            <div class="form-group full-width">
+                <label>آدرس</label>
+                <textarea class="form-control" name="address" rows="2">{{ company.address }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
+        <div class="card-header">تنظیمات سفارش و نیروی خدماتی</div>
+        <p style="color:#64748b;margin-top:0;">این تنظیمات روی نمایش و پذیرش سفارش توسط نیروها اثر می‌گذارد.</p>
+
+        <div class="form-group">
+            <label>محدودیت عمومی تعداد سفارش در انتظار خدمت برای هر نیرو</label>
+            <input class="form-control" type="number" min="0" name="max_active_orders_per_technician" value="{{ settings_obj.max_active_orders_per_technician }}">
+            <small>هر نیرو بیشتر از این تعداد سفارش فعال نمی‌تواند قبول کند. عدد ۰ یعنی بدون محدودیت.</small>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>مدت تأخیر نمایش سفارش برای اولویت ۲ - دقیقه</label>
+                <input class="form-control" type="number" min="0" name="priority2_delay_minutes" value="{{ settings_obj.priority2_delay_minutes }}">
+            </div>
+            <div class="form-group">
+                <label>مدت تأخیر نمایش سفارش برای اولویت ۳ - دقیقه</label>
+                <input class="form-control" type="number" min="0" name="priority3_delay_minutes" value="{{ settings_obj.priority3_delay_minutes }}">
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="show_future_orders_to_technicians" {% if settings_obj.show_future_orders_to_technicians %}checked{% endif %}>
+                نمایش سفارش‌های روزهای آینده برای نیروهای خدماتی
+            </label>
+            <small>
+                اگر غیرفعال باشد، سفارش‌های آینده به نیروها نمایش داده نمی‌شوند.
+                اگر فعال باشد، سفارش‌های آینده بعد از ساعت تعیین‌شده نمایش داده می‌شوند، اما تا روز مقرر و ساعت مجاز قابل قبول کردن نیستند.
+            </small>
+        </div>
+
+        <div class="form-group">
+            <label>ساعت شروع نمایش/فعال‌سازی سفارش‌ها</label>
+            <input class="form-control" name="future_orders_visible_after" value="{% if settings_obj.future_orders_visible_after %}{{ settings_obj.future_orders_visible_after|time:'H:i:s' }}{% endif %}" placeholder="07:30:00">
+            <small>مثلاً 07:30 یعنی سفارش‌ها از این ساعت طبق قانون بالا برای نیروها نمایش/فعال می‌شوند.</small>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="auto_recycle_cancel_request" {% if settings_obj.auto_recycle_cancel_request %}checked{% endif %}>
+                بازگشت خودکار درخواست لغو سفارش به چرخه
+            </label>
+            <small>اگر فعال باشد، وقتی نیرو درخواست لغو می‌زند، سفارش قبلی لغو و سفارش جدید بدون نیاز به تأیید ادمین ساخته می‌شود.</small>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:.5rem;align-items:center;">
+        <button type="submit" class="btn btn-primary">ذخیره تنظیمات</button>
+        <a href="/{{ company.code }}/admin/" class="btn btn-outline">بازگشت</a>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "layouts/dashboard.html" %}
+
+{% load fa_labels %}
+{% block title %}تراکنش‌های پیامک - رستی سرویس{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}تراکنش‌های پیامک{% endblock %}
+{% block page_description %}لیست تمام تراکنش‌های کیف پول پیامک{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block navbar_actions %}
+<a href="/owner-platform/sms-billing/companies/"
+   class="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-smooth">
+    &larr; شرکت‌ها
+</a>
+{% endblock %}
+
+{% block content %}
+{% if transactions %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full data-table">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">شرکت</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">نوع</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">مبلغ (ریال)</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">پیامک</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">مانده</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">توضیحات</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">تاریخ</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for tx in transactions %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-5 py-3 text-sm text-gray-900">{{ tx.company.name }}</td>
+                    <td class="px-5 py-3">
+                        {% if tx.transaction_type == "CREDIT" %}
+                        <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">شارژ</span>
+                        {% elif tx.transaction_type == "DEBIT" %}
+                        <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">مصرف</span>
+                        {% elif tx.transaction_type == "BLOCKED" %}
+                        <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">مسدود</span>
+                        {% else %}
+                        <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-700">تعدیل</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-3 text-sm text-gray-700">{{ tx.amount_rial|floatformat:0 }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-700">{{ tx.sms_parts }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-700">{{ tx.balance_after|floatformat:0 }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ tx.description|truncatechars:40 }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ tx.created_at|jalali_datetime }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center">
+    <p class="text-gray-500">تراکنشی یافت نشد.</p>
+</div>
+{% endif %}
+{% endblock %}

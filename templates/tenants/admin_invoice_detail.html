@@ -1,0 +1,139 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers fa_labels jalali_tags %}
+{% block title %}فاکتور {{ invoice.invoice_number }} - {{ company.name }}{% if invoice.status == "issued" %}
+<div class="card" id="payment_flow_prepare_7d1_online_button">
+    <div class="card-header">پرداخت فاکتور</div>
+    <p style="color:#64748b;">پرداخت آنلاین و اعمال کد تخفیف از صفحه پرداخت انجام می‌شود.</p>
+    <a href="/{{ company.code }}/invoices/{{ invoice.id }}/pay/" class="btn btn-success">پرداخت اینترنتی</a>
+</div>
+{% endif %}
+{% if invoice.status == "paid" %}
+<div class="card">
+    <div class="card-header">وضعیت پرداخت</div>
+    <span class="status-badge status-success">پرداخت شده</span>
+    {% for pay in invoice.payments.all %}
+        {% if forloop.first %}
+            <p style="margin-top:.75rem;color:#475569;">
+                کد پیگیری: <strong style="direction:ltr;unicode-bidi:plaintext;">{{ pay.tracking_code|default:pay.reference_id|default:"-" }}</strong>
+                {% if pay.metadata.method == "cash" %}
+                    <br>روش پرداخت: دریافت نقدی توسط تکنسین
+                {% elif pay.metadata.method == "online" %}
+                    <br>روش پرداخت: پرداخت اینترنتی
+                {% endif %}
+            </p>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>فاکتور {{ invoice.invoice_number }}</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+
+<div class="card"><table>
+<tr><td style="font-weight:600;width:160px;">وضعیت</td><td><span class="badge badge-{{ invoice.status|status_css }}">{{ invoice.status|status_fa }}</span></td></tr>
+<tr><td style="font-weight:600;">مشتری</td><td>{{ invoice.display_customer_name|default:"-" }}{% if invoice.display_customer_phone %} - {{ invoice.display_customer_phone }}{% endif %}</td></tr>
+<tr><td style="font-weight:600;">آدرس</td><td>{{ invoice.address_snapshot|default:"-" }}</td></tr>
+<tr><td style="font-weight:600;">نیروی خدماتی</td><td>{{ invoice.technician_name_snapshot|default:"-" }}{% if invoice.technician_phone_snapshot %} - {{ invoice.technician_phone_snapshot }}{% endif %}</td></tr>
+<tr><td style="font-weight:600;">سفارش</td><td>{% if invoice.order_id %}<a href="/{{ company.code }}/admin/orders/{{ invoice.order_id }}/">#{{ invoice.order_id }}</a>{% else %}-{% endif %}</td></tr>
+<tr><td style="font-weight:600;">خدمت</td><td>{{ invoice.service_title_snapshot|default:"-" }}</td></tr>
+<tr><td style="font-weight:600;">تاریخ خدمت</td><td>{{ invoice.display_service_date_jalali|default:"-" }}</td></tr>
+<tr><td style="font-weight:600;">صدور</td><td>{{ invoice.issued_at|default:"-" }}</td></tr>
+<tr><td style="font-weight:600;">پرداخت</td><td>{{ invoice.paid_at|default:"-" }}</td></tr>
+</table></div>
+
+{% if invoice.status == "issued" %}
+<div class="card" id="payment_flow_prepare_9c_online_button">
+    <div class="card-header">پرداخت فاکتور</div>
+    <p style="color:#64748b;">پرداخت اینترنتی و اعمال کد تخفیف از صفحه پرداخت انجام می‌شود.</p>
+    <a href="/{{ company.code }}/invoices/{{ invoice.id }}/pay/" class="btn btn-success">پرداخت اینترنتی</a>
+</div>
+{% elif invoice.status == "paid" %}
+<div class="card" id="paid_invoice_display_9c_admin">
+    <div class="card-header">وضعیت پرداخت</div>
+    <span class="status-badge status-success">پرداخت شده</span>
+    <p style="margin-top:.75rem;color:#475569;line-height:2;">
+        روش پرداخت: <strong>{{ payment_info.method_label|default:"-" }}</strong><br>
+        شماره سند / کد پیگیری: <strong style="direction:ltr;unicode-bidi:plaintext;">{{ payment_info.reference|default:"-" }}</strong>
+        {% if payment_info.paid_at %}<br>تاریخ پرداخت: {{ payment_info.paid_at|jalali_datetime }}{% elif invoice.paid_at %}<br>تاریخ پرداخت: {{ invoice.paid_at|jalali_datetime }}{% endif %}
+        {% if payment_info.is_cash and payment_info.received_by %}<br>ثبت‌کننده دریافت نقدی: {{ payment_info.received_by }}{% endif %}
+    </p>
+</div>
+{% endif %}
+
+<div class="card"><div class="card-header">آیتم‌های فاکتور</div>
+{% if invoice.items.all %}
+<table>
+<thead><tr><th>شرح</th><th>تعداد</th><th>قیمت واحد</th><th>تخفیف ردیف</th><th>جمع</th></tr></thead>
+<tbody>{% for item in invoice.items.all %}<tr>
+<td>{{ item.description }}</td><td>{{ item.quantity|smart_number }}</td><td>{{ item.unit_price|smart_number }}</td><td>{{ item.discount_amount|smart_number }}</td><td>{{ item.total_price|smart_number }}</td>
+</tr>{% endfor %}</tbody>
+<tfoot>
+<tr><td colspan="4" style="font-weight:600;">جمع ردیف‌ها</td><td>{{ invoice.subtotal|smart_number }}</td></tr>
+<tr><td colspan="4" style="font-weight:600;">مالیات/افزوده</td><td>{{ invoice.tax_amount|smart_number }}</td></tr>
+<tr><td colspan="4" style="font-weight:600;">تخفیف کل</td><td>{{ invoice.discount_amount|smart_number }}</td></tr>
+<tr><td colspan="4" style="font-weight:700;">مبلغ نهایی</td><td style="font-weight:700;">{{ invoice.total_amount|smart_number }} ریال</td></tr>
+</tfoot>
+</table>
+{% else %}<p style="color:#64748b;">هنوز آیتمی برای این فاکتور ثبت نشده است.</p>{% endif %}
+</div>
+
+{% if public_url %}
+<div class="card"><div class="card-header">لینک عمومی فاکتور</div>
+<input class="form-control" value="{{ public_url }}" readonly onclick="this.select();">
+<small>این لینک فقط نسخه خواندنی فاکتور را نمایش می‌دهد.</small>
+</div>
+{% endif %}
+
+{% if wage.total_wage %}
+<div class="card"><div class="card-header">محاسبه دستمزد تکنسین</div>
+<table>
+<tr><td style="font-weight:600;width:220px;">جمع اجرت خدمات</td><td>{{ wage.service_total|smart_number }} ریال</td></tr>
+<tr><td style="font-weight:600;">جمع کالا / قطعه</td><td>{{ wage.goods_total|smart_number }} ریال</td></tr>
+<tr><td style="font-weight:600;">جمع ایاب و ذهاب</td><td>{{ wage.travel_total|smart_number }} ریال</td></tr>
+<tr><td style="font-weight:600;">تخفیف مازاد</td><td>{{ wage.extra_discount|smart_number }} ریال</td></tr>
+<tr><td style="font-weight:600;">پایه اجرت پس از تخفیف</td><td>{{ wage.service_base|smart_number }} ریال</td></tr>
+<tr style="border-top:1px solid #e2e8f0;"><td style="font-weight:600;">درصد سهم از اجرت</td><td>{{ wage.service_percent }}٪</td></tr>
+<tr><td style="font-weight:600;">درصد سهم از کالا</td><td>{{ wage.goods_percent }}٪</td></tr>
+<tr><td style="font-weight:600;">درصد سهم از ایاب و ذهاب</td><td>{{ wage.travel_percent }}٪</td></tr>
+<tr style="border-top:1px solid #e2e8f0;"><td style="font-weight:600;">سهم تکنسین از اجرت</td><td>{{ wage.service_wage|smart_number }} ریال</td></tr>
+<tr><td style="font-weight:600;">سهم تکنسین از کالا</td><td>{{ wage.goods_wage|smart_number }} ریال</td></tr>
+<tr><td style="font-weight:600;">سهم تکنسین از ایاب و ذهاب</td><td>{{ wage.travel_wage|smart_number }} ریال</td></tr>
+<tr style="border-top:2px solid #1e293b;"><td style="font-weight:800;">جمع دستمزد تکنسین</td><td style="font-weight:800;">{{ wage.total_wage|smart_number }} ریال</td></tr>
+</table>
+</div>
+{% endif %}
+
+<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:1rem;">
+{% if invoice.status == "draft" %}
+<a href="/{{ company.code }}/admin/invoices/{{ invoice.id }}/edit/" class="btn btn-primary">ویرایش فاکتور</a>
+<form method="post" style="display:inline;">{% csrf_token %}
+<input type="hidden" name="issue_invoice" value="1">
+<button type="submit" class="btn btn-success">صدور فاکتور</button>
+</form>{% endif %}
+
+{% if invoice.status == "issued" or invoice.status == "paid" or invoice.status == "draft" %}
+{% if invoice.public_code %}<a href="/{{ company.code }}/admin/invoices/{{ invoice.public_code }}/print/" class="btn btn-primary">🖨️ چاپ / دانلود</a>{% endif %}
+{% endif %}
+
+{% if invoice.status == "issued" %}
+<form method="post" style="display:inline;">{% csrf_token %}
+<input type="hidden" name="mark_paid" value="1">
+<button type="submit" class="btn btn-success">ثبت پرداخت مستقیم غیرفعال شد</button>
+</form>{% endif %}
+
+{% if invoice.status == "draft" or invoice.status == "issued" %}
+<form method="post" style="display:flex;gap:0.5rem;align-items:center;">{% csrf_token %}
+<input type="hidden" name="cancel_invoice" value="1">
+<input type="text" name="cancel_reason" class="form-control" placeholder="دلیل لغو" style="width:220px;">
+<button type="submit" class="btn btn-danger">لغو فاکتور</button>
+</form>{% endif %}
+</div>
+
+<p style="margin-top:1.5rem;"><a href="/{{ company.code }}/admin/invoices/">بازگشت</a></p>
+{% endblock %}

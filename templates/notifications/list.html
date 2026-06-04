@@ -1,0 +1,38 @@
+{% extends "layouts/dashboard.html" %}
+{% load jalali_tags %}
+{% load fa_labels %}
+
+{% block title %}اعلان‌ها - {{ company.name }}{% endblock %}
+{% block page_title %}اعلان‌ها{% endblock %}
+{% block page_description %}{{ unread_count }} اعلان خوانده نشده{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block user_role_label %}{% if request.user.role == "TECHNICIAN" %}نیروی خدماتی{% elif request.user.role == "COMPANY_ADMIN" %}مدیر{% else %}کاربر{% endif %}{% endblock %}
+{% block sidebar_nav %}
+{% if request.user.role == "TECHNICIAN" %}
+<a href="/{{ company.code }}/tech/" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-smooth">داشبورد</a>
+<a href="/{{ company.code }}/tech/notifications/" class="nav-item active flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-smooth">اعلان‌ها</a>
+{% elif request.user.role == "COMPANY_ADMIN" or request.user.role == "COMPANY_STAFF" %}
+{% include "includes/nav_admin.html" %}
+{% else %}
+<a href="/{{ company.code }}/customer/" class="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-smooth">داشبورد</a>
+<a href="/{{ company.code }}/notifications/" class="nav-item active flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-smooth">اعلان‌ها</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if request.user.role == "TECHNICIAN" %}
+  {% with notification_base="/"|add:company.code|add:"/tech/notifications/" %}
+    {% include "notifications/_notification_list_inner.html" %}
+  {% endwith %}
+{% elif request.user.role == "COMPANY_ADMIN" or request.user.role == "COMPANY_STAFF" %}
+  {% with notification_base="/"|add:company.code|add:"/admin/notifications/" %}
+    {% include "notifications/_notification_list_inner.html" %}
+  {% endwith %}
+{% else %}
+  {% with notification_base="/"|add:company.code|add:"/notifications/" %}
+    {% include "notifications/_notification_list_inner.html" %}
+  {% endwith %}
+{% endif %}
+{% endblock %}

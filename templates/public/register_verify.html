@@ -1,0 +1,112 @@
+{% extends "layouts/public.html" %}
+{% block title %}تایید ثبت نام - رستی سرویس{% endblock %}
+{% block content %}
+<section class="max-w-md mx-auto py-12 px-4">
+    <div class="bg-white rounded-xl border border-gray-200 p-8 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-brand-50 flex items-center justify-center">
+            <svg class="w-8 h-8 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+        </div>
+
+        <h1 class="text-xl font-bold text-gray-900 mb-2">تایید شماره تلفن</h1>
+        <p class="text-sm text-gray-500 mb-6">کد تایید به شماره {{ masked_phone }} ارسال شد</p>
+
+        {% if dev_code %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+            <p class="text-xs text-yellow-700">حالت توسعه — کد تایید: <strong class="text-lg">{{ dev_code }}</strong></p>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <p class="text-sm text-red-700">{{ error }}</p>
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'public:register_verify' %}" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <input type="text" name="code" id="otp-code"
+                       class="form-control w-full px-4 py-3 text-center text-2xl tracking-widest border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                       placeholder="------" maxlength="6" dir="ltr" autocomplete="one-time-code" inputmode="numeric">
+            </div>
+            <button type="submit"
+                    class="btn btn-primary w-full px-6 py-3 text-base font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 transition-smooth">
+                تایید کد
+            </button>
+        </form>
+
+        <div class="mt-6 pt-4 border-t border-gray-100">
+            <p class="text-sm text-gray-500 mb-2">کد را دریافت نکردید؟</p>
+            <button id="resend-btn" onclick="resendOtp()" disabled
+                    class="text-sm font-medium text-brand-600 hover:text-brand-700 disabled:text-gray-400 disabled:cursor-not-allowed">
+                ارسال مجدد (<span id="countdown">60</span> ثانیه)
+            </button>
+        </div>
+
+        <div class="mt-4">
+            <a href="{% url 'public:register' %}" class="text-sm text-gray-500 hover:text-gray-700">بازگشت به فرم ثبت‌نام</a>
+        </div>
+    </div>
+</section>
+
+<script>
+(function() {
+    var countdown = 60;
+    var btn = document.getElementById('resend-btn');
+    var countdownEl = document.getElementById('countdown');
+
+    var timer = setInterval(function() {
+        countdown--;
+        countdownEl.textContent = countdown;
+        if (countdown <= 0) {
+            clearInterval(timer);
+            btn.disabled = false;
+            btn.innerHTML = 'ارسال مجدد';
+        }
+    }, 1000);
+
+    window.resendOtp = function() {
+        btn.disabled = true;
+        btn.innerHTML = 'در حال ارسال...';
+
+        fetch('{% url "public:register_resend_otp" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                countdown = 60;
+                countdownEl.textContent = countdown;
+                btn.innerHTML = 'ارسال مجدد (<span id="countdown">60</span> ثانیه)';
+                countdownEl = document.getElementById('countdown');
+                timer = setInterval(function() {
+                    countdown--;
+                    countdownEl.textContent = countdown;
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        btn.disabled = false;
+                        btn.innerHTML = 'ارسال مجدد';
+                    }
+                }, 1000);
+            } else {
+                btn.innerHTML = data.message;
+                setTimeout(function() {
+                    btn.disabled = false;
+                    btn.innerHTML = 'ارسال مجدد';
+                }, 3000);
+            }
+        })
+        .catch(function() {
+            btn.disabled = false;
+            btn.innerHTML = 'ارسال مجدد';
+        });
+    };
+})();
+</script>
+{% endblock %}

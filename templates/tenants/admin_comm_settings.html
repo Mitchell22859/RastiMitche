@@ -1,0 +1,195 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}تنظیمات پیام‌ها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block page_title %}تنظیمات پیام‌ها و اعلان‌ها{% endblock %}
+{% block page_description %}در این صفحه مشخص می‌کنید برای هر رویداد، اعلان داخل پنل و پیامک شرکت فعال باشد یا خیر.{% endblock %}
+
+{% block content %}
+<style>
+.comm-card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:18px}
+.comm-table{width:100%;border-collapse:collapse}
+.comm-table th,.comm-table td{padding:12px;border-top:1px solid #eef2f7;text-align:right;vertical-align:middle}
+.comm-table thead th{background:#f8fafc;border-top:0;color:#475569;font-size:.82rem}
+.comm-key{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;direction:ltr;display:inline-block;color:#64748b;font-size:.78rem}
+.comm-badge{display:inline-flex;align-items:center;border-radius:999px;padding:.25rem .65rem;font-size:.78rem;font-weight:700}
+.comm-on{background:#dcfce7;color:#166534}
+.comm-off{background:#fee2e2;color:#991b1b}
+.comm-btn{border-radius:10px;padding:.45rem .8rem;font-size:.82rem;font-weight:700;border:1px solid #e5e7eb;background:#fff}
+.comm-btn-on{background:#16a34a;color:white;border-color:#16a34a}
+@media(max-width:800px){.desktop-only{display:none}.mobile-only{display:block}}
+@media(min-width:801px){.mobile-only{display:none}}
+</style>
+
+{% if success %}
+<div class="mb-4 p-3 rounded-xl bg-green-50 border border-green-200 text-green-800 text-sm">{{ success }}</div>
+{% endif %}
+{% if error %}
+<div class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm">{{ error }}</div>
+{% endif %}
+
+<div class="comm-card">
+  <div class="flex items-start justify-between gap-3 flex-wrap mb-4">
+    <div>
+      <h2 class="text-lg font-bold">رویدادهای سیستم</h2>
+      <p class="text-sm text-slate-500 mt-1">این تنظیمات فقط روی پیامک‌هایی اثر دارد که هزینه آن با خود شرکت است.</p>
+    </div>
+    <a class="comm-btn" href="/{{ company.code }}/admin/sms/outbox/">مشاهده صندوق ارسال شرکت</a>
+  </div>
+
+  <div class="desktop-only overflow-x-auto">
+    <table class="comm-table">
+      <thead>
+        <tr>
+          <th>رویداد</th>
+          <th>گیرنده</th>
+          <th>اعلان داخل پنل</th>
+          <th>پیامک</th>
+          <th>قالب پیامک</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in event_rows %}
+        <tr>
+          <td>
+            <div class="font-bold">{{ row.title }}</div>
+            <div class="comm-key">{{ row.event_key }}</div>
+          </td>
+          <td>{{ row.recipient }}</td>
+          <td>
+            <div class="flex items-center gap-2">
+              {% if row.in_app_enabled %}
+                <span class="comm-badge comm-on">فعال</span>
+                <form method="post">{% csrf_token %}
+                  <input type="hidden" name="event_key" value="{{ row.event_key }}">
+                  <input type="hidden" name="field" value="in_app_enabled">
+                  <input type="hidden" name="value" value="0">
+                  <button class="comm-btn">غیرفعال کن</button>
+                </form>
+              {% else %}
+                <span class="comm-badge comm-off">غیرفعال</span>
+                <form method="post">{% csrf_token %}
+                  <input type="hidden" name="event_key" value="{{ row.event_key }}">
+                  <input type="hidden" name="field" value="in_app_enabled">
+                  <input type="hidden" name="value" value="1">
+                  <button class="comm-btn comm-btn-on">فعال کن</button>
+                </form>
+              {% endif %}
+            </div>
+          </td>
+          <td>
+            <div class="flex items-center gap-2">
+              {% if row.sms_enabled %}
+                <span class="comm-badge comm-on">فعال</span>
+                <form method="post">{% csrf_token %}
+                  <input type="hidden" name="event_key" value="{{ row.event_key }}">
+                  <input type="hidden" name="field" value="sms_enabled">
+                  <input type="hidden" name="value" value="0">
+                  <button class="comm-btn">غیرفعال کن</button>
+                </form>
+              {% else %}
+                <span class="comm-badge comm-off">غیرفعال</span>
+                <form method="post">{% csrf_token %}
+                  <input type="hidden" name="event_key" value="{{ row.event_key }}">
+                  <input type="hidden" name="field" value="sms_enabled">
+                  <input type="hidden" name="value" value="1">
+                  <button class="comm-btn comm-btn-on">فعال کن</button>
+                </form>
+              {% endif %}
+            </div>
+          </td>
+          <td>
+            <div class="flex items-center gap-2">
+              <a class="comm-btn" href="/{{ company_code }}/admin/communication-settings/template/{{ row.event_key }}/">مشاهده قالب</a>
+              <a class="comm-btn" href="/{{ company_code }}/admin/communication-settings/template/{{ row.event_key }}/request/">درخواست تغییر</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-slate-500">رویدادی پیدا نشد.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mobile-only space-y-3">
+    {% for row in event_rows %}
+    <div class="border rounded-xl p-4">
+      <div class="font-bold">{{ row.title }}</div>
+      <div class="comm-key mt-1">{{ row.event_key }}</div>
+      <div class="text-sm text-slate-500 mt-2">گیرنده: {{ row.recipient }}</div>
+
+      <div class="mt-4 grid grid-cols-1 gap-3">
+        <div class="flex justify-between items-center gap-2">
+          <span>اعلان داخل پنل</span>
+          {% if row.in_app_enabled %}
+            <span class="comm-badge comm-on">فعال</span>
+            <form method="post">{% csrf_token %}<input type="hidden" name="event_key" value="{{ row.event_key }}"><input type="hidden" name="field" value="in_app_enabled"><input type="hidden" name="value" value="0"><button class="comm-btn">غیرفعال کن</button></form>
+          {% else %}
+            <span class="comm-badge comm-off">غیرفعال</span>
+            <form method="post">{% csrf_token %}<input type="hidden" name="event_key" value="{{ row.event_key }}"><input type="hidden" name="field" value="in_app_enabled"><input type="hidden" name="value" value="1"><button class="comm-btn comm-btn-on">فعال کن</button></form>
+          {% endif %}
+        </div>
+
+        <div class="flex justify-between items-center gap-2">
+          <span>پیامک</span>
+          {% if row.sms_enabled %}
+            <span class="comm-badge comm-on">فعال</span>
+            <form method="post">{% csrf_token %}<input type="hidden" name="event_key" value="{{ row.event_key }}"><input type="hidden" name="field" value="sms_enabled"><input type="hidden" name="value" value="0"><button class="comm-btn">غیرفعال کن</button></form>
+          {% else %}
+            <span class="comm-badge comm-off">غیرفعال</span>
+            <form method="post">{% csrf_token %}<input type="hidden" name="event_key" value="{{ row.event_key }}"><input type="hidden" name="field" value="sms_enabled"><input type="hidden" name="value" value="1"><button class="comm-btn comm-btn-on">فعال کن</button></form>
+          {% endif %}
+        </div>
+
+        <div class="flex items-center gap-2 mt-2">
+          <a class="comm-btn" href="/{{ company_code }}/admin/communication-settings/template/{{ row.event_key }}/">مشاهده قالب</a>
+          <a class="comm-btn" href="/{{ company_code }}/admin/communication-settings/template/{{ row.event_key }}/request/">درخواست تغییر</a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-slate-500">رویدادی پیدا نشد.</div>
+    {% endfor %}
+  </div></div>
+
+<!-- discount_outbox_display_amount_format_7c4 -->
+
+<script>
+(function () {
+    function normalizeDigits(value) {
+        value = (value || "").toString();
+        var fa = "۰۱۲۳۴۵۶۷۸۹";
+        var ar = "٠١٢٣٤٥٦٧٨٩";
+        for (var i = 0; i < 10; i++) {
+            value = value.replaceAll(fa[i], String(i)).replaceAll(ar[i], String(i));
+        }
+        return value;
+    }
+
+    function comma(n) {
+        n = normalizeDigits(n).replace(/[^\d]/g, "");
+        if (!n) return n;
+        return n.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function fixTextNode(node) {
+        var text = node.nodeValue || "";
+        var next = text.replace(/تا سقف\s+([0-9۰-۹٠-٩]{4,})\s+ریال/g, function (_, num) {
+            return "تا سقف " + comma(num) + " ریال";
+        });
+        if (next !== text) node.nodeValue = next;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(fixTextNode);
+    });
+})();
+</script>
+
+{% endblock %}

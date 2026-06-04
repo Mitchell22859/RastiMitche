@@ -1,0 +1,73 @@
+.rasti-jalali-datepicker {
+  position: absolute;
+  z-index: 99999;
+  display: none;
+  width: 280px;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(15,23,42,.18);
+  padding: 10px;
+  font-family: Tahoma, Arial, sans-serif;
+}
+
+.rasti-jalali-datepicker.is-open {
+  display: block;
+}
+
+.rasti-jalali-datepicker button {
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 9px;
+  padding: 6px 8px;
+  font-family: inherit;
+}
+
+.rasti-jalali-datepicker button:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.jdp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.jdp-header strong {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.jdp-weekdays,
+.jdp-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.jdp-weekdays span {
+  color: #64748b;
+  font-size: 12px;
+  padding: 4px 0;
+}
+
+.jdp-days button {
+  min-height: 32px;
+}
+
+.jdp-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  gap: 6px;
+}
+
+input[data-jalali-datepicker] {
+  direction: ltr;
+  text-align: left;
+}

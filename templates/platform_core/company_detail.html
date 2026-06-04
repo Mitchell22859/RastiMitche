@@ -1,0 +1,102 @@
+{% extends "layouts/dashboard.html" %}
+
+{% load fa_labels %}
+{% block title %}{{ company.name }} - پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}{{ company.name }}{% endblock %}
+{% block page_description %}جزئیات شرکت{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block navbar_actions %}
+<a href="/owner-platform/companies/{{ company.id }}/edit/"
+   class="inline-flex items-center gap-2 px-3 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 font-medium rounded-lg transition-smooth">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+    ویرایش
+</a>
+{% endblock %}
+
+{% block content %}
+{# Stats #}
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    {% include "includes/components/stat_card.html" with value=stats.order_count label="سفارش" icon="orders" color="blue" %}
+    {% include "includes/components/stat_card.html" with value=stats.user_count label="کاربران" icon="users" color="green" %}
+</div>
+
+{# Company Info Card #}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+    <div class="px-5 py-4 border-b border-gray-100">
+        <h3 class="text-sm font-semibold text-gray-800">اطلاعات شرکت</h3>
+    </div>
+    <div class="divide-y divide-gray-50">
+        <div class="flex items-center px-5 py-3">
+            <span class="w-32 text-sm font-medium text-gray-500">کد</span>
+            <span class="text-sm text-gray-900 font-mono">{{ company.code }}</span>
+        </div>
+        <div class="flex items-center px-5 py-3">
+            <span class="w-32 text-sm font-medium text-gray-500">آدرس URL</span>
+            <a href="/{{ company.code }}/" target="_blank" class="text-sm text-brand-600 hover:text-brand-700">/{{ company.code }}/</a>
+        </div>
+        <div class="flex items-center px-5 py-3">
+            <span class="w-32 text-sm font-medium text-gray-500">وضعیت</span>
+            {% if company.is_active %}
+            {% include "includes/components/badge.html" with status="active" label="فعال" %}
+            {% else %}
+            {% include "includes/components/badge.html" with status="inactive" label="غیرفعال" %}
+            {% endif %}
+        </div>
+        <div class="flex items-center px-5 py-3">
+            <span class="w-32 text-sm font-medium text-gray-500">ایمیل</span>
+            <span class="text-sm text-gray-900">{{ company.email|default:"-" }}</span>
+        </div>
+        <div class="flex items-center px-5 py-3">
+            <span class="w-32 text-sm font-medium text-gray-500">تلفن</span>
+            <span class="text-sm text-gray-900">{{ company.phone|default:"-" }}</span>
+        </div>
+        <div class="flex items-center px-5 py-3">
+            <span class="w-32 text-sm font-medium text-gray-500">آدرس</span>
+            <span class="text-sm text-gray-900">{{ company.address|default:"-" }}</span>
+        </div>
+        <div class="flex items-center px-5 py-3">
+            <span class="w-32 text-sm font-medium text-gray-500">اشتراک</span>
+            <span class="text-sm text-gray-900">{% if subscription %}{{ subscription.plan.name }} ({{ subscription.status|status_fa }}){% else %}ندارد{% endif %}</span>
+        </div>
+        <div class="flex items-center px-5 py-3">
+            <span class="w-32 text-sm font-medium text-gray-500">تاریخ ثبت</span>
+            <span class="text-sm text-gray-900">{{ company.created_at|jalali_date }}</span>
+        </div>
+    </div>
+</div>
+
+{# Actions #}
+<div class="flex items-center gap-3">
+    {% if company.is_active %}
+    <form method="post" action="/owner-platform/companies/{{ company.id }}/deactivate/">
+        {% csrf_token %}
+        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 text-sm font-medium rounded-lg hover:bg-red-100 border border-red-200 transition-smooth">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            غیرفعال‌سازی
+        </button>
+    </form>
+    {% else %}
+    <form method="post" action="/owner-platform/companies/{{ company.id }}/activate/">
+        {% csrf_token %}
+        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 text-sm font-medium rounded-lg hover:bg-emerald-100 border border-emerald-200 transition-smooth">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            فعال‌سازی
+        </button>
+    </form>
+    {% endif %}
+    <a href="/owner-platform/companies/" class="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-800 font-medium transition-smooth">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        بازگشت به لیست
+    </a>
+</div>
+
+{# Deprecated: legacy CommunicationTemplate section hidden. Active system uses NotificationSetting + SMSTemplate. #}
+{% endblock %}

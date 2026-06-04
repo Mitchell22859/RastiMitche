@@ -1,0 +1,18 @@
+{% extends "base_dashboard.html" %}
+{% block title %}{% if is_edit %}ویرایش{% else %}ایجاد{% endif %} آیتم سفارش - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block content %}
+<div class="page-header"><h1>{% if is_edit %}ویرایش آیتم سفارش{% else %}آیتم سفارش جدید{% endif %}</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+<div class="card" style="max-width:760px;"><form method="post">{% csrf_token %}
+    <div class="form-group"><label>رسته خدمات *</label><select name="category_id" class="form-control" required><option value="">-- انتخاب رسته --</option>{% for category in categories %}<option value="{{ category.id }}" {% if initial_category_id|stringformat:'s' == category.id|stringformat:'s' %}selected{% endif %}>{{ category.title }}</option>{% endfor %}</select></div>
+    <div class="form-group"><label>عنوان آیتم *</label><input name="title" value="{{ item.title|default:'' }}" class="form-control" placeholder="مثلاً رادیاتور" required></div>
+    <div class="form-group"><label>نوع آیتم</label><select name="kind" class="form-control">{% for val,label in item_kinds %}<option value="{{ val }}" {% if item.kind == val %}selected{% endif %}>{% if val == 'number' %}عدد / تعداد{% elif val == 'money' %}مبلغ{% elif val == 'text' %}متن{% elif val == 'bool' %}بله/خیر{% else %}{{ label }}{% endif %}</option>{% endfor %}</select></div>
+    <div class="form-group"><label>ترتیب نمایش</label><input type="number" name="sort_order" value="{{ item.sort_order|default:0 }}" class="form-control"></div>
+    <div class="form-group"><label><input type="checkbox" name="is_active" {% if not is_edit or item.is_active %}checked{% endif %}> فعال</label></div>
+    <button class="btn btn-primary" type="submit">ذخیره</button>
+    <a class="btn btn-outline" href="/{{ company.code }}/admin/base-data/items/">بازگشت</a>
+</form></div>
+{% endblock %}

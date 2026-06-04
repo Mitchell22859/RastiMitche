@@ -1,0 +1,96 @@
+{% load smart_numbers fa_labels %}
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>فاکتور {{ invoice.invoice_number }}</title>
+    <style>
+        body{font-family:Tahoma,Arial,sans-serif;background:#f8fafc;color:#0f172a;margin:0;padding:24px;}
+        .invoice{max-width:900px;margin:0 auto;background:white;border:1px solid #e2e8f0;border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(15,23,42,.06)}
+        .head{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #e2e8f0;padding-bottom:16px;margin-bottom:16px;}
+        h1{margin:0;font-size:24px}.muted{color:#64748b}.badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#e0f2fe;color:#0369a1;font-size:12px}
+        table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:right}th{background:#f8fafc}.total{font-weight:bold;font-size:18px}
+        .card{margin-top:16px;padding:14px;border:1px solid #e2e8f0;border-radius:12px;background:#fff}.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #eef2f7}.row:last-child{border-bottom:0}.strong{font-weight:900}.pay-btn{display:inline-block;background:#16a34a;color:white;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:900}.btn{display:inline-block;background:#2563eb;color:white;text-decoration:none;padding:10px 16px;border-radius:8px;border:0;font-weight:700}.outline{background:white;color:#0f172a;border:1px solid #cbd5e1}.footer{margin-top:24px;color:#475569;white-space:pre-line}
+        input{padding:10px;border:1px solid #cbd5e1;border-radius:8px;direction:ltr;text-align:left;max-width:240px}
+        @media print{body{background:white;padding:0}.invoice{box-shadow:none;border:0}.no-print{display:none}}
+    </style>
+</head>
+<body>
+<div class="invoice">
+    <div class="head">
+        <div>
+            <h1>{{ company.name }}</h1>
+            <div class="muted">{{ company.phone|default:"" }}</div>
+        </div>
+        <div>
+            <div>شماره فاکتور: <strong>{{ invoice.invoice_number }}</strong></div>
+            <div>وضعیت: <span class="badge">{{ invoice.status|status_fa }}</span></div>
+            <div class="muted">تاریخ صدور: {{ invoice.issued_at|jalali_date|default:"-" }}</div>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="no-print" style="margin-bottom:16px;">{% for message in messages %}<div style="padding:10px 12px;border-radius:10px;margin-bottom:8px;{% if message.tags == 'success' %}background:#dcfce7;color:#166534{% else %}background:#fee2e2;color:#991b1b{% endif %}">{{ message }}</div>{% endfor %}</div>
+    {% endif %}
+
+    <table>
+        <tr><th>مشتری</th><td>{{ invoice.display_customer_name|default:"-" }}{% if invoice.display_customer_phone %} - {{ invoice.display_customer_phone }}{% endif %}</td></tr>
+        <tr><th>آدرس</th><td>{{ invoice.address_snapshot|default:"-" }}</td></tr>
+        <tr><th>خدمت</th><td>{{ invoice.service_title_snapshot|default:"-" }}</td></tr>
+        <tr><th>نیروی خدماتی</th><td>{{ invoice.technician_name_snapshot|default:"-" }}</td></tr>
+    </table>
+
+    <table>
+        <thead><tr><th>شرح</th><th>تعداد</th><th>قیمت واحد</th><th>تخفیف ردیف</th><th>مبلغ خالص</th></tr></thead>
+        <tbody>{% for item in invoice.items.all %}<tr>
+            <td>{{ item.description }}</td><td>{{ item.quantity|smart_number }}</td><td>{{ item.unit_price|smart_number }}</td><td>{{ item.discount_amount|smart_number }}</td><td>{{ item.total_price|smart_number }}</td>
+        </tr>{% endfor %}</tbody>
+    </table>
+
+    <div class="card">
+        <h3 style="margin:0 0 10px;">جمع‌بندی فاکتور</h3>
+        <div class="row"><span>جمع خام ردیف‌ها</span><span class="strong">{{ invoice.gross_amount|smart_number }} ریال</span></div>
+        <div class="row"><span>مجموع تخفیف ردیف‌ها</span><span class="strong">{{ invoice.row_discount_amount|smart_number }} ریال</span></div>
+        <div class="row"><span>مبلغ خالص ردیف‌ها</span><span class="strong">{{ invoice.net_amount_before_invoice_discounts|smart_number }} ریال</span></div>
+        <div class="row"><span>تخفیف مازاد</span><span class="strong">{{ invoice.extra_discount_amount|smart_number }} ریال</span></div>
+        <div class="row"><span>تخفیف کمپین</span><span class="strong">{{ invoice.campaign_discount_amount|smart_number }} ریال</span></div>
+        <div class="row"><span>مجموع تخفیف فاکتور</span><span class="strong">{{ invoice.total_discount_amount|smart_number }} ریال</span></div>
+        <div class="row total"><span>مبلغ نهایی قابل پرداخت</span><span>{{ invoice.total_amount|smart_number }} ریال</span></div>
+    </div>
+
+    {% if invoice.notes %}<p class="muted">{{ invoice.notes }}</p>{% endif %}
+    <div class="footer">{{ invoice.footer_text }}</div>
+
+    {% if invoice.status == "issued" %}
+    <div class="no-print card">
+        <div style="font-weight:700;margin-bottom:8px;">کد تخفیف دارید؟</div>
+        {% if invoice.campaign_discount_amount > 0 %}
+            <p style="color:#166534;background:#dcfce7;padding:.6rem .8rem;border-radius:.6rem;margin:0;font-weight:700;">تخفیف اعمال شده: {{ invoice.campaign_discount_amount|smart_number }} ریال</p>
+        {% else %}
+            <form method="post" action="/{{ company.code }}/invoices/public/{{ invoice.public_code }}/discount/" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                {% csrf_token %}
+                <input name="discount_code" placeholder="کد تخفیف">
+                <button type="submit" class="btn outline">اعمال کد</button>
+            </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="no-print card" style="text-align:center;">
+        {% if invoice.status == "paid" %}
+            <div style="background:#dcfce7;color:#166534;padding:12px 16px;border-radius:10px;font-weight:700;text-align:center;">پرداخت شده</div>
+            {% if payment_info %}<p class="muted">{{ payment_info.method_label }} - {{ payment_info.reference|default:"" }}</p>{% endif %}
+        {% elif invoice.status == "issued" %}
+            <a href="{{ public_pay_url|default:'#' }}" class="pay-btn">پرداخت اینترنتی</a>
+            <p class="muted" style="font-size:12px;margin-top:8px;">هر شخصی که این لینک را داشته باشد می‌تواند فاکتور را پرداخت کند.</p>
+        {% endif %}
+    </div>
+
+    <p class="no-print">
+        <button onclick="window.print()">چاپ فاکتور</button>
+        {% if invoice.public_code %}<a href="/{{ company.code }}/invoices/public/{{ invoice.public_code }}/print/" style="margin-right:12px;">نسخه چاپی</a>{% endif %}
+    </p>
+</div>
+</body>
+</html>

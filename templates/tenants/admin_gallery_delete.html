@@ -1,0 +1,16 @@
+{% extends "base_dashboard.html" %}
+{% block title %}حذف تصویر - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>حذف تصویر</h1></div>
+<div class="card" style="max-width:500px;">
+<p>آیا مطمئن هستید که می‌خواهید تصویر <strong>{{ image.caption|default:"بدون عنوان" }}</strong> را حذف کنید؟</p>
+<form method="post" style="margin-top:1rem;">{% csrf_token %}
+<button type="submit" class="btn btn-danger">بله، حذف شود</button>
+<a href="/{{ company.code }}/admin/gallery/" class="btn btn-outline" style="margin-right:0.5rem;">انصراف</a>
+</form>
+</div>
+{% endblock %}

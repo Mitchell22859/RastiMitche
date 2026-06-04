@@ -1,0 +1,36 @@
+{% extends "base_dashboard.html" %}
+{% load jalali_tags  fa_labels %}
+{% block title %}تراکنش‌های پیامک - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>تراکنش‌های پیامک</h1>
+    <a href="/{{ company.code }}/admin/sms-credit/" class="btn btn-outline btn-sm">&larr; بازگشت</a>
+</div>
+
+{% if transactions %}
+<div class="card"><div class="table-wrapper"><table>
+<thead><tr><th>نوع</th><th>مبلغ (ریال)</th><th>پیامک</th><th>مانده</th><th>توضیحات</th><th>تاریخ</th></tr></thead>
+<tbody>
+{% for tx in transactions %}<tr>
+<td>
+{% if tx.transaction_type == "CREDIT" %}<span class="badge badge-active">شارژ</span>
+{% elif tx.transaction_type == "DEBIT" %}<span class="badge badge-info">مصرف</span>
+{% elif tx.transaction_type == "BLOCKED" %}<span class="badge badge-danger">مسدود</span>
+{% else %}<span class="badge">تعدیل</span>{% endif %}
+</td>
+<td>{{ tx.amount_rial|floatformat:0 }}</td>
+<td>{{ tx.sms_parts }}</td>
+<td>{{ tx.balance_after|floatformat:0 }}</td>
+<td>{{ tx.description|truncatechars:50 }}</td>
+<td>{{ tx.created_at|jalali_datetime }}</td>
+</tr>{% endfor %}
+</tbody>
+</table></div></div>
+{% else %}
+<div class="card"><p style="color:#64748b;">تراکنشی یافت نشد.</p></div>
+{% endif %}
+{% endblock %}

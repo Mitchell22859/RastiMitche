@@ -1,0 +1,32 @@
+{% extends "base_dashboard.html" %}
+{% load fa_labels %}
+{% block title %}تست درگاه پرداخت - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>تست اتصال درگاه پرداخت</h1>
+</div>
+
+<div class="card" style="margin-bottom:1rem;">
+    <div class="card-header">نتیجه تست</div>
+    <div style="padding:1rem;">
+        <div class="alert alert-info">
+            <strong>وضعیت:</strong> {{ result.status|status_fa }}<br>
+            <strong>پیام:</strong> {{ result.message }}
+        </div>
+
+        <table class="table" style="max-width:400px;">
+            <tr><th>درگاه</th><td>{{ gateway.get_provider_display }}</td></tr>
+            <tr><th>وضعیت</th><td>{% if gateway.is_active %}فعال{% else %}غیرفعال{% endif %}</td></tr>
+            <tr><th>حالت</th><td>{% if gateway.sandbox_mode %}آزمایشی{% else %}عملیاتی{% endif %}</td></tr>
+        </table>
+    </div>
+</div>
+
+<div style="display:flex;gap:.5rem;align-items:center;">
+    <a href="/{{ company.code }}/admin/payment-gateway/" class="btn btn-primary">بازگشت به تنظیمات</a>
+</div>
+{% endblock %}

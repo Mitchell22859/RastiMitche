@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="min-h-screen bg-gray-50 pb-20 lg:pb-6">
+
+    {# ===== TOP BAR ===== #}
+    <header class="sticky top-0 z-30 bg-slate-900 text-white shadow-lg">
+        <div class="max-w-4xl mx-auto flex items-center justify-between h-14 px-4">
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <span class="text-sm font-bold truncate">{% block tech_brand %}{{ request.company.name|default:"پنل نیرو" }}{% endblock %}</span>
+            </div>
+            <a href="/{{ request.company.code }}/login/logout/"
+               class="text-xs text-red-300 hover:text-red-200 border border-red-400/30 rounded-full px-3 py-1.5 transition-smooth">
+                خروج
+            </a>
+        </div>
+    </header>
+
+    {# ===== MAIN CONTENT ===== #}
+    <main class="max-w-4xl mx-auto px-4 py-5">
+        {% block content %}{% endblock %}
+    </main>
+
+    {# ===== BOTTOM NAVIGATION ===== #}
+    <nav class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-lg border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] safe-area-pb lg:max-w-lg lg:mx-auto lg:bottom-4 lg:rounded-2xl lg:border lg:shadow-xl">
+        <div class="grid grid-cols-5 h-16">
+            {% block bottom_nav %}
+            <a href="/{{ request.company.code }}/tech/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if request.path == '/'|add:request.company.code|add:'/tech/' %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span>داشبورد</span>
+            </a>
+            <a href="/{{ request.company.code }}/tech/orders/available/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/orders/available/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span>سفارش جدید</span>
+            </a>
+            <a href="/{{ request.company.code }}/tech/orders/my/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/orders/my/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                <span>سفارش‌های من</span>
+            </a>
+            <a href="/{{ request.company.code }}/tech/invoices/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/invoices/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+                </svg>
+                <span>فاکتورها</span>
+            </a>
+            <a href="/{{ request.company.code }}/tech/notifications/"
+               class="flex flex-col items-center justify-center gap-0.5 text-xs font-medium {% if '/tech/notifications/' in request.path %}text-brand-600{% else %}text-gray-500 hover:text-gray-700{% endif %} transition-smooth">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span>اعلان‌ها</span>
+            </a>
+            {% endblock %}
+        </div>
+    </nav>
+</div>
+{% endblock %}

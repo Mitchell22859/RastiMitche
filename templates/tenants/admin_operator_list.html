@@ -1,0 +1,461 @@
+{% extends "base_dashboard.html" %}
+{% block title %}مدیریت اپراتورها و دسترسی‌ها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+{% include "includes/settings_center.html" %}
+
+<div class="page-header">
+    <div>
+        <h1>مدیریت اپراتورها و دسترسی‌ها</h1>
+        <p>هوم پنل برای همه اپراتورهای فعال باز است. بقیه دسترسی‌ها از همین صفحه کنترل می‌شوند.</p>
+    </div>
+    <button type="button" class="btn btn-primary" id="showCreateOperator">+ اضافه کردن اپراتور</button>
+</div>
+
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+{% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+
+<style>
+.operator-create-panel { display:none; margin-bottom:1rem; }
+.operator-create-panel.is-visible { display:block; }
+.operator-table-wrap { overflow-x:auto; }
+.operator-table-actions { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center; }
+.operator-edit-panel {
+    display:none;
+    border:1px solid #bfdbfe;
+    background:#f8fafc;
+    border-radius:1rem;
+    padding:1rem;
+    margin-top:.75rem;
+}
+.operator-edit-panel.is-visible { display:block; }
+.operator-name-main { font-weight:800; color:#0f172a; }
+.operator-name-missing { color:#b45309; font-weight:800; }
+.password-change-panel {
+    display:none;
+    border:1px dashed #cbd5e1;
+    border-radius:.75rem;
+    padding:.75rem;
+    background:#fff;
+    margin-top:.65rem;
+}
+.password-change-panel.is-visible { display:block; }
+.permission-toolbar { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+.permission-group {
+    border:1px solid #e2e8f0;
+    border-radius:.9rem;
+    background:#fff;
+    margin-bottom:.85rem;
+    overflow:hidden;
+}
+.permission-group-header {
+    display:flex;
+    justify-content:space-between;
+    gap:.75rem;
+    align-items:center;
+    padding:.75rem;
+    background:#f8fafc;
+    border-bottom:1px solid #e2e8f0;
+}
+.permission-list {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:.6rem;
+    padding:.75rem;
+}
+.permission-item {
+    display:flex;
+    gap:.6rem;
+    align-items:flex-start;
+    border:1px solid #e2e8f0;
+    border-radius:.75rem;
+    padding:.7rem;
+    background:#fff;
+}
+.permission-item:hover { border-color:#bfdbfe; background:#eff6ff; }
+.permission-title-row { display:flex; gap:.4rem; align-items:center; flex-wrap:wrap; }
+.permission-title { font-weight:800; color:#0f172a; }
+.permission-desc { display:block; color:#64748b; margin-top:.25rem; line-height:1.7; }
+.permission-path {
+    display:block;
+    color:#94a3b8;
+    direction:ltr;
+    text-align:left;
+    margin-top:.25rem;
+    font-size:.78rem;
+}
+.always-access {
+    border:1px solid #bbf7d0;
+    background:#f0fdf4;
+    color:#166534;
+    border-radius:.75rem;
+    padding:.75rem;
+    margin-bottom:1rem;
+}
+@media (max-width: 900px) { .permission-list { grid-template-columns:1fr; } }
+</style>
+
+<div class="always-access">
+    دسترسی به صفحه اصلی پنل ادمین <strong>/{{ company.code }}/admin/</strong> برای همه اپراتورهای فعال به‌صورت خودکار باز است و نیاز به تیک جدا ندارد.
+</div>
+
+<div class="card operator-create-panel operator-form-card" id="createOperatorPanel">
+    <div class="card-header">
+        <div>
+            <strong>افزودن اپراتور</strong>
+            <p class="muted-text" style="margin-top:.25rem;">اطلاعات ورود و تماس اپراتور را وارد کنید. دسترسی‌ها پس از ساخت، از بخش ویرایش همان اپراتور تنظیم می‌شود.</p>
+        </div>
+    </div>
+    <form method="post" autocomplete="off" class="operator-create-form">{% csrf_token %}
+        <input type="hidden" name="action" value="create_operator">
+
+        <div class="form-section-title">اطلاعات اصلی</div>
+        <div class="operator-form-grid">
+            <div class="form-group">
+                <label>نام اپراتور</label>
+                <input class="form-control" type="text" name="display_name" autocomplete="off" placeholder="مثلاً منوچهر راستی">
+            </div>
+
+            <div class="form-group">
+                <label>نام کاربری *</label>
+                <input class="form-control" type="text" name="username" required autocomplete="off" placeholder="operator1" style="direction:ltr;">
+            </div>
+
+            <div class="form-group">
+                <label>شماره موبایل</label>
+                <input class="form-control" type="text" name="phone" autocomplete="off" placeholder="09121234567" style="direction:ltr;">
+            </div>
+
+            <div class="form-group">
+                <label>ایمیل</label>
+                <input class="form-control" type="email" name="email" autocomplete="off" placeholder="اختیاری" style="direction:ltr;">
+            </div>
+        </div>
+
+        <div class="form-section-title">وضعیت ورود</div>
+        <div class="operator-form-grid">
+            <div class="form-group">
+                <label>رمز عبور اولیه</label>
+                <input class="form-control" type="password" name="password" autocomplete="new-password" placeholder="اگر خالی بماند 123456 ثبت می‌شود">
+            </div>
+
+            <div class="form-group operator-check-row">
+                <label class="check-card">
+                    <input type="checkbox" name="is_active" checked>
+                    <span>اپراتور فعال باشد</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="form-actions-row">
+            <button type="submit" class="btn btn-primary">ذخیره اپراتور</button>
+            <button type="button" class="btn btn-outline" id="hideCreateOperator">انصراف</button>
+        </div>
+    </form>
+</div>
+
+<div class="card" style="margin-bottom:1rem;">
+    <div class="card-header">لیست اپراتورها</div>
+
+    <div style="display:flex;justify-content:space-between;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:.75rem;">
+        <p style="color:#64748b;margin:0;">برای تغییر نام، رمز یا دسترسی‌ها، دکمه «ویرایش» همان اپراتور را بزنید.</p>
+        <input type="search" id="operatorSearch" placeholder="جستجوی اپراتور..." style="max-width:260px;">
+    </div>
+
+    {% if operator_rows %}
+    <div class="operator-table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>نام اپراتور</th>
+                    <th>نام کاربری</th>
+                    <th>شماره موبایل</th>
+                    <th>وضعیت</th>
+                    <th>دسترسی فعال</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody id="operatorTableBody">
+                {% for row in operator_rows %}
+                <tr class="operator-row" data-operator-text="{{ row.display }} {{ row.identifier }}">
+                    <td>
+                        {% if row.has_display_name %}
+                            <span class="operator-name-main">{{ row.display }}</span>
+                        {% else %}
+                            <span class="operator-name-missing">نام ثبت نشده</span>
+                        {% endif %}
+                    </td>
+                    <td><code style="direction:ltr;display:inline-block;">{{ row.operator.username }}</code></td>
+                    <td style="direction:ltr;">{{ row.operator.phone|default:"-" }}</td>
+                    <td>
+                        {% if row.operator.is_active %}
+                            <span class="badge badge-done">فعال</span>
+                        {% else %}
+                            <span class="badge badge-cancelled">غیرفعال</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ row.permission_count }}</td>
+                    <td>
+                        <div class="operator-table-actions">
+                            <button type="button" class="btn btn-sm btn-primary js-edit-operator" data-target="operator-edit-{{ row.operator.id }}">ویرایش</button>
+
+                            <form method="post" style="display:inline;">{% csrf_token %}
+                                <input type="hidden" name="action" value="toggle_operator">
+                                <input type="hidden" name="operator_id" value="{{ row.operator.id }}">
+                                <button type="submit" class="btn btn-sm {% if row.operator.is_active %}btn-danger{% else %}btn-success{% endif %}"
+                                        {% if row.operator.is_active %}onclick="return confirm('اپراتور غیرفعال شود؟')"{% endif %}>
+                                    {% if row.operator.is_active %}غیرفعال‌سازی{% else %}فعال‌سازی{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr class="operator-edit-row" data-operator-text="{{ row.display }} {{ row.identifier }}">
+                    <td colspan="6">
+                        <div class="operator-edit-panel" id="operator-edit-{{ row.operator.id }}">
+                            <form method="post" class="operator-permission-form" autocomplete="off">{% csrf_token %}
+                                <input type="hidden" name="action" value="update_operator">
+                                <input type="hidden" name="operator_id" value="{{ row.operator.id }}">
+
+                                <div class="card" style="margin-bottom:1rem;">
+                                    <div class="card-header">ویرایش اپراتور</div>
+
+                                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.75rem;">
+                                        <div class="form-group">
+                                            <label>نام کاربری</label>
+                                            <input type="text" value="{{ row.operator.username }}" readonly style="direction:ltr;background:#f1f5f9;">
+                                            <small style="color:#64748b;">نام کاربری قابل تغییر نیست.</small>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>شماره موبایل</label>
+                                            <input type="text" name="phone" autocomplete="off" value="{{ row.operator.phone|default:'' }}" placeholder="09121234567" style="direction:ltr;">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>نام اپراتور</label>
+                                            <input type="text" name="display_name" autocomplete="off" value="{% if row.has_display_name %}{{ row.display }}{% endif %}" placeholder="نام کامل اپراتور">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>ایمیل</label>
+                                            <input type="email" name="email" autocomplete="off" value="{{ row.operator.email|default:'' }}">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label style="display:flex;gap:.5rem;align-items:center;margin-top:1.85rem;">
+                                                <input type="checkbox" name="is_active" {% if row.operator.is_active %}checked{% endif %}>
+                                                فعال باشد
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="permission-toolbar">
+                                    <button type="submit" class="btn btn-primary">ذخیره اطلاعات و دسترسی‌ها</button>
+                                    <button type="button" class="btn btn-outline js-check-all">انتخاب همه دسترسی‌ها</button>
+                                    <button type="button" class="btn btn-outline js-uncheck-all">حذف همه دسترسی‌ها</button>
+                                    <button type="button" class="btn btn-outline js-close-edit" data-target="operator-edit-{{ row.operator.id }}">بستن ویرایش</button>
+                                </div>
+
+                                {% for group in row.grouped_permissions %}
+                                <div class="permission-group">
+                                    <div class="permission-group-header">
+                                        <strong>{{ group.group }}</strong>
+                                        <div style="display:flex;gap:.35rem;flex-wrap:wrap;">
+                                            <button type="button" class="btn btn-sm btn-outline js-group-check">انتخاب این گروه</button>
+                                            <button type="button" class="btn btn-sm btn-outline js-group-uncheck">حذف این گروه</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="permission-list">
+                                        {% for item in group.items %}
+                                        <label class="permission-item">
+                                            <input type="checkbox" name="permissions" value="{{ item.key }}" {% if item.is_allowed %}checked{% endif %}>
+                                            <span>
+                                                <span class="permission-title-row">
+                                                    <span class="permission-title">{{ item.title }}</span>
+                                                    <span class="badge badge-draft">{{ item.action_label }}</span>
+                                                </span>
+                                                <span class="permission-desc">{{ item.description }}</span>
+                                                <span class="permission-path">{{ item.path_template }}</span>
+                                            </span>
+                                        </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+
+                                <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem;">
+                                    <button type="submit" class="btn btn-primary">ذخیره اطلاعات و دسترسی‌ها</button>
+                                </div>
+                            </form>
+
+                            <div class="card" style="margin-top:1rem;">
+                                <div class="card-header">تغییر رمز</div>
+                                <button type="button" class="btn btn-sm btn-outline js-toggle-password" data-target="password-panel-{{ row.operator.id }}">تغییر رمز</button>
+
+                                <div class="password-change-panel" id="password-panel-{{ row.operator.id }}">
+                                    <form method="post" autocomplete="off" class="password-change-form">{% csrf_token %}
+                                        <input type="hidden" name="action" value="change_operator_password">
+                                        <input type="hidden" name="operator_id" value="{{ row.operator.id }}">
+                                        <input type="text" name="fake_username_{{ row.operator.id }}" value="{{ row.identifier }}" autocomplete="username" style="position:absolute;left:-9999px;opacity:0;">
+
+                                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem;">
+                                            <div class="form-group">
+                                                <label>رمز جدید</label>
+                                                <input type="password" name="new_password1" autocomplete="new-password" data-clear-password readonly placeholder="رمز جدید را وارد کنید">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>تکرار رمز جدید</label>
+                                                <input type="password" name="new_password2" autocomplete="new-password" data-clear-password readonly placeholder="رمز جدید را دوباره وارد کنید">
+                                            </div>
+                                        </div>
+
+                                        <p style="color:#64748b;margin:.5rem 0;font-size:.88rem;">
+                                            تغییر رمز از ذخیره دسترسی‌ها جداست. رمز فقط با زدن دکمه زیر تغییر می‌کند.
+                                        </p>
+
+                                        <button type="submit" class="btn btn-primary">ذخیره رمز جدید</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p style="color:#64748b;">هنوز اپراتوری تعریف نشده است.</p>
+    {% endif %}
+</div>
+
+<script>
+(function () {
+    const showCreate = document.getElementById("showCreateOperator");
+    const hideCreate = document.getElementById("hideCreateOperator");
+    const createPanel = document.getElementById("createOperatorPanel");
+
+    if (showCreate && createPanel) {
+        showCreate.addEventListener("click", function () {
+            createPanel.classList.add("is-visible");
+            createPanel.scrollIntoView({behavior: "smooth", block: "start"});
+        });
+    }
+
+    if (hideCreate && createPanel) {
+        hideCreate.addEventListener("click", function () {
+            createPanel.classList.remove("is-visible");
+        });
+    }
+
+    document.querySelectorAll(".js-edit-operator").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const targetId = btn.dataset.target;
+            const panel = document.getElementById(targetId);
+            if (!panel) return;
+
+            document.querySelectorAll(".operator-edit-panel").forEach(function (other) {
+                if (other !== panel) other.classList.remove("is-visible");
+            });
+
+            panel.classList.toggle("is-visible");
+            if (panel.classList.contains("is-visible")) {
+                panel.scrollIntoView({behavior: "smooth", block: "start"});
+            }
+        });
+    });
+
+    document.querySelectorAll(".js-close-edit").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const panel = document.getElementById(btn.dataset.target);
+            if (panel) panel.classList.remove("is-visible");
+        });
+    });
+
+    document.querySelectorAll(".js-toggle-password").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const panel = document.getElementById(btn.dataset.target);
+            if (!panel) return;
+
+            panel.classList.toggle("is-visible");
+
+            panel.querySelectorAll("[data-clear-password]").forEach(function (input) {
+                input.value = "";
+                input.readOnly = !panel.classList.contains("is-visible");
+                if (panel.classList.contains("is-visible")) {
+                    window.setTimeout(function () {
+                        input.value = "";
+                    }, 50);
+                }
+            });
+
+            const first = panel.querySelector("[data-clear-password]");
+            if (first && panel.classList.contains("is-visible")) {
+                window.setTimeout(function () { first.focus(); }, 80);
+            }
+        });
+    });
+
+    document.querySelectorAll(".operator-permission-form").forEach(function (form) {
+        const checkboxes = function () {
+            return Array.from(form.querySelectorAll('input[name="permissions"]'));
+        };
+
+        const checkAll = form.querySelector(".js-check-all");
+        const uncheckAll = form.querySelector(".js-uncheck-all");
+
+        if (checkAll) {
+            checkAll.addEventListener("click", function () {
+                checkboxes().forEach(function (box) { box.checked = true; });
+            });
+        }
+
+        if (uncheckAll) {
+            uncheckAll.addEventListener("click", function () {
+                checkboxes().forEach(function (box) { box.checked = false; });
+            });
+        }
+
+        form.querySelectorAll(".permission-group").forEach(function (group) {
+            const groupBoxes = function () {
+                return Array.from(group.querySelectorAll('input[name="permissions"]'));
+            };
+
+            const groupCheck = group.querySelector(".js-group-check");
+            const groupUncheck = group.querySelector(".js-group-uncheck");
+
+            if (groupCheck) {
+                groupCheck.addEventListener("click", function () {
+                    groupBoxes().forEach(function (box) { box.checked = true; });
+                });
+            }
+
+            if (groupUncheck) {
+                groupUncheck.addEventListener("click", function () {
+                    groupBoxes().forEach(function (box) { box.checked = false; });
+                });
+            }
+        });
+    });
+
+    const search = document.getElementById("operatorSearch");
+    if (search) {
+        search.addEventListener("input", function () {
+            const q = search.value.trim().toLowerCase();
+            document.querySelectorAll("[data-operator-text]").forEach(function (node) {
+                const text = (node.dataset.operatorText || "").toLowerCase();
+                node.style.display = text.includes(q) ? "" : "none";
+            });
+        });
+    }
+})();
+</script>
+{% endblock %}

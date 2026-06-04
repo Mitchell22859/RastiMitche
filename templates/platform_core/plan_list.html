@@ -1,0 +1,70 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}پلن‌ها - پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}مدیریت پلن‌ها{% endblock %}
+{% block page_description %}تعریف و ویرایش پلن‌های اشتراکی{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block navbar_actions %}
+<a href="/owner-platform/plans/create/"
+   class="inline-flex items-center gap-2 px-3 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-smooth">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    <span class="hidden sm:inline">پلن جدید</span>
+</a>
+{% endblock %}
+
+{% block content %}
+{% if plans %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full data-table">
+            <thead>
+                <tr class="bg-gray-50/50">
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">نام</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">کد</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">قیمت ماهانه</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">کاربران</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">تکنسین</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">سفارش/ماه</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">وضعیت</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">عملیات</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for p in plans %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-5 py-3 text-sm font-medium text-gray-900">{{ p.name }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500 font-mono">{{ p.code }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-900">{{ p.price_monthly|floatformat:0 }} تومان</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ p.max_users }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ p.max_technicians }}</td>
+                    <td class="px-5 py-3 text-sm text-gray-500">{{ p.max_orders_per_month }}</td>
+                    <td class="px-5 py-3">
+                        {% if p.is_active %}
+                        {% include "includes/components/badge.html" with status="active" label="فعال" %}
+                        {% else %}
+                        {% include "includes/components/badge.html" with status="inactive" label="غیرفعال" %}
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-3">
+                        <a href="/owner-platform/plans/{{ p.id }}/edit/" class="text-sm text-brand-600 hover:text-brand-700 font-medium">ویرایش</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm">
+    {% include "includes/components/empty_state.html" with title="پلنی تعریف نشده" description="اولین پلن اشتراکی را ایجاد کنید." action_url="/owner-platform/plans/create/" action_label="پلن جدید" %}
+</div>
+{% endif %}
+{% endblock %}

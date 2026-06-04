@@ -1,0 +1,47 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers %}
+{% block title %}شارژ اعتبار پیامک - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>شارژ اعتبار پیامک</h1>
+    <a href="/{{ company.code }}/admin/sms-credit/" class="btn btn-outline btn-sm">&larr; بازگشت</a>
+</div>
+
+{% if success %}
+<div class="card" style="background:#ecfdf5;border-color:#a7f3d0;padding:1rem;margin-bottom:1rem;">
+    <p style="color:#065f46;margin:0;">درخواست شارژ با موفقیت ثبت شد. فاکتور شماره <strong>{{ invoice.invoice_number }}</strong> ایجاد شد. پس از پرداخت، اعتبار شما شارژ خواهد شد.</p>
+</div>
+{% endif %}
+
+{% if errors.amount_rial %}
+<div class="card" style="background:#fef2f2;border-color:#fecaca;padding:1rem;margin-bottom:1rem;">
+    <p style="color:#991b1b;margin:0;">{{ errors.amount_rial|smart_number }}</p>
+</div>
+{% endif %}
+
+<div class="card" style="padding:1.5rem;">
+    <form method="post">
+        {% csrf_token %}
+        <p style="font-size:0.875rem;color:#64748b;margin-bottom:1rem;">یکی از مبالغ زیر را انتخاب کنید یا مبلغ دلخواه وارد نمایید:</p>
+
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+            {% for amt in quick_amounts %}
+            <button type="button" onclick="document.getElementById('amount_input').value='{{ amt }}'"
+                    class="btn btn-outline btn-sm">{{ amt|floatformat:0 }} ریال</button>
+            {% endfor %}
+        </div>
+
+        <div style="margin-bottom:1rem;">
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem;">مبلغ (ریال)</label>
+            <input type="number" id="amount_input" name="amount_rial" min="10000" placeholder="مبلغ به ریال"
+                   class="form-control" style="max-width:300px;">
+        </div>
+
+        <button type="submit" class="btn btn-primary">ثبت درخواست شارژ</button>
+    </form>
+</div>
+{% endblock %}

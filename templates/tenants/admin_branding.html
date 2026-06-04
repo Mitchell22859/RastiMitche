@@ -1,0 +1,41 @@
+{% extends "base_dashboard.html" %}
+{% block title %}برندینگ - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>برندینگ و صفحه عمومی</h1></div>
+
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+{% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+
+<div class="card" style="max-width:700px;">
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
+
+<div class="form-group"><label>عنوان صفحه</label><input name="title" value="{{ page.title }}" class="form-control"></div>
+<div class="form-group"><label>متن معرفی</label><textarea name="intro_text" class="form-control" rows="3">{{ page.intro_text }}</textarea></div>
+
+<div class="form-group">
+    <label>لوگو (JPEG/PNG/WebP, حداکثر 2MB)</label>
+    {% if page.logo %}<p style="font-size:0.8rem;color:#64748b;">فایل فعلی: {{ page.logo.name }}</p>{% endif %}
+    <input type="file" name="logo" accept="image/*" class="form-control">
+</div>
+
+<div class="form-group">
+    <label>تصویر هدر (Hero Image)</label>
+    {% if page.hero_image %}<p style="font-size:0.8rem;color:#64748b;">فایل فعلی: {{ page.hero_image.name }}</p>{% endif %}
+    <input type="file" name="hero_image" accept="image/*" class="form-control">
+</div>
+
+<div class="form-group"><label>تلفن تماس</label><input name="contact_phone" value="{{ page.contact_phone }}" class="form-control"></div>
+<div class="form-group"><label>ایمیل تماس</label><input name="contact_email" value="{{ page.contact_email }}" class="form-control"></div>
+<div class="form-group"><label>آدرس</label><textarea name="address" class="form-control" rows="2">{{ page.address }}</textarea></div>
+<div class="form-group"><label>ساعات کاری</label><input name="working_hours" value="{{ page.working_hours }}" class="form-control"></div>
+<div class="form-group"><label><input type="checkbox" name="is_request_form_enabled" {% if page.is_request_form_enabled %}checked{% endif %}> فعال بودن فرم درخواست</label></div>
+<div class="form-group"><label><input type="checkbox" name="is_published" {% if page.is_published %}checked{% endif %}> منتشر شده</label></div>
+
+<button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+</form>
+</div>
+{% endblock %}

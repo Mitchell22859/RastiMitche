@@ -1,0 +1,96 @@
+{% extends "base_dashboard.html" %}
+{% block title %}تنظیمات نوتیفیکیشن - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+{% include "includes/settings_center.html" %}
+
+<div class="page-header">
+    <div>
+        <h1>تنظیمات نوتیفیکیشن</h1>
+        <p>برای هر رویداد مشخص کنید اعلان داخل پنل و پیامک ارسال شود یا نه.</p>
+    </div>
+</div>
+
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+{% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+
+<div class="card" style="margin-bottom:1rem;">
+    <div class="card-header">نحوه کار</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.75rem;">
+        <div style="padding:.75rem;border:1px solid #e2e8f0;border-radius:.75rem;">
+            <strong>نوتیفیکیشن داخل پنل</strong>
+            <p style="color:#64748b;margin:.35rem 0 0;">اگر خاموش باشد، اعلان داخلی برای آن رویداد ساخته نمی‌شود.</p>
+        </div>
+        <div style="padding:.75rem;border:1px solid #e2e8f0;border-radius:.75rem;">
+            <strong>پیامک</strong>
+            <p style="color:#64748b;margin:.35rem 0 0;">اگر خاموش باشد، پیامک آن رویداد وارد صندوق پیامک نمی‌شود.</p>
+        </div>
+        <div style="padding:.75rem;border:1px solid #e2e8f0;border-radius:.75rem;">
+            <strong>هماهنگی خودکار</strong>
+            <p style="color:#64748b;margin:.35rem 0 0;">وضعیت پیامک این صفحه با وضعیت فعال/غیرفعال قالب‌های پیامک هماهنگ است.</p>
+        </div>
+    </div>
+</div>
+
+<form method="post">{% csrf_token %}
+    <div class="card">
+        <div class="card-header">رویدادهای قابل کنترل</div>
+        <div style="overflow-x:auto;">
+            <table class="table" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th style="min-width:220px;">رویداد</th>
+                        <th>کلید سیستم</th>
+                        <th>اعلان داخل پنل</th>
+                        <th>پیامک</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in notification_settings %}
+                    <tr>
+                        <td>
+                            <strong>{{ row.title|default:row.get_event_key_display }}</strong>
+                            <div style="color:#94a3b8;font-size:.85rem;margin-top:.25rem;">
+                                {% if "order" in row.event_key %}
+                                    بخش سفارش‌ها
+                                {% elif "invoice" in row.event_key %}
+                                    بخش فاکتور
+                                {% elif "payment" in row.event_key %}
+                                    بخش پرداخت
+                                {% elif "survey" in row.event_key %}
+                                    بخش نظرسنجی
+                                {% else %}
+                                    عمومی
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td><code>{{ row.event_key }}</code></td>
+                        <td>
+                            <label style="display:inline-flex;gap:.4rem;align-items:center;">
+                                <input type="checkbox" name="in_app_{{ row.event_key }}" {% if row.in_app_enabled %}checked{% endif %}>
+                                <span>{% if row.in_app_enabled %}فعال{% else %}غیرفعال{% endif %}</span>
+                            </label>
+                        </td>
+                        <td>
+                            <label style="display:inline-flex;gap:.4rem;align-items:center;">
+                                <input type="checkbox" name="sms_{{ row.event_key }}" {% if row.sms_enabled %}checked{% endif %}>
+                                <span>{% if row.sms_enabled %}فعال{% else %}غیرفعال{% endif %}</span>
+                            </label>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-top:1rem;">
+            <button type="submit" class="btn btn-primary">ذخیره تنظیمات نوتیفیکیشن</button>
+            <a href="/{{ company.code }}/admin/settings/" class="btn btn-outline">بازگشت به تنظیمات سایت</a>
+            <a href="/{{ company.code }}/admin/sms/templates/" class="btn btn-outline">ویرایش قالب‌های پیامک</a>
+        </div>
+    </div>
+</form>
+{% endblock %}

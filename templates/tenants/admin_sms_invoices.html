@@ -1,0 +1,35 @@
+{% extends "base_dashboard.html" %}
+{% load jalali_tags  fa_labels %}
+{% block title %}فاکتورهای پیامک - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>فاکتورهای پیامک</h1>
+    <a href="/{{ company.code }}/admin/sms-credit/" class="btn btn-outline btn-sm">&larr; بازگشت</a>
+</div>
+
+{% if invoices %}
+<div class="card"><div class="table-wrapper"><table>
+<thead><tr><th>شماره</th><th>نوع</th><th>مبلغ (ریال)</th><th>وضعیت</th><th>تاریخ</th><th>عملیات</th></tr></thead>
+<tbody>
+{% for inv in invoices %}<tr>
+<td>{{ inv.invoice_number }}</td>
+<td>{{ inv.get_invoice_type_display }}</td>
+<td>{{ inv.amount_rial|floatformat:0 }}</td>
+<td>
+{% if inv.status == "PAID" %}<span class="badge badge-active">پرداخت شده</span>
+{% elif inv.status == "UNPAID" %}<span class="badge badge-warning">پرداخت نشده</span>
+{% else %}<span class="badge badge-danger">لغو شده</span>{% endif %}
+</td>
+<td>{{ inv.created_at|jalali_date }}</td>
+<td><a href="/{{ company.code }}/admin/sms-credit/invoices/{{ inv.id }}/" class="btn btn-sm btn-outline">مشاهده</a></td>
+</tr>{% endfor %}
+</tbody>
+</table></div></div>
+{% else %}
+<div class="card"><p style="color:#64748b;">فاکتوری یافت نشد.</p></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}ویرایش صفحه عمومی - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>ویرایش صفحه عمومی</h1></div>
+
+<div class="card" style="max-width: 600px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group"><label>عنوان</label><input name="title" value="{{ form.title.value|default_if_none:'' }}" class="form-control"></div>
+        <div class="form-group"><label>متن معرفی</label><textarea name="intro_text" class="form-control" rows="4">{{ form.intro_text.value|default_if_none:'' }}</textarea></div>
+        <div class="form-group"><label>تلفن تماس</label><input name="contact_phone" value="{{ form.contact_phone.value|default_if_none:'' }}" class="form-control"></div>
+        <div class="form-group"><label>ایمیل تماس</label><input name="contact_email" value="{{ form.contact_email.value|default_if_none:'' }}" class="form-control"></div>
+        <div class="form-group"><label>آدرس</label><textarea name="address" class="form-control" rows="2">{{ form.address.value|default_if_none:'' }}</textarea></div>
+        <div class="form-group"><label>ساعات کاری</label><input name="working_hours" value="{{ form.working_hours.value|default_if_none:'' }}" class="form-control"></div>
+        <div class="form-group"><label><input type="checkbox" name="is_request_form_enabled" {% if form.is_request_form_enabled.value %}checked{% endif %}> فعال بودن فرم درخواست</label></div>
+        <div class="form-group"><label><input type="checkbox" name="is_published" {% if form.is_published.value %}checked{% endif %}> منتشر شده</label></div>
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+    </form>
+</div>
+{% endblock %}

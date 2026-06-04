@@ -1,0 +1,107 @@
+{% extends "layouts/dashboard.html" %}
+{% block title %}جزئیات پیامک {{ display_id }}{% endblock %}
+{% block page_title %}جزئیات پیامک {{ display_id }}{% endblock %}
+{% load fa_labels %}
+{% load jalali_tags %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block user_role_label %}{% if request.user.role == "COMPANY_ADMIN" %}مدیر{% else %}کاربر{% endif %}{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block page_description %}این پیام فقط متعلق به شرکت {{ company.name }} است و شرکت‌های دیگر به آن دسترسی ندارند.{% endblock %}
+{% block content %}
+<style>.sms-status{display:inline-flex;align-items:center;border-radius:999px;padding:.3rem .75rem;font-size:.82rem;font-weight:700}.sms-status.queued{background:#fef3c7;color:#92400e}.sms-status.sending{background:#dbeafe;color:#1d4ed8}.sms-status.sent{background:#dcfce7;color:#166534}.sms-status.delivered{background:#d1fae5;color:#065f46}.sms-status.failed{background:#fee2e2;color:#991b1b}.sms-status.cancelled{background:#e5e7eb;color:#374151}.sms-box{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:18px}.sms-message{white-space:pre-wrap;line-height:2}.sms-id{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;direction:ltr;display:inline-block}.readiness{display:inline-flex;border-radius:999px;padding:.25rem .65rem;font-size:.78rem;font-weight:700}.readiness.ready,.readiness.success{background:#dcfce7;color:#166534}.readiness.sending{background:#dbeafe;color:#1d4ed8}.readiness.no_provider,.readiness.insufficient_credit,.readiness.failed{background:#fee2e2;color:#991b1b}.readiness.cancelled,.readiness.unknown{background:#e5e7eb;color:#374151}.ltr{direction:ltr;display:inline-block}</style>
+<div class="mb-4 flex gap-2 flex-wrap">
+  <a class="px-4 py-2 bg-white border rounded-lg" href="/{{ company.code }}/admin/sms/outbox/">بازگشت به صندوق ارسال</a>
+  {% if sms.status == "failed" %}
+  <form method="post" action="/{{ company.code }}/admin/sms/outbox/{{ sms.id }}/send-now/">{% csrf_token %}
+    <button class="px-4 py-2 bg-green-600 text-white rounded-lg">ارسال مجدد</button>
+  </form>
+  {% endif %}
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div class="sms-box lg:col-span-2">
+    <div class="flex justify-between gap-3 mb-4"><div><div class="text-gray-500 text-sm">شناسه نمایشی</div><div class="sms-id font-bold text-lg">C-{{ company.code|upper }}-{{ sms.id }}</div></div><span class="sms-status status-{{ sms.status|status_css }}">{{ sms.status|status_fa }}</span></div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+      <div class="bg-gray-50 border rounded-xl p-3"><div class="text-gray-500 text-xs">طول متن</div><div class="font-bold mt-1">{{ sms.ui_message_length }} کاراکتر</div></div>
+      <div class="bg-gray-50 border rounded-xl p-3"><div class="text-gray-500 text-xs">تعداد پارت</div><div class="font-bold mt-1">{{ sms.ui_sms_parts }}</div></div>
+      <div class="bg-gray-50 border rounded-xl p-3"><div class="text-gray-500 text-xs">{{ sms.ui_cost_label }}</div><div class="font-bold mt-1">{{ sms.ui_sms_cost_rial }} ریال</div></div>
+    </div>
+
+    <h3 class="font-bold mb-2">متن پیامک</h3>
+    <div class="sms-message bg-gray-50 rounded-xl p-4 border">{{ sms.ui_display_message }}</div>
+
+    <h3 class="font-bold mt-5 mb-2">بررسی ارسال</h3>
+    <div class="sms-message bg-yellow-50 rounded-xl p-4 border border-yellow-200">
+      <span class="readiness {{ sms.ui_send_readiness }}">{{ sms.ui_readiness_label }}</span>
+      <div class="mt-2">{{ sms.ui_not_send_reason }}</div>
+    </div>
+
+    {% if sms.ui_actual_failure_reason %}<h3 class="font-bold mt-5 mb-2 text-red-700">علت ناموفق بودن ارسال</h3><div class="sms-message bg-red-50 rounded-xl p-4 border border-red-200 text-red-800">{{ sms.ui_actual_failure_reason }}</div>{% endif %}
+  </div>
+  <div class="sms-box">
+    <h3 class="font-bold mb-4">اطلاعات ارسال</h3>
+    <div class="space-y-3 text-sm">
+      <div><span class="text-gray-500">گیرنده:</span> <span class="ltr">{{ sms.phone_number }}</span></div>
+      <div><span class="text-gray-500">نوع پیام:</span> {{ sms.ui_template_key_label|default:sms.template_key }}</div>
+      <div><span class="text-gray-500">تعداد تلاش:</span> {{ sms.attempt_count }}</div>
+      <div><span class="text-gray-500">Provider ID:</span> {{ sms.provider_message_id|default:"-" }}</div>
+      <div><span class="text-gray-500">Provider فعال:</span> {{ sms.ui_provider_label }}</div>
+      <hr>
+      <div><span class="text-gray-500">{{ sms.ui_pricing_basis_label }}:</span> {{ sms.ui_price_per_sms_rial }} ریال / {{ sms.ui_characters_per_sms }} کاراکتر</div>
+      <div><span class="text-gray-500">زمان ثبت تعرفه:</span> {{ sms.ui_pricing_snapshot_at|jalali_datetime|default:"-" }}</div>
+      <div><span class="text-gray-500">موجودی کیف پول:</span> {{ sms.ui_wallet_balance_rial }} ریال</div>
+      <div><span class="text-gray-500">{{ sms.ui_cost_label }}:</span> {{ sms.ui_sms_cost_rial }} ریال</div>
+      <hr>
+      <div><span class="text-gray-500">سفارش:</span> {{ sms.order_id|default:"-" }}</div>
+      <div><span class="text-gray-500">فاکتور:</span> {{ sms.invoice_id|default:"-" }}</div>
+      <hr>
+      <div><span class="text-gray-500">در صف:</span> {{ sms.queued_at|jalali_datetime|default:"-" }}</div>
+      <div><span class="text-gray-500">شروع ارسال:</span> {{ sms.sending_at|jalali_datetime|default:"-" }}</div>
+      <div><span class="text-gray-500">ارسال شده:</span> {{ sms.sent_at|jalali_datetime|default:"-" }}</div>
+      <div><span class="text-gray-500">تحویل شده:</span> {{ sms.delivered_at|jalali_datetime|default:"-" }}</div>
+      <div><span class="text-gray-500">ناموفق:</span> {{ sms.failed_at|jalali_datetime|default:"-" }}</div>
+      <div><span class="text-gray-500">ارسال برنامه‌ریزی‌شده:</span> {{ sms.send_at|jalali_datetime|default:"-" }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- discount_outbox_display_amount_format_7c4 -->
+
+<script>
+(function () {
+    function normalizeDigits(value) {
+        value = (value || "").toString();
+        var fa = "۰۱۲۳۴۵۶۷۸۹";
+        var ar = "٠١٢٣٤٥٦٧٨٩";
+        for (var i = 0; i < 10; i++) {
+            value = value.replaceAll(fa[i], String(i)).replaceAll(ar[i], String(i));
+        }
+        return value;
+    }
+
+    function comma(n) {
+        n = normalizeDigits(n).replace(/[^\d]/g, "");
+        if (!n) return n;
+        return n.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function fixTextNode(node) {
+        var text = node.nodeValue || "";
+        var next = text.replace(/تا سقف\s+([0-9۰-۹٠-٩]{4,})\s+ریال/g, function (_, num) {
+            return "تا سقف " + comma(num) + " ریال";
+        });
+        if (next !== text) node.nodeValue = next;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(fixTextNode);
+    });
+})();
+</script>
+
+{% endblock %}

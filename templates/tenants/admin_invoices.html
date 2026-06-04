@@ -1,0 +1,37 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers jalali_tags  fa_labels %}
+{% block title %}مدیریت فاکتورها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>مدیریت فاکتورها</h1>
+</div>
+
+<div class="card" style="margin-bottom:1rem;">
+<form method="get" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+<select name="status" class="form-control" style="width:auto;">
+<option value="">همه وضعیت‌ها</option>
+{% for val, label in statuses %}<option value="{{ val }}" {% if val == status_filter %}selected{% endif %}>{{ val|status_fa }}</option>{% endfor %}
+</select>
+<button type="submit" class="btn btn-outline btn-sm">فیلتر</button>
+</form>
+<p style="color:#64748b;margin-top:0.75rem;margin-bottom:0;">فاکتور جدید از داخل صفحه جزئیات سفارش ساخته می‌شود تا اطلاعات مشتری و سفارش به‌صورت snapshot وارد فاکتور شود.</p>
+</div>
+
+{% if invoices %}
+<div class="card"><div class="table-wrapper"><table>
+<thead><tr><th>شماره</th><th>مشتری</th><th>سفارش</th><th>وضعیت</th><th>مبلغ</th><th>تاریخ</th><th>عملیات</th></tr></thead>
+<tbody>{% for inv in invoices %}<tr>
+<td>{{ inv.invoice_number }}</td>
+<td>{{ inv.display_customer_name|default:"-" }}<br><small>{{ inv.display_customer_phone|default:"" }}</small></td>
+<td>{% if inv.order_id %}<a href="/{{ company.code }}/admin/orders/{{ inv.order_id }}/">#{{ inv.order_id }}</a>{% else %}-{% endif %}</td>
+<td><span class="badge badge-{{ inv.status|status_css }}">{{ inv.status|status_fa }}</span></td>
+<td>{{ inv.total_amount|smart_number }} ریال</td><td>{{ inv.created_at|jalali_date }}</td>
+<td><a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/" class="btn btn-sm btn-outline">مشاهده</a>{% if inv.status == "draft" %} <a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/edit/" class="btn btn-sm btn-primary">ویرایش</a>{% endif %}</td>
+</tr>{% endfor %}</tbody>
+</table></div></div>
+{% else %}<div class="card"><p style="color:#64748b;">فاکتوری یافت نشد.</p></div>{% endif %}
+{% endblock %}

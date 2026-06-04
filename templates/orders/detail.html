@@ -1,0 +1,133 @@
+{% extends "base_dashboard.html" %}
+
+{% load fa_labels %}
+{% block title %}سفارش #{{ order.id }} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/admin/orders/" class="active">سفارش‌ها</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header technician-page-header">
+    <div>
+        <h1>سفارش #{{ order.id }}</h1>
+        <p class="muted-text">{{ order.service_category.title|default:"بدون رسته" }}{% if order.display_service_date_jalali %} · تاریخ انجام: {{ order.display_service_date_jalali }}{% endif %}</p>
+    </div>
+    <span class="badge badge-{{ order.status|status_css }}">{{ order.status|status_fa }}</span>
+</div>
+
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+
+<div class="technician-order-card">
+    <div class="technician-order-section">
+        <h3>اطلاعات مشتری</h3>
+        <div class="info-grid">
+            <div><span>نام مشتری</span><strong>{{ order.display_customer_name|default:"-" }}</strong></div>
+            <div><span>شماره تماس</span><strong dir="ltr">{{ order.display_customer_phone|default:"-" }}</strong></div>
+            <div class="wide"><span>آدرس</span><strong>{{ order.address|default:"-" }}</strong></div>
+        </div>
+    </div>
+
+    <div class="technician-order-section">
+        <h3>جزئیات سفارش</h3>
+        <div class="info-grid">
+            <div><span>رسته خدمات</span><strong>{{ order.service_category.title|default:"-" }}</strong></div>
+            <div><span>تاریخ انجام</span><strong>{{ order.display_service_date_jalali|default:"-" }}</strong></div>
+            <div><span>نیروی خدماتی</span><strong>{{ order.technician|default:"تخصیص نشده" }}</strong></div>
+            <div><span>پرداخت مازاد</span><strong>{{ order.extra_payment|default:"0" }}</strong></div>
+            <div><span>کسر از دستمزد</span><strong>{{ order.wage_deduction|default:"0" }}</strong></div>
+            <div class="wide"><span>توضیحات</span><strong>{{ order.description|default:"-" }}</strong></div>
+        </div>
+    </div>
+
+    <div class="technician-order-section">
+        <h3>آیتم‌های سفارش</h3>
+        {% if item_values %}
+        <div class="item-chip-list">
+            {% for iv in item_values %}
+            <span class="item-chip">
+                {{ iv.definition.title }}:
+                <strong>{% if iv.definition.kind == "bool" %}{% if iv.value %}بله{% else %}خیر{% endif %}{% elif iv.value != None %}{{ iv.value }}{% if iv.definition.kind == "money" %} ریال{% endif %}{% else %}-{% endif %}</strong>
+            </span>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="muted-text">برای این سفارش آیتمی ثبت نشده است.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if request.user.role == "TECHNICIAN" %}
+<div class="technician-action-panel">
+    {% if can_accept %}
+    <form method="post" action="/{{ company.code }}/tech/orders/{{ order.id }}/accept/">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary btn-block">پذیرش سفارش</button>
+    </form>
+    {% endif %}
+
+    {% if is_assigned_technician and order.status == "waiting" %}
+    <form method="post" action="/{{ company.code }}/tech/orders/{{ order.id }}/status/">
+        {% csrf_token %}
+        <button type="submit" name="new_status" value="in_progress" class="btn btn-primary btn-block">شروع کار</button>
+    </form>
+    {% endif %}
+
+    {% if is_assigned_technician and order.status == "in_progress" %}
+    <form method="post" action="/{{ company.code }}/tech/orders/{{ order.id }}/status/">
+        {% csrf_token %}
+        <button type="submit" name="new_status" value="done" class="btn btn-success btn-block">اتمام کار</button>
+    </form>
+    {% endif %}
+
+    {% if is_assigned_technician and order.status != "done" and order.status != "cancelled" and order.status != "cancel_requested" %}
+    <form method="post" action="/{{ company.code }}/tech/orders/{{ order.id }}/status/" class="cancel-request-box">
+        {% csrf_token %}
+        <textarea name="note" class="form-control" rows="2" placeholder="دلیل درخواست لغو"></textarea>
+        <button type="submit" name="new_status" value="cancel_requested" class="btn btn-danger btn-block">درخواست لغو</button>
+    </form>
+    {% endif %}
+</div>
+{% else %}
+<div class="inline-actions" style="margin-top:1rem;">
+    {% if can_complete %}
+    <form method="post" action="/{{ company.code }}/tech/orders/{{ order.id }}/complete/">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">تکمیل سفارش</button>
+    </form>
+    {% endif %}
+    {% if can_cancel %}
+    <form method="post" action="/{{ company.code }}/tech/orders/{{ order.id }}/cancel/" class="inline-actions">
+        {% csrf_token %}
+        <input type="text" name="reason" placeholder="دلیل لغو" class="form-control" style="width:220px;">
+        <button type="submit" class="btn btn-danger">لغو سفارش</button>
+    </form>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="card" style="margin-top:1rem;">
+    <div class="card-header">گزارش وضعیت سفارش</div>
+    {% if status_logs %}
+    <div class="table-wrapper"><table>
+        <thead><tr><th>زمان</th><th>از وضعیت</th><th>به وضعیت</th><th>توضیحات</th></tr></thead>
+        <tbody>
+        {% for log in status_logs %}
+        <tr>
+            <td>{{ log.created_at|jalali_datetime }}</td>
+            <td>{{ log.get_old_status_display }}</td>
+            <td>{{ log.get_new_status_display }}</td>
+            <td>{{ log.note|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+    {% else %}
+    <p class="muted-text">گزارشی ثبت نشده است.</p>
+    {% endif %}
+</div>
+
+<p style="margin-top:1.5rem;"><a href="{% if request.user.role == 'TECHNICIAN' %}/{{ company.code }}/tech/orders/my/{% else %}/{{ company.code }}/admin/orders/{% endif %}">بازگشت</a></p>
+{% endblock %}

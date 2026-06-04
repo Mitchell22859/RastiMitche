@@ -1,0 +1,41 @@
+{% extends "layouts/dashboard.html" %}
+
+{% load fa_labels %}
+{% block title %}تست درگاه پرداخت - پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}تست اتصال درگاه{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-lg">
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">نتیجه تست اتصال</h2>
+
+        <div class="p-4 rounded-lg bg-blue-50 border border-blue-200 mb-4">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="inline-block w-3 h-3 rounded-full bg-blue-400"></span>
+                <span class="text-sm font-medium text-blue-800">وضعیت: {{ result.status|status_fa }}</span>
+            </div>
+            <p class="text-sm text-blue-700">{{ result.message }}</p>
+        </div>
+
+        <div class="text-sm text-gray-500 space-y-1">
+            <p><strong>درگاه:</strong> {{ gateway.get_provider_display }}</p>
+            <p><strong>وضعیت:</strong> {% if gateway.is_active %}فعال{% else %}غیرفعال{% endif %}</p>
+            <p><strong>حالت:</strong> {% if gateway.sandbox_mode %}آزمایشی{% else %}عملیاتی{% endif %}</p>
+        </div>
+
+        <div class="mt-6">
+            <a href="/owner-platform/payment-gateways/settings/" class="px-4 py-2 bg-brand-600 text-white text-sm font-semibold rounded-xl hover:bg-brand-700 transition-smooth">
+                بازگشت به تنظیمات
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

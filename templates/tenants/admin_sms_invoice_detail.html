@@ -1,0 +1,47 @@
+{% extends "base_dashboard.html" %}
+{% load jalali_tags  fa_labels %}
+{% block title %}فاکتور {{ invoice.invoice_number }} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>جزئیات فاکتور</h1>
+    <a href="/{{ company.code }}/admin/sms-credit/invoices/" class="btn btn-outline btn-sm">&larr; بازگشت</a>
+</div>
+
+<div class="card" style="padding:1.5rem;max-width:500px;">
+    <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="padding:0.5rem 0;color:#64748b;font-size:0.875rem;">شماره فاکتور</td><td style="padding:0.5rem 0;font-weight:600;">{{ invoice.invoice_number }}</td></tr>
+        <tr><td style="padding:0.5rem 0;color:#64748b;font-size:0.875rem;">نوع</td><td style="padding:0.5rem 0;">{{ invoice.get_invoice_type_display }}</td></tr>
+        <tr><td style="padding:0.5rem 0;color:#64748b;font-size:0.875rem;">مبلغ</td><td style="padding:0.5rem 0;font-weight:600;">{{ invoice.amount_rial|floatformat:0 }} ریال</td></tr>
+        <tr><td style="padding:0.5rem 0;color:#64748b;font-size:0.875rem;">وضعیت</td><td style="padding:0.5rem 0;">
+            {% if invoice.status == "PAID" %}<span class="badge badge-active">پرداخت شده</span>
+            {% elif invoice.status == "UNPAID" %}<span class="badge badge-warning">پرداخت نشده</span>
+            {% else %}<span class="badge badge-danger">لغو شده</span>{% endif %}
+        </td></tr>
+        <tr><td style="padding:0.5rem 0;color:#64748b;font-size:0.875rem;">تاریخ ایجاد</td><td style="padding:0.5rem 0;">{{ invoice.created_at|jalali_datetime }}</td></tr>
+        {% if invoice.paid_at %}
+        <tr><td style="padding:0.5rem 0;color:#64748b;font-size:0.875rem;">تاریخ پرداخت</td><td style="padding:0.5rem 0;">{{ invoice.paid_at|jalali_datetime }}</td></tr>
+        {% endif %}
+        {% if invoice.description %}
+        <tr><td style="padding:0.5rem 0;color:#64748b;font-size:0.875rem;">توضیحات</td><td style="padding:0.5rem 0;">{{ invoice.description }}</td></tr>
+        {% endif %}
+    </table>
+
+    {% if invoice.status == "UNPAID" %}
+    <div style="margin-top:1.25rem;padding:1rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:0.5rem;">
+        <p style="font-size:0.875rem;color:#1e40af;margin-bottom:0.75rem;">
+            این فاکتور هنوز پرداخت نشده است. پس از پرداخت، اعتبار شما شارژ خواهد شد.
+        </p>
+        <button disabled class="btn btn-primary" style="opacity:0.5;cursor:not-allowed;" title="به‌زودی فعال می‌شود">
+            پرداخت آنلاین (به‌زودی)
+        </button>
+        <p style="margin-top:0.5rem;font-size:0.75rem;color:#64748b;">
+            پرداخت آنلاین در نسخه بعدی فعال می‌شود. فعلاً پرداخت توسط مدیر پلتفرم ثبت می‌شود.
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

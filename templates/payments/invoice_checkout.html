@@ -1,0 +1,94 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers jalali_tags fa_labels %}
+{% block title %}پرداخت اینترنتی فاکتور - {{ invoice.invoice_number }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<style>
+.pay-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:1rem;align-items:start}
+.pay-card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;padding:1rem;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.pay-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;border-bottom:1px solid #eef2f7;padding:.65rem 0}
+.pay-row:last-child{border-bottom:0}
+.pay-label{color:#64748b;font-size:.86rem}
+.pay-value{font-weight:900;color:#0f172a}
+.pay-ref{direction:ltr;unicode-bidi:plaintext;font-weight:900;background:#f8fafc;border:1px solid #e2e8f0;border-radius:.6rem;padding:.35rem .55rem;display:inline-block}
+.discount-box{background:#f8fafc;border:1px dashed #cbd5e1;border-radius:1rem;padding:1rem;margin-top:1rem}
+.discount-form{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.discount-form input{max-width:240px;direction:ltr;text-align:left}
+.gateway-note{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:.85rem;padding:.8rem;margin-top:1rem}
+@media(max-width:900px){.pay-grid{grid-template-columns:1fr}}
+</style>
+
+<div class="page-header">
+    <div>
+        <h1>پرداخت اینترنتی فاکتور</h1>
+        <p style="color:#64748b;margin:.35rem 0 0;">قبل از ورود به درگاه، می‌توانید کد تخفیف را اعمال کنید.</p>
+    </div>
+    <a href="{{ public_invoice_url|default:'#' }}" class="btn btn-outline">بازگشت به فاکتور</a>
+</div>
+
+{% if messages %}
+<div class="pay-card" style="margin-bottom:1rem;">
+    {% for message in messages %}
+        <div class="status-badge {% if message.tags == 'success' %}status-success{% else %}status-danger{% endif %}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="pay-grid">
+    <div class="pay-card">
+        <h3 style="margin:0 0 1rem;">اطلاعات پرداخت</h3>
+        <div class="pay-row"><div class="pay-label">شماره فاکتور</div><div class="pay-value">{{ invoice.invoice_number }}</div></div>
+        <div class="pay-row"><div class="pay-label">مشتری</div><div class="pay-value">{{ invoice.display_customer_name|default:"-" }}</div></div>
+        <div class="pay-row"><div class="pay-label">شماره تماس</div><div class="pay-value" style="direction:ltr;">{{ invoice.display_customer_phone|default:"-" }}</div></div>
+        <div class="pay-row"><div class="pay-label">کد پیگیری داخلی پرداخت</div><div class="pay-value"><span class="pay-ref">{{ payment_reference }}</span></div></div>
+
+        <div class="discount-box">
+            <h4 style="margin:0 0 .75rem;">کد تخفیف دارید؟</h4>
+            {% if invoice.status == "issued" %}
+                {% if invoice.campaign_discount_amount > 0 %}
+                    <p style="color:#166534;background:#dcfce7;padding:.6rem .8rem;border-radius:.6rem;margin:0;font-weight:700;">تخفیف کد تخفیف اعمال شده است: {{ invoice.campaign_discount_amount|smart_number }} ریال</p>
+                {% else %}
+                    <form method="post" class="discount-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="apply_discount">
+                        <input name="discount_code" class="form-control" placeholder="کد تخفیف" autocomplete="off">
+                        <button type="submit" class="btn btn-outline">اعمال کد</button>
+                    </form>
+                    <p style="color:#64748b;font-size:.84rem;margin:.6rem 0 0;">تخفیف روی سطح فاکتور اعمال می‌شود و روی ردیف‌های اجرت نیروی خدماتی اثر نمی‌گذارد.</p>
+                {% endif %}
+            {% else %}
+                <p style="color:#64748b;margin:0;">این فاکتور دیگر قابل پرداخت یا اعمال تخفیف نیست.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="pay-card">
+        <h3 style="margin:0 0 1rem;">خلاصه مبلغ</h3>
+        <div class="pay-row"><div class="pay-label">جمع خام ردیف‌ها</div><div class="pay-value">{{ invoice.gross_amount|smart_number }} ریال</div></div>
+        <div class="pay-row"><div class="pay-label">مجموع تخفیف ردیف‌ها</div><div class="pay-value">{{ invoice.row_discount_amount|smart_number }} ریال</div></div>
+        <div class="pay-row"><div class="pay-label">مبلغ خالص ردیف‌ها</div><div class="pay-value">{{ invoice.net_amount_before_invoice_discounts|smart_number }} ریال</div></div>
+        <div class="pay-row"><div class="pay-label">تخفیف مازاد</div><div class="pay-value">{{ invoice.extra_discount_amount|smart_number }} ریال</div></div>
+        <div class="pay-row"><div class="pay-label">تخفیف کمپین</div><div class="pay-value">{{ invoice.campaign_discount_amount|smart_number }} ریال</div></div>
+        <div class="pay-row"><div class="pay-label">مجموع تخفیف فاکتور</div><div class="pay-value">{{ invoice.total_discount_amount|smart_number }} ریال</div></div>
+        <div class="pay-row"><div class="pay-label">مبلغ قابل پرداخت</div><div class="pay-value">{{ invoice.total_amount|smart_number }} ریال</div></div>
+
+        {% if invoice.status == "issued" %}
+            {% if has_gateway %}
+                <form method="post" style="margin-top:1rem;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="start_gateway">
+                    <button type="submit" class="btn btn-success btn-block">ورود به درگاه پرداخت</button>
+                </form>
+            {% else %}
+                <div class="gateway-note">درگاه پرداخت هنوز برای این شرکت تنظیم نشده است. این صفحه آماده اتصال به درگاه است و بعد از تنظیم درگاه، دکمه ورود به درگاه فعال می‌شود.</div>
+                <button type="button" class="btn btn-success btn-block" style="margin-top:.75rem;" disabled>ورود به درگاه پرداخت</button>
+            {% endif %}
+        {% elif invoice.status == "paid" %}
+            <div class="status-badge status-success" style="margin-top:1rem;">این فاکتور پرداخت شده است.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

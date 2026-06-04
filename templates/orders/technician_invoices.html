@@ -1,0 +1,70 @@
+{% extends "layouts/technician.html" %}
+{% load jalali_tags  fa_labels %}
+{% load smart_numbers %}
+
+{% block title %}فاکتورهای من - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-5"><h1 class="text-lg font-bold text-gray-900">فاکتورهای من</h1><p class="text-sm text-gray-500 mt-0.5">فقط فاکتورهای سفارش‌هایی که به شما تخصیص داده شده‌اند نمایش داده می‌شود.</p></div>
+
+<div class="tech-collapsible-box">
+    <button type="button" class="tech-filter-toggle" data-tech-toggle="invoice-filter" aria-expanded="false"><span>جستجو و فیلتر</span><span>⌄</span></button>
+    <form id="invoice-filter" method="get" class="tech-filter-panel">
+        <div class="tech-filter-grid">
+            <label>جستجو<input type="text" name="q" value="{{ filters.q }}" placeholder="نام، شماره تماس یا آدرس"></label>
+            <label>از تاریخ<input type="text" name="from" value="{{ filters.from }}" placeholder="1404/03/25" data-jalali-datepicker></label>
+            <label>تا تاریخ<input type="text" name="to" value="{{ filters.to }}" placeholder="1404/03/25" data-jalali-datepicker></label>
+            <label>وضعیت فاکتور<select name="status"><option value="">همه وضعیت‌ها</option>{% for value,label in statuses %}<option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ value|status_fa }}</option>{% endfor %}</select></label>
+            {% if filters.order %}<input type="hidden" name="order" value="{{ filters.order }}">{% endif %}
+        </div>
+        <div class="tech-filter-actions"><button type="submit" class="btn btn-primary">اعمال فیلتر</button><a href="/{{ company.code }}/tech/invoices/" class="btn btn-outline">حذف فیلتر</a></div>
+    </form>
+</div>
+
+<div class="tech-collapsible-box">
+    <button type="button" class="tech-filter-toggle" data-tech-toggle="invoice-summary" aria-expanded="false"><span>خلاصه فاکتورها</span><span>⌄</span></button>
+    <div id="invoice-summary" class="tech-filter-panel">
+        <div class="tech-summary-grid">
+            <div class="tech-field"><span class="tech-field-label">تعداد فاکتورهای ثبت‌شده:</span><span class="tech-field-value">{{ summary.count }}</span></div>
+            <div class="tech-field"><span class="tech-field-label">مجموع مبلغ فاکتورها:</span><span class="tech-field-value">{{ summary.total_amount|smart_number }} ریال</span></div>
+            <div class="tech-field"><span class="tech-field-label">مجموع مبلغ خدمات:</span><span class="tech-field-value">{{ summary.services_total }} ریال</span></div>
+            <div class="tech-field"><span class="tech-field-label">مجموع مبلغ کالا:</span><span class="tech-field-value">{{ summary.goods_total|smart_number }} ریال</span></div>
+            <div class="tech-field"><span class="tech-field-label">مجموع ایاب و ذهاب:</span><span class="tech-field-value">{{ summary.travel_total|smart_number }} ریال</span></div>
+        </div>
+    </div>
+</div>
+
+{% if invoices %}
+<div class="space-y-3">
+    {% for invoice in invoices %}
+    <a href="/{{ company.code }}/tech/invoices/{{ invoice.id }}/" class="block bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md hover:border-brand-200 transition-smooth">
+        <div class="flex items-center justify-between mb-2 min-w-0"><span class="text-sm font-bold text-gray-900">{{ invoice.invoice_number }}</span><span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium">{{ invoice.status|status_fa }}</span></div>
+        <div class="space-y-1">
+            <div class="tech-field"><span class="tech-field-label">مشتری:</span><span class="tech-field-value">{{ invoice.display_customer_name|default:"-" }}</span></div>
+            <div class="tech-field"><span class="tech-field-label">شماره تماس:</span><span class="tech-field-value" dir="ltr">{{ invoice.display_customer_phone|default:"-" }}</span></div>
+            {% if invoice.address_snapshot %}<div class="tech-field"><span class="tech-field-label">آدرس:</span><span class="tech-field-value">{{ invoice.address_snapshot }}</span></div>{% endif %}
+            {% if invoice.order_id %}<div class="tech-field"><span class="tech-field-label">سفارش:</span><span class="tech-field-value">#{{ invoice.order_id }}</span></div>{% endif %}
+            <div class="tech-field"><span class="tech-field-label">مبلغ:</span><span class="tech-field-value font-bold">{{ invoice.total_amount|smart_number }} ریال</span></div>
+            <div class="tech-field"><span class="tech-field-label">تاریخ صدور:</span><span class="tech-field-value">{{ invoice.created_at|jalali_date }}</span></div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-8 text-center"><h3 class="text-sm font-semibold text-gray-700 mb-1">فاکتوری یافت نشد</h3><p class="text-xs text-gray-500">هنوز فاکتوری برای سفارش‌های شما ثبت نشده است.</p></div>
+{% endif %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll("[data-tech-toggle]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var target = document.getElementById(btn.getAttribute("data-tech-toggle"));
+      if (!target) return;
+      target.classList.toggle("is-open");
+      btn.setAttribute("aria-expanded", target.classList.contains("is-open") ? "true" : "false");
+      if (window.RastiJalaliDatepicker) window.RastiJalaliDatepicker.attach();
+    });
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base_dashboard.html" %}
+{% load jalali_tags  fa_labels %}
+
+{% block title %}درخواست‌ها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>درخواست‌های خدمات</h1></div>
+
+{% if requests %}
+<div class="card">
+    <div class="table-wrapper"><table>
+        <thead><tr><th>نام</th><th>تلفن</th><th>خدمات</th><th>تاریخ</th></tr></thead>
+        <tbody>{% for req in requests %}
+        <tr><td>{{ req.customer_name }}</td><td>{{ req.customer_phone }}</td><td>{{ req.service|default:"-" }}</td><td>{{ req.created_at|jalali_date }}</td></tr>
+        {% endfor %}</tbody>
+    </table></div>
+</div>
+{% else %}
+<div class="card"><p style="color:#64748b;">درخواستی ثبت نشده.</p></div>
+{% endif %}
+{% endblock %}

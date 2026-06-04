@@ -1,0 +1,34 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers  fa_labels %}
+
+{% block title %}فاکتورها - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}
+<li><a href="/{{ company.code }}/admin/">داشبورد</a></li>
+<li><a href="/{{ company.code }}/orders/">سفارش‌ها</a></li>
+<li><a href="/{{ company.code }}/invoices/" class="active">فاکتورها</a></li>
+<li><a href="/{{ company.code }}/reports/">گزارش‌ها</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>فاکتورها</h1></div>
+
+{% if invoices %}
+<div class="card">
+    <div class="table-wrapper"><table>
+        <thead><tr><th>شماره فاکتور</th><th>وضعیت</th><th>مبلغ</th><th>تاریخ</th><th>عملیات</th></tr></thead>
+        <tbody>{% for inv in invoices %}
+        <tr>
+            <td><a href="/{{ company.code }}/invoices/{{ inv.id }}/">{{ inv.invoice_number }}</a></td>
+            <td><span class="badge badge-{{ inv.status|status_css }}">{{ inv.status|status_fa }}</span></td>
+            <td>{{ inv.total_amount|smart_number }} ریال</td>
+            <td>{{ inv.created_at|jalali_date }}</td>
+            <td>{% if inv.is_payable %}<a href="/{{ company.code }}/invoices/{{ inv.id }}/pay/" class="btn btn-sm btn-success">پرداخت</a>{% endif %}</td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+</div>
+{% else %}
+<div class="card"><p style="color:#64748b;">فاکتوری یافت نشد.</p></div>
+{% endif %}
+{% endblock %}

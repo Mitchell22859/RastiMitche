@@ -1,0 +1,32 @@
+{% extends "layouts/public.html" %}
+{% block title %}ثبت نام موفق - رستی سرویس{% endblock %}
+{% block content %}
+<section class="max-w-lg mx-auto py-12 px-4 text-center">
+    <div class="bg-white rounded-xl border border-gray-200 p-8">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-50 flex items-center justify-center">
+            <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">ثبت‌نام شما با موفقیت انجام شد</h1>
+
+        <p class="text-gray-600 mb-6 leading-relaxed">
+            درخواست ثبت‌نام شرکت شما دریافت شد و در انتظار بررسی توسط تیم پشتیبانی است.
+            پس از تایید، می‌توانید وارد پنل مدیریت شوید.
+        </p>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p class="text-sm text-blue-700">
+                <strong>توجه:</strong> شرکت شما تا زمان تایید توسط مدیر پلتفرم غیرفعال خواهد بود.
+                پس از فعال‌سازی، از طریق پیامک اطلاع‌رسانی خواهد شد.
+            </p>
+        </div>
+
+        <a href="/login/"
+           class="btn btn-primary inline-flex items-center px-6 py-3 text-base font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 transition-smooth">
+            ورود به سیستم
+        </a>
+    </div>
+</section>
+{% endblock %}

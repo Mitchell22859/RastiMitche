@@ -1,0 +1,36 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers %}
+{% block title %}اعتبار پیامک - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>اعتبار پیامک</h1>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;">
+    <div class="card" style="text-align:center;padding:1.5rem;">
+        <p style="font-size:2rem;font-weight:700;color:#1e293b;margin:0;">{{ wallet.balance_rial|floatformat:0 }}</p>
+        <p style="font-size:0.875rem;color:#64748b;margin-top:0.25rem;">موجودی (ریال)</p>
+    </div>
+    <div class="card" style="text-align:center;padding:1.5rem;">
+        <p style="font-size:2rem;font-weight:700;color:#059669;margin:0;">{{ remaining_sms|smart_number }}</p>
+        <p style="font-size:0.875rem;color:#64748b;margin-top:0.25rem;">پیامک باقیمانده</p>
+    </div>
+    <div class="card" style="text-align:center;padding:1.5rem;">
+        <p style="font-size:2rem;font-weight:700;color:#6366f1;margin:0;">{{ pricing.price_per_sms_rial|smart_number }}</p>
+        <p style="font-size:0.875rem;color:#64748b;margin-top:0.25rem;">قیمت هر پیامک (ریال)</p>
+    </div>
+</div>
+
+<div class="card" style="padding:1.5rem;">
+    <p style="font-size:0.875rem;color:#64748b;margin-bottom:1rem;">هر پیامک {{ pricing.characters_per_sms }} کاراکتر محاسبه می‌شود.</p>
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+        <a href="/{{ company.code }}/admin/sms-credit/recharge/" class="btn btn-primary">شارژ اعتبار</a>
+        <a href="/{{ company.code }}/admin/sms-credit/transactions/" class="btn btn-outline">تراکنش‌ها</a>
+        <a href="/{{ company.code }}/admin/sms-credit/invoices/" class="btn btn-outline">فاکتورها</a>
+    </div>
+</div>
+{% endblock %}

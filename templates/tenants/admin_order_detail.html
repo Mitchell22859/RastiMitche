@@ -1,0 +1,343 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers jalali_tags  fa_labels %}
+{% block title %}سفارش #{{ order.id }} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<style>
+.od-page { max-width: 900px; }
+.od-header {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: .75rem; margin-bottom: 1.25rem;
+}
+.od-header h1 { font-size: 1.4rem; font-weight: 800; color: #0f172a; margin: 0; }
+.od-header-meta { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+
+.od-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem;
+    padding: 1.25rem; margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(15,23,42,.04);
+}
+.od-card-title {
+    font-size: .9rem; font-weight: 700; color: #334155;
+    margin: 0 0 .85rem; padding-bottom: .5rem; border-bottom: 1px solid #f1f5f9;
+}
+.od-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .6rem;
+}
+.od-field { padding: .5rem .65rem; background: #f8fafc; border-radius: .6rem; border: 1px solid #f1f5f9; }
+.od-field-label { font-size: .72rem; font-weight: 600; color: #64748b; margin-bottom: .2rem; }
+.od-field-value { font-size: .85rem; color: #1e293b; font-weight: 500; overflow-wrap: anywhere; }
+.od-field-full { grid-column: 1 / -1; }
+
+/* Status badges — same as Phase 11 */
+.status-badge {
+    display: inline-flex; align-items: center; padding: .25rem .6rem;
+    border-radius: 999px; font-size: .75rem; font-weight: 700; white-space: nowrap;
+}
+
+.status-info, .status-new, .status-assigned, .status-in_progress, .status-started { background: #dbeafe; color: #1d4ed8; }
+.status-warning, .status-waiting, .status-pending, .status-draft, .status-issued, .status-unpaid, .status-queued, .status-cancel_requested { background: #fef3c7; color: #92400e; }
+.status-success, .status-done, .status-completed, .status-paid, .status-sent, .status-delivered, .status-accepted { background: #dcfce7; color: #166534; }
+.status-danger, .status-cancelled, .status-canceled, .status-failed, .status-rejected { background: #fee2e2; color: #991b1b; }
+.status-neutral, .status-skipped, .status-refunded { background: #f1f5f9; color: #475569; }
+
+.status-waiting { background: #fef3c7; color: #92400e; }
+.status-in_progress { background: #e0e7ff; color: #4338ca; }
+.status-done { background: #dcfce7; color: #166534; }
+.status-cancelled { background: #fee2e2; color: #991b1b; }
+.status-cancel_requested { background: #fff7ed; color: #c2410c; }
+
+/* Invoice table */
+.od-inv-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-top: .5rem; }
+.od-inv-table th { padding: .5rem .6rem; text-align: right; font-weight: 700; color: #475569; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+.od-inv-table td { padding: .5rem .6rem; border-bottom: 1px solid #f1f5f9; }
+
+/* Timeline */
+.od-timeline { list-style: none; padding: 0; margin: 0; }
+.od-timeline li {
+    position: relative; padding: .6rem 0 .6rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9; font-size: .82rem;
+}
+.od-timeline li::before {
+    content: ""; position: absolute; right: 0; top: .9rem;
+    width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1;
+}
+.od-timeline li:first-child::before { background: #6366f1; }
+.od-timeline-date { color: #64748b; font-size: .75rem; }
+.od-timeline-note { color: #475569; margin-top: .15rem; }
+
+/* Items table */
+.od-items-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.od-items-table th { padding: .5rem .6rem; text-align: right; font-weight: 700; color: #475569; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+.od-items-table td { padding: .5rem .6rem; border-bottom: 1px solid #f1f5f9; }
+
+/* Actions */
+.od-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+.od-btn {
+    padding: .5rem 1rem; border-radius: .6rem; font-size: .82rem;
+    font-weight: 700; text-decoration: none; border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: .3rem; transition: all .15s;
+}
+.od-btn-primary { background: #4f46e5; color: #fff; }
+.od-btn-primary:hover { background: #4338ca; }
+.od-btn-danger { background: #dc2626; color: #fff; }
+.od-btn-danger:hover { background: #b91c1c; }
+.od-btn-warning { background: #d97706; color: #fff; }
+.od-btn-warning:hover { background: #b45309; }
+.od-btn-success { background: #059669; color: #fff; }
+.od-btn-success:hover { background: #047857; }
+.od-btn-outline { background: #fff; color: #334155; border: 1px solid #e2e8f0; }
+.od-btn-outline:hover { background: #f8fafc; }
+.od-btn-sm { padding: .35rem .7rem; font-size: .75rem; }
+
+/* Cancel request card */
+.od-cancel-alert {
+    background: #fef2f2; border: 2px solid #fca5a5; border-radius: 1rem;
+    padding: 1.25rem; margin-bottom: 1rem;
+}
+.od-cancel-alert-title { color: #991b1b; font-weight: 800; font-size: .95rem; margin-bottom: .5rem; }
+
+.alert-error { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: .75rem 1rem; border-radius: .6rem; margin-bottom: 1rem; font-size: .85rem; }
+
+@media (max-width: 640px) {
+    .od-grid { grid-template-columns: 1fr; }
+    .od-header { flex-direction: column; align-items: flex-start; }
+}
+</style>
+
+<div class="od-page">
+
+{# ===== Error ===== #}
+{% if error %}<div class="alert-error">{{ error }}</div>{% endif %}
+
+{# ===== Header ===== #}
+<div class="od-header">
+    <h1>سفارش #{{ order.id }}</h1>
+    <div class="od-header-meta">
+        <span class="status-badge status-{{ order.status|status_css }}">{{ order.status|status_fa }}</span>
+        {% if can_edit_order %}
+        <a href="/{{ company.code }}/admin/orders/{{ order.id }}/edit/" class="od-btn od-btn-outline od-btn-sm">ویرایش</a>
+        {% endif %}
+    </div>
+</div>
+
+{# ===== Customer Card ===== #}
+<div class="od-card">
+    <div class="od-card-title">اطلاعات مشتری</div>
+    <div class="od-grid">
+        <div class="od-field">
+            <div class="od-field-label">نام مشتری</div>
+            <div class="od-field-value">{{ order.display_customer_name|default:"-" }}</div>
+        </div>
+        <div class="od-field">
+            <div class="od-field-label">شماره تماس</div>
+            <div class="od-field-value">
+                {% if order.display_customer_phone %}
+                <a href="tel:{{ order.display_customer_phone }}" style="color:#4f46e5;text-decoration:none;">{{ order.display_customer_phone }}</a>
+                {% else %}-{% endif %}
+            </div>
+        </div>
+        <div class="od-field od-field-full">
+            <div class="od-field-label">آدرس</div>
+            <div class="od-field-value">{{ order.address|default:"-" }}</div>
+        </div>
+        {% if order.description %}
+        <div class="od-field od-field-full">
+            <div class="od-field-label">توضیحات سفارش</div>
+            <div class="od-field-value">{{ order.description }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{# ===== Dispatch Card ===== #}
+<div class="od-card">
+    <div class="od-card-title">اطلاعات ارسال و خدمت</div>
+    <div class="od-grid">
+        <div class="od-field">
+            <div class="od-field-label">رسته خدمات</div>
+            <div class="od-field-value">{{ order.service_category|default:"-" }}</div>
+        </div>
+        <div class="od-field">
+            <div class="od-field-label">تاریخ انجام</div>
+            <div class="od-field-value">{{ service_date_jalali|default:"-" }}</div>
+        </div>
+        <div class="od-field">
+            <div class="od-field-label">نیروی خدماتی</div>
+            <div class="od-field-value">
+                {% if order.technician %}{{ order.technician.user.get_full_name|default:order.technician.user.username }}{% else %}تخصیص نشده{% endif %}
+            </div>
+        </div>
+        <div class="od-field">
+            <div class="od-field-label">وضعیت</div>
+            <div class="od-field-value"><span class="status-badge status-{{ order.status|status_css }}">{{ order.status|status_fa }}</span></div>
+        </div>
+        {% if order.extra_payment %}
+        <div class="od-field">
+            <div class="od-field-label">پرداخت مازاد</div>
+            <div class="od-field-value">{{ order.extra_payment|smart_number }} ریال</div>
+        </div>
+        {% endif %}
+        {% if order.wage_deduction %}
+        <div class="od-field">
+            <div class="od-field-label">کسر از دستمزد</div>
+            <div class="od-field-value">{{ order.wage_deduction|smart_number }} ریال</div>
+        </div>
+        {% endif %}
+        {% if order.internal_note %}
+        <div class="od-field od-field-full">
+            <div class="od-field-label">یادداشت داخلی</div>
+            <div class="od-field-value">{{ order.internal_note }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{# ===== Service Items Card ===== #}
+{% if item_values %}
+<div class="od-card">
+    <div class="od-card-title">آیتم‌های سفارش</div>
+    <table class="od-items-table">
+        <thead><tr><th>عنوان</th><th>مقدار</th></tr></thead>
+        <tbody>
+        {% for iv in item_values %}
+        <tr>
+            <td style="font-weight:600;">{{ iv.definition.title }}</td>
+            <td>
+                {% if iv.definition.kind == "bool" %}{% if iv.value %}بله{% else %}خیر{% endif %}
+                {% elif iv.value != None %}{{ iv.value }}{% if iv.definition.kind == "money" %} ریال{% endif %}
+                {% else %}-{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{# ===== Invoice Card ===== #}
+<div class="od-card">
+    <div class="od-card-title">فاکتورها</div>
+    {% if order.invoices.all %}
+    <table class="od-inv-table">
+        <thead><tr><th>شماره</th><th>وضعیت</th><th>مبلغ</th><th>عملیات</th></tr></thead>
+        <tbody>
+        {% for inv in order.invoices.all %}
+        <tr>
+            <td>{{ inv.invoice_number }}</td>
+            <td><span class="status-badge status-{{ inv.status|status_css }}">{{ inv.status|status_fa }}</span></td>
+            <td>{{ inv.total_amount|smart_number }} ریال</td>
+            <td>
+                <a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/" class="od-btn od-btn-outline od-btn-sm">مشاهده</a>
+                {% if inv.status == "draft" and can_edit_order %}
+                <a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/edit/" class="od-btn od-btn-primary od-btn-sm">ویرایش</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:#64748b;font-size:.85rem;margin:0;">فاکتوری برای این سفارش صادر نشده است.</p>
+    {% endif %}
+
+    {% if can_create_invoice and not has_active_invoice %}
+    <form method="post" action="/{{ company.code }}/admin/orders/{{ order.id }}/invoice/create/" style="margin-top:.75rem;">
+        {% csrf_token %}
+        <button type="submit" class="od-btn od-btn-success od-btn-sm">ساخت فاکتور از روی سفارش</button>
+    </form>
+    {% elif has_active_invoice and can_create_invoice %}
+    <p style="color:#64748b;font-size:.8rem;margin-top:.5rem;">فاکتور فعال برای این سفارش وجود دارد.</p>
+    {% endif %}
+</div>
+
+{# ===== Timeline Card ===== #}
+<div class="od-card">
+    <div class="od-card-title">تاریخچه وضعیت</div>
+    {% if order.status_logs.all %}
+    <ul class="od-timeline">
+        {% for log in order.status_logs.all %}
+        <li>
+            <div>
+                <span style="font-weight:600;">{{ log.old_status|default:"-"|status_fa }}</span>
+                ←
+                <span style="font-weight:700;color:#1e293b;">{{ log.new_status|status_fa }}</span>
+            </div>
+            <div class="od-timeline-date">{{ log.created_at|jalali_datetime }}</div>
+            {% if log.note %}<div class="od-timeline-note">{{ log.note }}</div>{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color:#94a3b8;font-size:.85rem;margin:0;">تاریخچه‌ای ثبت نشده است.</p>
+    {% endif %}
+</div>
+
+{# ===== Cancel Request Alert ===== #}
+{% if order.status == "cancel_requested" and can_force_cancel %}
+<div class="od-cancel-alert">
+    <div class="od-cancel-alert-title">درخواست لغو سفارش</div>
+    <p style="font-size:.85rem;margin:.25rem 0;">
+        نیروی خدماتی
+        <strong>{% if order.technician %}{{ order.technician.user.get_full_name|default:"نامشخص" }}{% else %}نامشخص{% endif %}</strong>
+        درخواست لغو این سفارش را ثبت کرده است.
+    </p>
+    {% for log in order.status_logs.all %}{% if log.new_status == "cancel_requested" and log.note %}
+    <p style="color:#64748b;font-size:.82rem;"><strong>دلیل:</strong> {{ log.note }}</p>
+    {% endif %}{% endfor %}
+
+    <div class="od-actions" style="margin-top:.75rem;">
+        <form method="post" action="/{{ company.code }}/admin/orders/{{ order.id }}/cancel-request/approve/">{% csrf_token %}
+            <input type="hidden" name="admin_note" value="">
+            <button type="submit" class="od-btn od-btn-danger od-btn-sm">تایید لغو</button>
+        </form>
+        <form method="post" action="/{{ company.code }}/admin/orders/{{ order.id }}/cancel-request/reject/">{% csrf_token %}
+            <input type="hidden" name="admin_note" value="">
+            <button type="submit" class="od-btn od-btn-primary od-btn-sm">رد درخواست</button>
+        </form>
+        {% if can_return_to_cycle %}
+        <form method="post" action="/{{ company.code }}/admin/orders/{{ order.id }}/return-to-cycle/"
+              onsubmit="return confirm('سفارش فعلی لغو می‌شود و یک سفارش جدید با همین اطلاعات وارد چرخه می‌شود. ادامه می‌دهید؟');">
+            {% csrf_token %}
+            <button type="submit" class="od-btn od-btn-warning od-btn-sm">بازگشت به چرخه</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{# ===== Admin Actions ===== #}
+<div class="od-card">
+    <div class="od-card-title">عملیات</div>
+    <div class="od-actions">
+        <a href="/{{ company.code }}/admin/orders/" class="od-btn od-btn-outline od-btn-sm">بازگشت به لیست</a>
+
+        {% if can_edit_order %}
+        <a href="/{{ company.code }}/admin/orders/{{ order.id }}/edit/" class="od-btn od-btn-outline od-btn-sm">ویرایش سفارش</a>
+        {% endif %}
+
+        {% if can_assign_order and order.status == "new" and technicians %}
+        <form method="post" style="display:inline-flex;gap:.35rem;align-items:center;">{% csrf_token %}
+            <input type="hidden" name="assign_technician" value="1">
+            <select name="technician_id" style="padding:.4rem .6rem;border:1px solid #e2e8f0;border-radius:.5rem;font-size:.82rem;">
+                {% for t in technicians %}<option value="{{ t.id }}">{{ t.user.get_full_name|default:t.user.username }}</option>{% endfor %}
+            </select>
+            <button type="submit" class="od-btn od-btn-primary od-btn-sm">تخصیص</button>
+        </form>
+        {% endif %}
+
+        {% if can_force_cancel and order.status != "done" and order.status != "cancelled" and order.status != "cancel_requested" %}
+        <form method="post" style="display:inline-flex;gap:.35rem;align-items:center;">{% csrf_token %}
+            <input type="hidden" name="force_cancel" value="1">
+            <input type="text" name="cancel_reason" placeholder="دلیل لغو" style="padding:.4rem .6rem;border:1px solid #e2e8f0;border-radius:.5rem;font-size:.82rem;width:180px;">
+            <button type="submit" class="od-btn od-btn-danger od-btn-sm">لغو اجباری</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+</div>
+{% endblock %}

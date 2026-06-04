@@ -1,0 +1,248 @@
+{% extends "base_dashboard.html" %}
+{% load fa_labels %}
+{% block title %}اضافه کردن سفارش - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<style>
+.oc-lookup-notice {
+    margin-top: .4rem; padding: .45rem .75rem; border-radius: .5rem;
+    font-size: .8rem; font-weight: 600;
+}
+.oc-lookup-existing { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+.oc-lookup-new { background: #f0f9ff; color: #0c4a6e; border: 1px solid #bae6fd; }
+.oc-lookup-error { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+.oc-addresses { margin-top: .5rem; }
+.oc-addr-item {
+    display: flex; align-items: center; gap: .5rem; padding: .4rem .6rem;
+    border: 1px solid #e2e8f0; border-radius: .5rem; margin-bottom: .35rem;
+    font-size: .82rem; cursor: pointer; transition: all .12s;
+}
+.oc-addr-item:hover { background: #f0fdf4; border-color: #86efac; }
+.oc-addr-item.selected { background: #dcfce7; border-color: #22c55e; }
+.oc-addr-badge {
+    background: #fef3c7; color: #92400e; padding: .15rem .5rem;
+    border-radius: 999px; font-size: .7rem; font-weight: 700;
+}
+</style>
+
+<div class="page-header"><h1>اضافه کردن سفارش</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+
+{% if not categories %}
+<div class="alert alert-error">
+    هنوز هیچ رسته خدماتی برای این شرکت تعریف نشده است. از بخش «ورود اطلاعات پایه ← رسته‌های خدماتی» ابتدا رسته و سپس از بخش «آیتم‌های سفارش» آیتم‌های آن رسته را تعریف کنید.
+</div>
+{% endif %}
+
+<div class="card" style="max-width:760px;"><form method="post">{% csrf_token %}
+
+{# ===== CUSTOMER SECTION (phone first) ===== #}
+<h3 style="margin:0 0 .75rem;color:#475569;">اطلاعات مشتری</h3>
+<p style="color:#64748b;font-size:.82rem;margin-bottom:1rem;">ابتدا شماره موبایل مشتری را وارد کنید.</p>
+
+<div class="form-group">
+    <label>شماره تماس مشتری *</label>
+    <input name="customer_phone" id="customerPhone" class="form-control" placeholder="مثلاً 09121234567" value="{{ prefill_customer_phone|default:'' }}" required autocomplete="tel" style="direction:ltr;">
+    <div id="phoneLookupResult"></div>
+</div>
+
+<div class="form-group">
+    <label>نام مشتری *</label>
+    <input name="customer_name" id="customerName" class="form-control" placeholder="مثلاً رضا محمدی" value="{{ prefill_customer_name|default:'' }}" required autocomplete="name">
+</div>
+
+<div id="previousAddressesArea" style="display:none;">
+    <div class="form-group">
+        <label>آدرس‌های قبلی <span class="oc-addr-badge" id="addrCountBadge"></span></label>
+        <div class="oc-addresses" id="previousAddressesList"></div>
+    </div>
+</div>
+
+<div class="form-group">
+    <label>آدرس مشتری *</label>
+    <textarea name="address" id="customerAddress" class="form-control" rows="2" placeholder="آدرس محل انجام خدمت" required>{{ prefill_customer_address|default:'' }}</textarea>
+</div>
+
+{# ===== SERVICE CATEGORY ===== #}
+<h3 style="margin:1.5rem 0 1rem;color:#475569;">اطلاعات سفارش</h3>
+
+<div class="form-group"><label>رسته خدمات *</label>
+<select name="service_category_id" class="form-control" id="categorySelect" onchange="updateDynamicItems();" required>
+<option value="">-- انتخاب رسته خدمات --</option>
+{% for cat in categories %}<option value="{{ cat.id }}">{{ cat.title }}</option>{% endfor %}
+</select>
+<small style="color:#64748b;">با انتخاب رسته، آیتم‌های همان رسته پایین فرم نمایش داده می‌شود.</small>
+</div>
+
+<div class="form-group"><label>تاریخ انجام سفارش *</label>
+<input name="service_date_jalali" class="form-control" value="{{ today_jalali }}" placeholder="مثلاً 1405/03/04" required>
+<small style="color:#64748b;">تاریخ را شمسی وارد کنید؛ مثال: 1405/03/04</small>
+</div>
+
+<div id="dynamicItemsContainer" style="display:none;">
+<h3 style="margin:1.5rem 0 1rem;color:#475569;">آیتم‌های سفارش</h3>
+<p style="color:#64748b;margin-top:-0.5rem;">همه آیتم‌های رسته انتخاب‌شده اینجا نمایش داده می‌شود.</p>
+<div id="dynamicItemsFields"></div>
+</div>
+
+<h3 style="margin:1.5rem 0 1rem;color:#475569;">جزئیات سفارش</h3>
+<div class="form-group"><label>توضیحات</label><textarea name="description" class="form-control" rows="3"></textarea></div>
+<div class="form-group"><label>پرداخت مازاد</label><input type="number" name="extra_payment" class="form-control" value="0" step="1"></div>
+<div class="form-group"><label>کسر از دستمزد</label><input type="number" name="wage_deduction" class="form-control" value="0" step="1"></div>
+
+<h3 style="margin:1.5rem 0 1rem;color:#475569;">نیروی خدماتی و وضعیت</h3>
+<div class="form-group"><label>نیروی خدماتی <span style="color:#64748b;font-weight:400;">(اختیاری)</span></label>
+<select name="technician_id" class="form-control">
+<option value="">-- بدون تخصیص --</option>
+{% for t in technicians %}<option value="{{ t.id }}">{{ t.user.get_full_name|default:t.user.phone }}</option>{% endfor %}
+</select>
+<small style="color:#64748b;">اگر نیرو انتخاب شود، سفارش همان لحظه به «در انتظار خدمت» تغییر وضعیت می‌دهد.</small>
+</div>
+
+<div class="form-group"><label>وضعیت</label>
+<select name="status" class="form-control">
+{% for val, label in statuses %}<option value="{{ val }}" {% if val == 'new' %}selected{% endif %}>{{ val|status_fa }}</option>{% endfor %}
+</select></div>
+
+<div class="form-group"><label>یادداشت داخلی</label><textarea name="internal_note" class="form-control" rows="2" placeholder="فقط برای مدیر/کارمند"></textarea></div>
+
+<button type="submit" class="btn btn-primary btn-block">ذخیره و خروج</button>
+<a href="/{{ company.code }}/admin/orders/" class="btn btn-outline btn-block" style="margin-top:0.5rem;">انصراف</a>
+</form></div>
+
+<script>
+var allItemDefinitions = {{ item_definitions_json|safe }};
+var lookupUrl = "/{{ company.code }}/admin/customers/lookup/";
+var lookupTimer = null;
+
+// === Phone lookup with debounce ===
+(function() {
+    var phoneInput = document.getElementById("customerPhone");
+    var nameInput = document.getElementById("customerName");
+    var addressInput = document.getElementById("customerAddress");
+    var resultDiv = document.getElementById("phoneLookupResult");
+    var addrArea = document.getElementById("previousAddressesArea");
+    var addrList = document.getElementById("previousAddressesList");
+    var addrBadge = document.getElementById("addrCountBadge");
+
+    function doLookup() {
+        var phone = phoneInput.value.trim();
+        if (phone.length < 10) {
+            resultDiv.innerHTML = "";
+            addrArea.style.display = "none";
+            return;
+        }
+        fetch(lookupUrl + "?phone=" + encodeURIComponent(phone), {
+            credentials: "same-origin",
+            headers: {"X-Requested-With": "XMLHttpRequest"}
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (!data.ok) {
+                resultDiv.innerHTML = '<div class="oc-lookup-notice oc-lookup-error">' + (data.error || "") + '</div>';
+                addrArea.style.display = "none";
+                return;
+            }
+            if (data.exists) {
+                resultDiv.innerHTML = '<div class="oc-lookup-notice oc-lookup-existing">مشتری قبلاً ثبت شده است: ' + escapeHtml(data.customer.full_name) + '</div>';
+                if (!nameInput.value.trim()) {
+                    nameInput.value = data.customer.full_name;
+                }
+                if (data.addresses && data.addresses.length > 0) {
+                    addrArea.style.display = "block";
+                    addrBadge.textContent = data.addresses.length + " آدرس قبلی";
+                    addrList.innerHTML = "";
+                    data.addresses.forEach(function(a) {
+                        var div = document.createElement("div");
+                        div.className = "oc-addr-item";
+                        div.textContent = a.address;
+                        div.onclick = function() {
+                            addressInput.value = a.address;
+                            document.querySelectorAll(".oc-addr-item").forEach(function(el) { el.classList.remove("selected"); });
+                            div.classList.add("selected");
+                        };
+                        addrList.appendChild(div);
+                    });
+                } else {
+                    addrArea.style.display = "none";
+                }
+            } else {
+                resultDiv.innerHTML = '<div class="oc-lookup-notice oc-lookup-new">مشتری جدید است و پس از ثبت سفارش ذخیره می‌شود.</div>';
+                addrArea.style.display = "none";
+            }
+        })
+        .catch(function() {
+            resultDiv.innerHTML = "";
+            addrArea.style.display = "none";
+        });
+    }
+
+    phoneInput.addEventListener("input", function() {
+        clearTimeout(lookupTimer);
+        lookupTimer = setTimeout(doLookup, 600);
+    });
+    phoneInput.addEventListener("blur", function() {
+        clearTimeout(lookupTimer);
+        doLookup();
+    });
+    // prefilled customer lookup
+    if (phoneInput.value.trim().length >= 10) {
+        setTimeout(doLookup, 250);
+    }
+})();
+
+function escapeHtml(text) {
+    var d = document.createElement("div");
+    d.appendChild(document.createTextNode(text));
+    return d.innerHTML;
+}
+
+// === Dynamic order items ===
+function buildItemInput(item, existingValues) {
+    var div = document.createElement('div');
+    div.className = 'form-group';
+    var label = document.createElement('label');
+    label.textContent = item.title + (item.kind === 'number' ? ' / تعداد' : (item.kind === 'money' ? ' / مبلغ' : ''));
+    div.appendChild(label);
+    var existVal = existingValues ? existingValues[item.id] : undefined;
+    if (item.kind === 'number' || item.kind === 'money') {
+        var input = document.createElement('input');
+        input.type = 'number'; input.name = 'item_' + item.id; input.className = 'form-control';
+        input.step = item.kind === 'money' ? '1' : 'any'; input.placeholder = '0';
+        if (existVal !== undefined && existVal !== '') input.value = existVal;
+        div.appendChild(input);
+    } else if (item.kind === 'text') {
+        var textarea = document.createElement('textarea');
+        textarea.name = 'item_' + item.id; textarea.className = 'form-control'; textarea.rows = 2;
+        if (existVal !== undefined && existVal !== '') textarea.value = existVal;
+        div.appendChild(textarea);
+    } else if (item.kind === 'bool') {
+        var chk = document.createElement('input');
+        chk.type = 'checkbox'; chk.name = 'item_' + item.id; chk.value = 'on'; chk.id = 'item_' + item.id;
+        if (existVal === true) chk.checked = true;
+        var chkLabel = document.createElement('label');
+        chkLabel.htmlFor = 'item_' + item.id; chkLabel.textContent = ' بله'; chkLabel.style.marginRight = '0.5rem'; chkLabel.style.fontWeight = 'normal';
+        div.appendChild(chk); div.appendChild(chkLabel);
+    }
+    return div;
+}
+
+function updateDynamicItems(existingValues) {
+    var catId = document.getElementById('categorySelect').value;
+    var container = document.getElementById('dynamicItemsContainer');
+    var fields = document.getElementById('dynamicItemsFields');
+    fields.innerHTML = '';
+    if (!catId) { container.style.display = 'none'; return; }
+    var items = allItemDefinitions.filter(function(d) { return String(d.category_id) === String(catId); });
+    container.style.display = 'block';
+    if (items.length === 0) {
+        fields.innerHTML = '<div class="alert" style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;">برای این رسته هنوز آیتم سفارش تعریف نشده است.</div>';
+        return;
+    }
+    items.forEach(function(item) { fields.appendChild(buildItemInput(item, existingValues || {})); });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load smart_numbers %}
+
+{% block title %}درخواست خدمات - {{ company.name }}{% endblock %}
+
+{% block body %}
+<div class="page-full" style="max-width: 550px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header">درخواست خدمات - {{ company.name }}</div>
+
+        {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group"><label>نام و نام خانوادگی *</label>{{ form.customer_name }}</div>
+            <div class="form-group"><label>شماره تلفن * (مثال: 09121234567)</label>{{ form.customer_phone }}</div>
+            <div class="form-group"><label>ایمیل (اختیاری)</label>{{ form.customer_email }}</div>
+            <div class="form-group"><label>آدرس</label>{{ form.address }}</div>
+
+            {% if services %}
+            <div class="form-group">
+                <label>نوع خدمات</label>
+                <select name="service_id" class="form-control">
+                    <option value="">-- انتخاب خدمات (اختیاری) --</option>
+                    {% for svc in services %}
+                    <option value="{{ svc.id }}" {% if preselected_service_id and preselected_service_id|slugify == svc.id|slugify %}selected{% endif %}>{{ svc.title }}{% if svc.base_price %} - {{ svc.base_price|smart_number }} تومان{% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            {% if categories %}
+            <div class="form-group">
+                <label>دسته‌بندی خدمات</label>
+                <select name="service_category_id" class="form-control" id="categorySelect" onchange="updateDynamicItems();">
+                    <option value="">-- انتخاب دسته‌بندی (اختیاری) --</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div id="dynamicItemsContainer" style="display:none;">
+                <div id="dynamicItemsFields"></div>
+            </div>
+
+            <div class="form-group"><label>شرح مشکل</label>{{ form.description }}</div>
+            <div class="form-group"><label>زمان ترجیحی</label>{{ form.preferred_time }}</div>
+            <button type="submit" class="btn btn-primary btn-block">ثبت درخواست</button>
+        </form>
+
+        <p style="margin-top: 1rem; text-align: center;">
+            <a href="/{{ company.code }}/request/status/">پیگیری درخواست قبلی</a> |
+            <a href="/{{ company.code }}/">بازگشت</a>
+        </p>
+    </div>
+</div>
+
+<script>
+var allItemDefinitions = {{ item_definitions_json|safe }};
+
+function updateDynamicItems() {
+    var catSelect = document.getElementById('categorySelect');
+    if (!catSelect) return;
+    var catId = catSelect.value;
+    var container = document.getElementById('dynamicItemsContainer');
+    var fields = document.getElementById('dynamicItemsFields');
+    fields.innerHTML = '';
+    if (!catId) { container.style.display = 'none'; return; }
+    var items = allItemDefinitions.filter(function(d) { return String(d.category_id) === String(catId); });
+    if (items.length === 0) { container.style.display = 'none'; return; }
+    container.style.display = 'block';
+    items.forEach(function(item) {
+        var div = document.createElement('div');
+        div.className = 'form-group';
+        var label = document.createElement('label');
+        label.textContent = item.title;
+        div.appendChild(label);
+        if (item.kind === 'number' || item.kind === 'money') {
+            var input = document.createElement('input');
+            input.type = 'number';
+            input.name = 'item_' + item.id;
+            input.className = 'form-control';
+            input.step = item.kind === 'money' ? '1' : 'any';
+            input.placeholder = item.kind === 'money' ? 'مبلغ (تومان)' : 'عدد';
+            div.appendChild(input);
+        } else if (item.kind === 'text') {
+            var textarea = document.createElement('textarea');
+            textarea.name = 'item_' + item.id;
+            textarea.className = 'form-control';
+            textarea.rows = 2;
+            textarea.placeholder = item.title;
+            div.appendChild(textarea);
+        } else if (item.kind === 'bool') {
+            var chkDiv = document.createElement('div');
+            chkDiv.style.marginTop = '0.3rem';
+            var chk = document.createElement('input');
+            chk.type = 'checkbox';
+            chk.name = 'item_' + item.id;
+            chk.value = 'on';
+            chk.id = 'item_' + item.id;
+            var chkLabel = document.createElement('label');
+            chkLabel.htmlFor = 'item_' + item.id;
+            chkLabel.textContent = ' بله';
+            chkLabel.style.marginRight = '0.5rem';
+            chkLabel.style.fontWeight = 'normal';
+            chkDiv.appendChild(chk);
+            chkDiv.appendChild(chkLabel);
+            div.appendChild(chkDiv);
+        }
+        fields.appendChild(div);
+    });
+}
+</script>
+{% endblock %}

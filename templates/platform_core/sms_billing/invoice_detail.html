@@ -1,0 +1,80 @@
+{% extends "layouts/dashboard.html" %}
+
+{% load fa_labels %}
+{% block title %}فاکتور {{ invoice.invoice_number }} - رستی سرویس{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}جزئیات فاکتور{% endblock %}
+{% block page_description %}{{ invoice.invoice_number }}{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/owner-platform/sms-billing/invoices/" class="text-sm text-brand-600 hover:text-brand-700">&larr; بازگشت به لیست فاکتورها</a>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 max-w-lg">
+    <dl class="space-y-3">
+        <div class="flex justify-between">
+            <dt class="text-sm text-gray-500">شماره فاکتور</dt>
+            <dd class="text-sm font-mono font-medium text-gray-900">{{ invoice.invoice_number }}</dd>
+        </div>
+        <div class="flex justify-between">
+            <dt class="text-sm text-gray-500">شرکت</dt>
+            <dd class="text-sm font-medium text-gray-900">{{ invoice.company.name }}</dd>
+        </div>
+        <div class="flex justify-between">
+            <dt class="text-sm text-gray-500">نوع</dt>
+            <dd class="text-sm text-gray-900">{{ invoice.get_invoice_type_display }}</dd>
+        </div>
+        <div class="flex justify-between">
+            <dt class="text-sm text-gray-500">مبلغ</dt>
+            <dd class="text-sm font-medium text-gray-900">{{ invoice.amount_rial|floatformat:0 }} ریال</dd>
+        </div>
+        <div class="flex justify-between">
+            <dt class="text-sm text-gray-500">وضعیت</dt>
+            <dd>
+                {% if invoice.status == "PAID" %}
+                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">پرداخت شده</span>
+                {% elif invoice.status == "UNPAID" %}
+                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">پرداخت نشده</span>
+                {% else %}
+                <span class="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-700">لغو شده</span>
+                {% endif %}
+            </dd>
+        </div>
+        <div class="flex justify-between">
+            <dt class="text-sm text-gray-500">تاریخ ایجاد</dt>
+            <dd class="text-sm text-gray-900">{{ invoice.created_at|jalali_datetime }}</dd>
+        </div>
+        {% if invoice.paid_at %}
+        <div class="flex justify-between">
+            <dt class="text-sm text-gray-500">تاریخ پرداخت</dt>
+            <dd class="text-sm text-gray-900">{{ invoice.paid_at|jalali_datetime }}</dd>
+        </div>
+        {% endif %}
+        {% if invoice.description %}
+        <div class="flex justify-between">
+            <dt class="text-sm text-gray-500">توضیحات</dt>
+            <dd class="text-sm text-gray-900">{{ invoice.description }}</dd>
+        </div>
+        {% endif %}
+    </dl>
+
+    {% if invoice.status == "UNPAID" %}
+    <div class="mt-6 pt-4 border-t border-gray-100">
+        <form method="post" action="/owner-platform/sms-billing/invoices/{{ invoice.id }}/mark-paid/">
+            {% csrf_token %}
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-smooth">
+                ثبت پرداخت
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base_dashboard.html" %}
+{% block title %}{% if is_edit %}ویرایش{% else %}ایجاد{% endif %} رسته خدمات - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>{% if is_edit %}ویرایش رسته{% else %}رسته جدید{% endif %}</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+<div class="card" style="max-width:760px;">
+<form method="post">{% csrf_token %}
+    <div class="form-group"><label>عنوان رسته *</label><input name="title" value="{{ category.title|default:'' }}" class="form-control" placeholder="مثلاً نصب پکیج و رادیاتور" required></div>
+    <div class="form-group"><label>ترتیب نمایش</label><input type="number" name="sort_order" value="{{ category.sort_order|default:0 }}" class="form-control"></div>
+    <div class="form-group"><label>توضیحات</label><textarea name="description" class="form-control" rows="3">{{ category.description|default:'' }}</textarea></div>
+    <div class="form-group"><label><input type="checkbox" name="is_active" {% if not is_edit or category.is_active %}checked{% endif %}> فعال</label></div>
+    <button class="btn btn-primary" type="submit">ذخیره</button>
+    <a class="btn btn-outline" href="/{{ company.code }}/admin/base-data/categories/">بازگشت</a>
+</form>
+</div>
+{% if is_edit %}
+<div class="card">
+    <div class="card-header">دسترسی سریع</div>
+    <a href="/{{ company.code }}/admin/base-data/items/create/?category_id={{ category.id }}" class="btn btn-outline btn-sm">+ آیتم سفارش برای این رسته</a>
+</div>
+{% endif %}
+{% endblock %}

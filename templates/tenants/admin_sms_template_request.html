@@ -1,0 +1,72 @@
+{% extends "base_dashboard.html" %}
+
+{% load fa_labels %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<style>
+.tpl-card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;margin-bottom:16px}
+.tpl-pre{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.85rem;direction:rtl;white-space:pre-wrap;word-wrap:break-word;color:#334155;line-height:1.7}
+.tpl-form-group{margin-bottom:1.2rem}
+.tpl-form-group label{display:block;font-size:.85rem;font-weight:600;color:#374151;margin-bottom:.4rem}
+.tpl-textarea{width:100%;border:1px solid #d1d5db;border-radius:12px;padding:12px;font-size:.9rem;direction:rtl;min-height:120px;resize:vertical;font-family:inherit;line-height:1.6}
+.tpl-textarea:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.tpl-select{width:100%;border:1px solid #d1d5db;border-radius:10px;padding:.6rem .8rem;font-size:.9rem;background:#fff;direction:rtl}
+.tpl-select:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.tpl-btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:10px;padding:.5rem 1rem;font-size:.85rem;font-weight:600;border:1px solid #e5e7eb;background:#fff;color:#374151;text-decoration:none;transition:all .2s}
+.tpl-btn:hover{background:#f8fafc;border-color:#cbd5e1}
+.tpl-btn-submit{background:#2563eb;color:white;border-color:#2563eb;padding:.6rem 1.5rem;font-size:.9rem;cursor:pointer}
+.tpl-btn-submit:hover{background:#1d4ed8}
+</style>
+
+{% if success %}
+<div class="mb-4 p-3 rounded-xl bg-green-50 border border-green-200 text-green-800 text-sm">{{ success }}</div>
+{% endif %}
+{% if error %}
+<div class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm">{{ error }}</div>
+{% endif %}
+
+<div class="tpl-card">
+  <h2 class="text-lg font-bold mb-1">درخواست تغییر قالب پیامک</h2>
+  <p class="text-sm text-slate-500 mb-4">رویداد: {{ event_title }} (<code class="text-xs">{{ event_key }}</code>)</p>
+
+  {% if current_template_text %}
+  <h3 class="text-sm font-bold text-slate-700 mb-2">قالب فعلی</h3>
+  <pre class="tpl-pre mb-6">{{ current_template_text }}</pre>
+  {% else %}
+  <p class="text-slate-500 text-sm mb-6">قالبی برای این رویداد تعریف نشده است.</p>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="tpl-form-group">
+      <label for="id_requested_template_text">متن پیشنهادی قالب</label>
+      <textarea id="id_requested_template_text" name="requested_template_text" class="tpl-textarea" placeholder="متن جدید پیشنهادی خود را وارد کنید..."></textarea>
+    </div>
+
+    <div class="tpl-form-group">
+      <label for="id_requested_tone">لحن درخواستی</label>
+      <select id="id_requested_tone" name="requested_tone" class="tpl-select">
+        {% for value, label in tone_choices %}
+        <option value="{{ value }}">{{ value|status_fa }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="tpl-form-group">
+      <label for="id_note">توضیحات (اختیاری)</label>
+      <textarea id="id_note" name="note" class="tpl-textarea" style="min-height:80px" placeholder="دلیل تغییر یا توضیحات اضافی..."></textarea>
+    </div>
+
+    <button type="submit" class="tpl-btn tpl-btn-submit">ارسال درخواست تغییر</button>
+  </form>
+</div>
+
+<div class="flex items-center gap-3 flex-wrap">
+  <a class="tpl-btn" href="/{{ company_code }}/admin/communication-settings/template/{{ event_key }}/">بازگشت به مشاهده قالب</a>
+  <a class="tpl-btn" href="/{{ company_code }}/admin/communication-settings/">بازگشت به تنظیمات پیام‌ها</a>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base_dashboard.html" %}
+{% block title %}{% if is_edit %}ویرایش{% else %}ایجاد{% endif %} نیروی خدماتی - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>{% if is_edit %}ویرایش نیروی خدماتی{% else %}نیروی خدماتی جدید{% endif %}</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+
+<div class="card" style="max-width:760px;">
+<form method="post">{% csrf_token %}
+<div class="form-group"><label>نام کاربری *</label>{{ form.username }}<div class="help-text">{% if is_edit %}نام کاربری قابل تغییر نیست.{% else %}نیرو با این نام کاربری وارد سیستم می‌شود. باید یکتا باشد.{% endif %}</div></div>
+<div class="form-group"><label>شماره موبایل *</label>{{ form.phone }}<div class="help-text">شماره تماس نیرو برای ارسال پیامک و تماس. فرمت: 09xxxxxxxxx</div></div>
+<div class="form-group"><label>رمز عبور</label>{{ form.password }}<div class="help-text">{% if is_edit %}اگر خالی بماند رمز قبلی تغییر نمی‌کند.{% else %}اگر خالی بماند رمز پیش‌فرض changeme123 ثبت می‌شود.{% endif %}</div></div>
+<div class="form-group"><label>نام</label>{{ form.first_name }}</div>
+<div class="form-group"><label>نام خانوادگی</label>{{ form.last_name }}</div>
+<div class="form-group"><label><input type="checkbox" name="is_available" {% if form.is_available.value %}checked{% endif %}> فعال</label></div>
+
+<div class="nested-box">
+    <h3 style="margin-bottom:0.75rem;color:#475569;">درصد سهم تکنسین از فاکتور</h3>
+    <p class="help-text" style="margin-bottom:1rem;">این درصدها برای محاسبه دستمزد تکنسین از مبلغ فاکتور استفاده می‌شوند. عدد بین ۰ تا ۱۰۰ وارد کنید.</p>
+    <div class="form-group"><label>درصد سهم از اجرت خدمات</label><input type="number" name="service_wage_percent" class="form-control" step="0.01" min="0" max="100" value="{% if technician %}{{ technician.service_wage_percent }}{% else %}0{% endif %}" style="max-width:200px;"></div>
+    <div class="form-group"><label>درصد سهم از کالا / قطعه</label><input type="number" name="goods_wage_percent" class="form-control" step="0.01" min="0" max="100" value="{% if technician %}{{ technician.goods_wage_percent }}{% else %}0{% endif %}" style="max-width:200px;"></div>
+    <div class="form-group"><label>درصد سهم از ایاب و ذهاب</label><input type="number" name="travel_wage_percent" class="form-control" step="0.01" min="0" max="100" value="{% if technician %}{{ technician.travel_wage_percent }}{% else %}0{% endif %}" style="max-width:200px;"></div>
+</div>
+
+<div class="nested-box">
+    <h3 style="margin-bottom:0.75rem;color:#475569;">رسته‌های قابل انجام و اولویت نمایش سفارش</h3>
+    <p class="help-text" style="margin-bottom:1rem;">اولویت اینجا برای نمایش سفارش و ارسال نوتیفیکیشن به نیرو استفاده می‌شود؛ داخل فرم سفارش وارد نمی‌شود.</p>
+    {% if category_priority_rows %}
+    <div class="table-wrapper"><table>
+        <thead><tr><th>رسته خدمات</th><th>اولویت این نیرو</th></tr></thead>
+        <tbody>
+        {% for row in category_priority_rows %}
+        <tr>
+            <td>{{ row.category.title }}</td>
+            <td>
+                <select name="category_priority_{% firstof row.category.id row.category.pk %}" class="form-control">
+                    <option value="" {% if not row.priority %}selected{% endif %}>این نیرو این رسته را انجام نمی‌دهد</option>
+                    <option value="1" {% if row.priority == "1" %}selected{% endif %}>اولویت ۱ - فوری</option>
+                    <option value="2" {% if row.priority == "2" %}selected{% endif %}>اولویت ۲ - بعد از تأخیر</option>
+                    <option value="3" {% if row.priority == "3" %}selected{% endif %}>اولویت ۳ - بعد از تأخیر بیشتر</option>
+                </select>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+    {% else %}
+    <div class="alert alert-info">هنوز رسته خدماتی تعریف نشده است. ابتدا از بخش «ورود اطلاعات پایه» رسته‌ها را تعریف کنید.</div>
+    {% endif %}
+</div>
+
+<button type="submit" class="btn btn-primary">{% if is_edit %}ذخیره{% else %}ایجاد{% endif %}</button>
+<a href="/{{ company.code }}/admin/technicians/" class="btn btn-outline" style="margin-right:0.5rem;">انصراف</a>
+</form></div>
+
+<!-- discount_outbox_display_amount_format_7c4 -->
+
+<script>
+(function () {
+    function normalizeDigits(value) {
+        value = (value || "").toString();
+        var fa = "۰۱۲۳۴۵۶۷۸۹";
+        var ar = "٠١٢٣٤٥٦٧٨٩";
+        for (var i = 0; i < 10; i++) {
+            value = value.replaceAll(fa[i], String(i)).replaceAll(ar[i], String(i));
+        }
+        return value;
+    }
+
+    function comma(n) {
+        n = normalizeDigits(n).replace(/[^\d]/g, "");
+        if (!n) return n;
+        return n.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function fixTextNode(node) {
+        var text = node.nodeValue || "";
+        var next = text.replace(/تا سقف\s+([0-9۰-۹٠-٩]{4,})\s+ریال/g, function (_, num) {
+            return "تا سقف " + comma(num) + " ریال";
+        });
+        if (next !== text) node.nodeValue = next;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(fixTextNode);
+    });
+})();
+</script>
+
+{% endblock %}

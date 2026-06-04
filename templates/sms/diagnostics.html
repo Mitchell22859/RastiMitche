@@ -1,0 +1,115 @@
+{% extends "base_dashboard.html" %}
+{% load jalali_tags  fa_labels %}
+
+{% block title %}تشخیص پیامک - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+{% include "includes/settings_center.html" %}
+
+<div class="page-header"><h1>تشخیص و تست ارسال پیامک</h1></div>
+
+
+<div class="card" style="margin-bottom:1rem;">
+<div class="card-header">وضعیت ارائه‌دهنده پیامک</div>
+<table>
+<tr><td style="font-weight:600;width:180px;">پیکربندی شده</td><td>{% if provider_info.configured %}<span class="badge badge-sent">بله</span>{% else %}<span class="badge badge-failed">خیر - ارائه‌دهنده‌ای تنظیم نشده</span>{% endif %}</td></tr>
+{% if provider_info.configured %}
+<tr><td style="font-weight:600;">نام ارائه‌دهنده</td><td>{{ provider_info.provider_name }}</td></tr>
+<tr><td style="font-weight:600;">نوع</td><td>{{ provider_info.provider_type }}</td></tr>
+<tr><td style="font-weight:600;">شماره ارسال</td><td>{{ provider_info.sender_number }}</td></tr>
+<tr><td style="font-weight:600;">حالت</td><td>{% if provider_info.is_test_mode %}<span class="badge badge-pending">تست / Fake</span>{% else %}<span class="badge badge-sent">عملیاتی</span>{% endif %}</td></tr>
+<tr><td style="font-weight:600;">ارسال فعال</td><td>{% if provider_info.sending_enabled %}<span class="badge badge-sent">بله</span>{% else %}<span class="badge badge-failed">خیر</span>{% endif %}</td></tr>
+{% else %}
+<tr><td colspan="2" style="color:#64748b;">برای ارسال پیامک، ابتدا یک ارائه‌دهنده (Provider) در پنل ادمین تنظیم کنید.</td></tr>
+{% endif %}
+</table>
+</div>
+
+{% if not provider_info.sending_enabled %}
+<div class="alert" style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;margin-bottom:1rem;">
+<strong>⚠️ ارسال پیامک غیرفعال است.</strong><br>
+{% if provider_info.sending_reason %}{{ provider_info.sending_reason }}{% else %}ارائه‌دهنده فعالی برای این شرکت تنظیم نشده است. پیام‌های جدید در صف باقی می‌مانند یا با خطا مشخص می‌شوند.{% endif %}
+</div>
+{% endif %}
+
+{% if error %}
+<div class="alert alert-error" style="margin-bottom:1rem;">{{ error }}</div>
+{% endif %}
+
+{% if result %}
+<div class="card" style="margin-bottom:1rem;border:2px solid #16a34a;background:#f0fdf4;">
+<div class="card-header" style="color:#16a34a;">نتیجه ارسال تست</div>
+<table>
+<tr><td style="font-weight:600;width:180px;">شناسه صندوق</td><td>{{ result.id }}</td></tr>
+<tr><td style="font-weight:600;">وضعیت</td><td><span class="badge badge-{{ result.status|status_css }}">{{ result.status|status_fa }}</span></td></tr>
+<tr><td style="font-weight:600;">گیرنده</td><td>{{ result.phone_number }}</td></tr>
+<tr><td style="font-weight:600;">پیام</td><td>{{ result.message }}</td></tr>
+{% if result.provider_message_id %}<tr><td style="font-weight:600;">شناسه ارائه‌دهنده</td><td><code>{{ result.provider_message_id }}</code></td></tr>{% endif %}
+{% if result.error_message %}<tr><td style="font-weight:600;">خطا</td><td style="color:#dc2626;">{{ result.error_message }}</td></tr>{% endif %}
+{% if result.sent_at %}<tr><td style="font-weight:600;">زمان ارسال</td><td>{{ result.sent_at|jalali_datetime }}</td></tr>{% endif %}
+</table>
+</div>
+{% endif %}
+
+<div class="card">
+<div class="card-header">ارسال پیامک تست</div>
+<form method="post" style="max-width:500px;">{% csrf_token %}
+<div class="form-group">
+<label>شماره گیرنده *</label>
+<input type="text" name="phone_number" class="form-control" placeholder="09121234567" value="{{ request.POST.phone_number|default:'' }}" required>
+<small style="color:#64748b;">فرمت‌های قابل قبول: 09xxxxxxxxx, 9xxxxxxxxx, +98xxxxxxxxx, 98xxxxxxxxx, 0098xxxxxxxxx</small>
+</div>
+<div class="form-group">
+<label>متن پیام *</label>
+<textarea name="message" class="form-control" rows="3" required placeholder="این یک پیام تست است.">{{ request.POST.message|default:"این یک پیام تست از طرف سیستم پیامک است." }}</textarea>
+<small style="color:#64748b;">پیشوند [تست] به ابتدای پیام اضافه می‌شود.</small>
+</div>
+<div class="form-group">
+<label><input type="checkbox" name="send_immediately" value="1"> ارسال فوری (بدون صف)</label>
+<br><small style="color:#64748b;">اگر فعال باشد، پیام بلافاصله ارسال می‌شود. در غیر این صورت فقط در صندوق ثبت می‌شود.</small>
+</div>
+<button type="submit" class="btn btn-primary">ارسال تست</button>
+</form>
+</div>
+
+<!-- discount_outbox_display_amount_format_7c4 -->
+
+<script>
+(function () {
+    function normalizeDigits(value) {
+        value = (value || "").toString();
+        var fa = "۰۱۲۳۴۵۶۷۸۹";
+        var ar = "٠١٢٣٤٥٦٧٨٩";
+        for (var i = 0; i < 10; i++) {
+            value = value.replaceAll(fa[i], String(i)).replaceAll(ar[i], String(i));
+        }
+        return value;
+    }
+
+    function comma(n) {
+        n = normalizeDigits(n).replace(/[^\d]/g, "");
+        if (!n) return n;
+        return n.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function fixTextNode(node) {
+        var text = node.nodeValue || "";
+        var next = text.replace(/تا سقف\s+([0-9۰-۹٠-٩]{4,})\s+ریال/g, function (_, num) {
+            return "تا سقف " + comma(num) + " ریال";
+        });
+        if (next !== text) node.nodeValue = next;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        nodes.forEach(fixTextNode);
+    });
+})();
+</script>
+
+{% endblock %}

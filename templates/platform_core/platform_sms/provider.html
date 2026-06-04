@@ -1,0 +1,25 @@
+{% extends "layouts/dashboard.html" %}
+{% load fa_labels %}
+{% block title %}ارائه‌دهنده پیامک پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}ارائه‌دهنده پیامک پلتفرم{% endblock %}
+{% block page_description %}برای پیامک‌هایی که هزینه آن‌ها با مالک پلتفرم است{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_platform.html" %}{% endblock %}
+{% block content %}
+{% if success %}<div class="mb-4 p-3 rounded bg-green-50 border border-green-200 text-green-700">{{ success }}</div>{% endif %}
+{% if error %}<div class="mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-700">{{ error }}</div>{% endif %}
+<form method="post" class="bg-white rounded-xl border p-5 max-w-xl">{% csrf_token %}
+<label class="block mb-3">نام<input name="name" value="{{ provider.name }}" class="mt-1 w-full border rounded px-3 py-2"></label>
+<label class="block mb-3">نوع ارائه‌دهنده
+<select name="provider_type" class="mt-1 w-full border rounded px-3 py-2">
+{% for val,label in provider_choices %}<option value="{{ val }}" {% if provider.provider_type == val %}selected{% endif %}>{{ val|status_fa }}</option>{% endfor %}
+</select></label>
+<label class="block mb-3">API Key<input name="api_key" value="{{ provider.api_key }}" class="mt-1 w-full border rounded px-3 py-2"></label>
+<label class="block mb-3">شماره ارسال‌کننده<input name="sender_number" value="{{ provider.sender_number }}" class="mt-1 w-full border rounded px-3 py-2"></label>
+<label class="inline-flex items-center gap-2 mb-4"><input type="checkbox" name="is_active" {% if provider.is_active %}checked{% endif %}> فعال باشد</label>
+<div><button class="px-4 py-2 bg-brand-600 text-white rounded-lg">ذخیره</button></div>
+</form>
+{% endblock %}

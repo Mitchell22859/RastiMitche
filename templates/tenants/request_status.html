@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load jalali_tags  fa_labels %}
+
+{% block title %}پیگیری درخواست - {{ company.name }}{% endblock %}
+
+{% block body %}
+<div class="page-full" style="max-width: 600px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header">پیگیری وضعیت درخواست</div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>شماره تلفن</label>
+                <input type="text" name="phone" value="{{ phone }}" class="form-control" placeholder="09xxxxxxxxx" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">جستجو</button>
+        </form>
+    </div>
+
+    {% if results is not None %}
+    <div class="card" style="margin-top: 1.5rem;">
+        <div class="card-header">نتایج</div>
+
+        {% if results %}
+        <div class="table-wrapper"><table>
+            <thead><tr><th>شماره</th><th>عنوان</th><th>وضعیت</th><th>تاریخ</th></tr></thead>
+            <tbody>{% for order in results %}
+            <tr>
+                <td><strong>#{{ order.id }}</strong></td>
+                <td>{{ order.title }}</td>
+                <td><span class="badge badge-{{ order.status|status_css }}">{{ order.status|status_fa }}</span></td>
+                <td>{{ order.created_at|jalali_date }}</td>
+            </tr>{% endfor %}</tbody>
+        </table></div>
+        {% else %}
+        <p style="color: #64748b;">سفارشی با این شماره تلفن یافت نشد.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <p style="text-align: center; margin-top: 1.5rem;">
+        <a href="/{{ company.code }}/">بازگشت به صفحه اصلی</a>
+    </p>
+</div>
+{% endblock %}

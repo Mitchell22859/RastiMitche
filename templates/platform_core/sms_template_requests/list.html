@@ -1,0 +1,54 @@
+{% extends "layouts/dashboard.html" %}
+{% load fa_labels %}
+{% block title %}درخواست‌های تغییر قالب پیامک - پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}درخواست‌های تغییر قالب پیامک{% endblock %}
+{% block page_description %}بررسی درخواست‌های شرکت‌ها برای تغییر متن قالب پیامک{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_platform.html" %}{% endblock %}
+
+{% block content %}
+<div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <a href="/owner-platform/sms-template-requests/" class="btn {% if not status_filter %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:.82rem;">همه</a>
+    <a href="/owner-platform/sms-template-requests/?status=pending" class="btn {% if status_filter == 'pending' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:.82rem;">در انتظار ({{ pending_count }})</a>
+    <a href="/owner-platform/sms-template-requests/?status=approved" class="btn {% if status_filter == 'approved' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:.82rem;">تأیید شده</a>
+    <a href="/owner-platform/sms-template-requests/?status=rejected" class="btn {% if status_filter == 'rejected' %}btn-primary{% else %}btn-outline{% endif %}" style="font-size:.82rem;">رد شده</a>
+</div>
+
+{% if requests %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+<table style="width:100%;border-collapse:collapse;font-size:.85rem;">
+<thead><tr style="background:#f8fafc;">
+<th style="padding:.7rem;text-align:right;font-weight:700;">شرکت</th>
+<th style="padding:.7rem;text-align:right;">رویداد</th>
+<th style="padding:.7rem;text-align:right;">لحن</th>
+<th style="padding:.7rem;text-align:right;">وضعیت</th>
+<th style="padding:.7rem;text-align:right;">تاریخ</th>
+<th style="padding:.7rem;text-align:right;">عملیات</th>
+</tr></thead>
+<tbody>
+{% for req in requests %}
+<tr style="border-top:1px solid #f1f5f9;">
+<td style="padding:.6rem .7rem;">{{ req.company.name }}</td>
+<td style="padding:.6rem .7rem;"><code style="font-size:.75rem;">{{ req.event_key }}</code></td>
+<td style="padding:.6rem .7rem;">{{ req.get_requested_tone_display }}</td>
+<td style="padding:.6rem .7rem;">
+{% if req.status == "pending" %}<span style="background:#fef3c7;color:#92400e;padding:.2rem .5rem;border-radius:999px;font-size:.72rem;font-weight:700;">در انتظار</span>
+{% elif req.status == "approved" %}<span style="background:#dcfce7;color:#166534;padding:.2rem .5rem;border-radius:999px;font-size:.72rem;font-weight:700;">تأیید شده</span>
+{% else %}<span style="background:#fee2e2;color:#991b1b;padding:.2rem .5rem;border-radius:999px;font-size:.72rem;font-weight:700;">رد شده</span>{% endif %}
+</td>
+<td style="padding:.6rem .7rem;font-size:.78rem;">{{ req.created_at|jalali_datetime }}</td>
+<td style="padding:.6rem .7rem;"><a href="/owner-platform/sms-template-requests/{{ req.id }}/" class="btn btn-sm btn-outline">بررسی</a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center">
+<p style="color:#64748b;">درخواستی یافت نشد.</p>
+</div>
+{% endif %}
+{% endblock %}

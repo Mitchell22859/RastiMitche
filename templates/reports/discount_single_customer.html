@@ -1,0 +1,360 @@
+{% extends "layouts/dashboard.html" %}
+{% load fa_labels smart_numbers jalali_tags %}
+{% block title %}ارسال کد تخفیف - {{ customer_name }}{% endblock %}
+{% block page_title %}ارسال کد تخفیف برای {{ customer_name }}{% endblock %}
+{% block page_description %}کد واقعی پس از ساخت در پنل نمایش داده نمی‌شود و فقط برای مشتری پیامک می‌شود.{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block user_role_label %}{% if request.user.role == "COMPANY_ADMIN" %}مدیر{% else %}کاربر{% endif %}{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block content %}
+<style>
+  .discount-form-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; }
+  .discount-field label { display:block; font-size:.82rem; font-weight:800; color:#475569; margin-bottom:.35rem; }
+  .discount-field input, .discount-field textarea { width:100%; border:1px solid #cbd5e1; border-radius:.65rem; padding:.6rem .75rem; background:#fff; }
+  .discount-field input:required { border-color:#94a3b8; }
+  .discount-field textarea[readonly] { background:#f8fafc; color:#334155; cursor:not-allowed; }
+  .discount-help { font-size:.75rem; color:#64748b; margin-top:.35rem; }
+  .discount-required { color:#dc2626; margin-right:.2rem; }
+  @media(max-width:900px){ .discount-form-grid { grid-template-columns:1fr 1fr; } }
+  @media(max-width:560px){ .discount-form-grid { grid-template-columns:1fr; } }
+</style>
+
+<form method="post" class="bg-white border rounded-2xl p-5 shadow-sm" id="discountSingleForm">{% csrf_token %}
+  <div class="mb-4 text-sm text-slate-600">مشتری: <b>{{ customer_name }}</b> - <span dir="ltr">{{ customer.phone }}</span></div>
+  <div class="discount-form-grid">
+    <div class="discount-field">
+      <label>عنوان کمپین <span class="discount-required">*</span></label>
+      <input class="form-control" name="title" required placeholder="مثلاً کد تخفیف اختصاصی {{ customer_name }}" autocomplete="off">
+    </div>
+    <div class="discount-field">
+      <label>درصد تخفیف <span class="discount-required">*</span></label>
+      <input class="form-control js-percent" name="percent" required inputmode="decimal" placeholder="20" autocomplete="off">
+    </div>
+    <div class="discount-field">
+      <label>سقف تخفیف ریال <span class="discount-required">*</span></label>
+      <input class="form-control js-money" name="max_discount_rial" required inputmode="numeric" placeholder="300,000" autocomplete="off" dir="ltr">
+      
+    </div>
+    <div class="discount-field">
+      <label>تاریخ انقضا <span class="discount-required">*</span></label>
+      <input class="form-control js-expiry" name="expires_at" required placeholder="{{ default_expires_at }}" autocomplete="off" dir="ltr" pattern="^[0-9۰-۹٠-٩]{4}/[0-9۰-۹٠-٩]{2}/[0-9۰-۹٠-٩]{2}$" title="تاریخ را دقیقاً به صورت 1405/12/21 وارد کنید.">
+    </div>
+  </div>
+  <div class="mt-4 discount-field">
+    <label>متن پیامک</label>
+    <textarea class="form-control" id="discountSmsPreview" rows="4" readonly></textarea>
+    <div class="discount-help">متن پیامک در این صفحه قفل است و فقط پیش‌نمایش آن با مقادیر واردشده تغییر می‌کند.</div>
+  </div>
+  
+
+<!-- discount_campaign_form_fix_7c5 -->
+
+<script>
+(function () {
+    function onReady(fn) {
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", fn);
+        } else {
+            fn();
+        }
+    }
+
+    onReady(function () {
+        var rawCompanyName = "{{ company.name|default:company.code|escapejs }}";
+        var companyLine = rawCompanyName.indexOf("شرکت ") === 0 ? rawCompanyName : ("شرکت " + rawCompanyName);
+
+        function normalizeDigits(value) {
+            value = (value || "").toString();
+            var fa = "۰۱۲۳۴۵۶۷۸۹";
+            var ar = "٠١٢٣٤٥٦٧٨٩";
+            for (var i = 0; i < 10; i++) {
+                value = value.replaceAll(fa[i], String(i)).replaceAll(ar[i], String(i));
+            }
+            return value;
+        }
+
+        function digitsOnly(value) {
+            return normalizeDigits(value).replace(/[^\d]/g, "");
+        }
+
+        function formatRial(value) {
+            var raw = digitsOnly(value);
+            if (!raw) return "";
+            raw = raw.replace(/^0+(?=\d)/, "");
+            if (!raw || /^0+$/.test(raw)) return "";
+            return raw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function findByName(names) {
+            for (var i = 0; i < names.length; i++) {
+                var item = document.querySelector('[name="' + names[i] + '"]');
+                if (item) return item;
+            }
+            return null;
+        }
+
+        function findByLabel(labelPart) {
+            var labels = Array.from(document.querySelectorAll("label"));
+            for (var i = 0; i < labels.length; i++) {
+                if ((labels[i].textContent || "").indexOf(labelPart) !== -1) {
+                    var box = labels[i].closest("div") || labels[i].parentElement;
+                    if (box) {
+                        var field = box.querySelector("input, select, textarea");
+                        if (field) return field;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function field(names, labelPart) {
+            return findByName(names) || findByLabel(labelPart);
+        }
+
+        var titleEl = field(["title", "campaign_title", "name"], "عنوان کمپین");
+        var percentEl = field(["discount_percent", "percent", "percentage"], "درصد تخف");
+        var capEl = field(["max_discount_rial", "max_discount", "max_discount_amount", "discount_cap_rial", "cap"], "سقف تخفیف");
+        var expiresEl = field(["expires_at", "expires_on", "expires_date", "expires_at_jalali", "expires_jalali"], "تاریخ انقضا");
+        var smsEl = document.getElementById("discountSmsPreview") ||
+            field(["sms_text", "message_text", "sms_message", "message", "text", "body"], "متن پیامک") ||
+            document.querySelector("textarea");
+
+        var required = [
+            {el: titleEl, name: "عنوان کمپین"},
+            {el: percentEl, name: "درصد تخفیف"},
+            {el: capEl, name: "سقف تخفیف ریال"},
+            {el: expiresEl, name: "تاریخ انقضا"}
+        ];
+
+        required.forEach(function (r) {
+            if (r.el) r.el.setAttribute("required", "required");
+        });
+
+        if (titleEl && !titleEl.getAttribute("placeholder")) {
+            titleEl.setAttribute("placeholder", "مثلاً کمپین تخفیف وفاداری خرداد");
+        }
+
+        if (percentEl) {
+            percentEl.setAttribute("inputmode", "numeric");
+            if (!percentEl.getAttribute("placeholder")) percentEl.setAttribute("placeholder", "20");
+        }
+
+        if (capEl) {
+            capEl.setAttribute("inputmode", "numeric");
+            capEl.setAttribute("placeholder", "300,000");
+            var capRaw = digitsOnly(capEl.value);
+            if (!capRaw || /^0+$/.test(capRaw)) {
+                capEl.value = "";
+            } else {
+                capEl.value = formatRial(capEl.value);
+            }
+        }
+
+        if (expiresEl) {
+            expiresEl.setAttribute("placeholder", "1405/12/21");
+            expiresEl.setAttribute("pattern", "^[0-9۰-۹٠-٩]{4}/[0-9۰-۹٠-٩]{2}/[0-9۰-۹٠-٩]{2}$");
+            expiresEl.setAttribute("title", "تاریخ را دقیقاً به صورت 1405/12/21 وارد کنید.");
+        }
+
+        if (smsEl) {
+            smsEl.id = "discountSmsPreview";
+            smsEl.setAttribute("readonly", "readonly");
+            smsEl.style.minHeight = "125px";
+        }
+
+        function validDate(value) {
+            value = normalizeDigits((value || "").trim());
+            if (!/^\d{4}\/\d{2}\/\d{2}$/.test(value)) return false;
+            var parts = value.split("/");
+            var m = parseInt(parts[1], 10);
+            var d = parseInt(parts[2], 10);
+            return m >= 1 && m <= 12 && d >= 1 && d <= 31;
+        }
+
+        function previewText() {
+            var percent = percentEl ? digitsOnly(percentEl.value) : "";
+            var cap = capEl ? formatRial(capEl.value) : "";
+            var expires = expiresEl ? (expiresEl.value || "").trim() : "";
+
+            if (!percent) percent = "20";
+            if (!cap) cap = "300,000";
+            if (!expires) expires = "1405/12/21";
+
+            return [
+                companyLine,
+                "کد تخفیف شما: ********",
+                "تخفیف " + percent + "٪ تا سقف " + cap + " ریال",
+                "اعتبار تا " + expires
+            ].join("\n");
+        }
+
+        function updatePreview() {
+            if (!smsEl) return;
+            var next = previewText();
+            if (smsEl.value !== next) smsEl.value = next;
+        }
+
+        if (percentEl) percentEl.addEventListener("input", updatePreview);
+        if (expiresEl) expiresEl.addEventListener("input", updatePreview);
+
+        if (capEl) {
+            capEl.addEventListener("input", updatePreview);
+            capEl.addEventListener("blur", function () {
+                capEl.value = formatRial(capEl.value);
+                updatePreview();
+            });
+        }
+
+        var formSeed = titleEl || percentEl || capEl || expiresEl || smsEl;
+        var form = formSeed ? formSeed.closest("form") : document.querySelector("form");
+
+        if (form) {
+            form.addEventListener("submit", function (event) {
+                for (var i = 0; i < required.length; i++) {
+                    var r = required[i];
+                    if (r.el && !String(r.el.value || "").trim()) {
+                        event.preventDefault();
+                        alert(r.name + " الزامی است.");
+                        r.el.focus();
+                        return false;
+                    }
+                }
+
+                if (expiresEl && !validDate(expiresEl.value)) {
+                    event.preventDefault();
+                    alert("تاریخ انقضا باید دقیقاً به صورت 1405/12/21 وارد شود.");
+                    expiresEl.focus();
+                    return false;
+                }
+
+                if (capEl) {
+                    var formatted = formatRial(capEl.value);
+                    if (!formatted) {
+                        event.preventDefault();
+                        alert("سقف تخفیف ریال الزامی است.");
+                        capEl.focus();
+                        return false;
+                    }
+                    capEl.value = formatted;
+                }
+
+                updatePreview();
+                return true;
+            });
+        }
+
+        updatePreview();
+    });
+})();
+</script>
+
+
+
+
+
+<!-- discount_campaign_candidate_rows_7c8 -->
+<style>
+.discount-recipient-card{margin-top:1rem;background:#fff;border:1px solid #e5e7eb;border-radius:1rem;overflow:hidden}
+.discount-recipient-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:1rem;border-bottom:1px solid #e5e7eb;background:#f8fafc}
+.discount-recipient-title{font-weight:900;color:#0f172a}
+.discount-recipient-muted{color:#64748b;font-size:.84rem;margin-top:.25rem}
+.discount-recipient-actions{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.discount-recipient-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.discount-recipient-table th,.discount-recipient-table td{padding:.75rem;border-bottom:1px solid #eef2f7;text-align:right;vertical-align:middle}
+.discount-recipient-table th{background:#f8fafc;color:#475569;font-size:.78rem;font-weight:900}
+.discount-recipient-phone{direction:ltr;unicode-bidi:plaintext;font-weight:800}
+.discount-recipient-submit{padding:1rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;border-top:1px solid #e5e7eb;background:#fff}
+@media(max-width:800px){.discount-recipient-table{min-width:760px}.discount-recipient-scroll{overflow-x:auto}}
+</style>
+
+<div class="discount-recipient-card">
+    <div class="discount-recipient-head">
+        <div>
+            <div class="discount-recipient-title">مشتریان انتخاب‌شده برای ارسال کد تخفیف</div>
+            <div class="discount-recipient-muted">قبل از ثبت، هر مشتری‌ای را که نمی‌خواهی پیامک بگیرد از حالت انتخاب خارج کن.</div>
+        </div>
+        {% if candidate_view_rows %}
+            <div class="discount-recipient-actions">
+                <button type="button" class="btn btn-outline" id="discountSelectAll">انتخاب همه</button>
+                <button type="button" class="btn btn-outline" id="discountUnselectAll">حذف انتخاب همه</button>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if candidate_view_rows %}
+        <div class="discount-recipient-scroll">
+            <table class="discount-recipient-table">
+                <thead>
+                    <tr>
+                        <th style="width:70px;">ارسال</th>
+                        <th>مشتری</th>
+                        <th>موبایل</th>
+                        <th>سفارش مطابق</th>
+                        <th>فاکتور مطابق</th>
+                        <th>آخرین آدرس</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in candidate_view_rows %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="discount-customer-checkbox" name="selected_customer_ids" value="{{ row.customer_id }}" checked>
+                            </td>
+                            <td><strong>{{ row.name|default:"-" }}</strong></td>
+                            <td><span class="discount-recipient-phone">{{ row.phone|default:"-" }}</span></td>
+                            <td>{{ row.order_count|default:0|smart_number }}</td>
+                            <td>{{ row.invoice_count|default:0|smart_number }}</td>
+                            <td>{{ row.last_address|default:"-" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="discount-recipient-submit">
+            <button type="submit" name="submit_campaign" value="1" class="btn btn-primary">ساخت کد و ثبت پیامک برای افراد تیک‌خورده</button>
+            <a href="/{{ company.code }}/admin/reports/customer-segments/" class="btn btn-outline">بازگشت به گزارش هدفمند</a>
+            <span class="discount-recipient-muted">کد واقعی در پنل نمایش داده نمی‌شود و فقط برای مشتری ارسال می‌شود.</span>
+        </div>
+    {% else %}
+        <div style="padding:1rem;">
+            <p class="discount-recipient-muted" style="margin:0 0 .75rem;">هنوز مشتری‌ای برای این کمپین انتخاب نشده است. برای ساخت کمپین هدفمند، اول از گزارش هدفمند مشتریان فیلتر بگیر و از همان‌جا وارد ساخت کمپین شو.</p>
+            <a href="/{{ company.code }}/admin/reports/customer-segments/" class="btn btn-primary">رفتن به گزارش هدفمند مشتریان</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+(function () {
+    function ready(fn) {
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn);
+        else fn();
+    }
+    ready(function () {
+        var boxes = Array.from(document.querySelectorAll(".discount-customer-checkbox"));
+        var allBtn = document.getElementById("discountSelectAll");
+        var noneBtn = document.getElementById("discountUnselectAll");
+        var formSeed = boxes[0] || document.querySelector('[name="percent"]') || document.querySelector('[name="discount_percent"]');
+        var form = formSeed ? formSeed.closest("form") : document.querySelector("form");
+        if (allBtn) allBtn.addEventListener("click", function () { boxes.forEach(function (b) { b.checked = true; }); });
+        if (noneBtn) noneBtn.addEventListener("click", function () { boxes.forEach(function (b) { b.checked = false; }); });
+        if (form) {
+            form.addEventListener("submit", function (event) {
+                if (!boxes.length) return true;
+                var checked = boxes.filter(function (b) { return b.checked; });
+                if (!checked.length) {
+                    event.preventDefault();
+                    alert("حداقل یک مشتری باید برای ارسال انتخاب شود.");
+                    return false;
+                }
+                return true;
+            });
+        }
+    });
+})();
+</script>
+<!-- /discount_campaign_candidate_rows_7c8 -->
+
+{% endblock %}

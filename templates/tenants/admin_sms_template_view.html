@@ -1,0 +1,60 @@
+{% extends "base_dashboard.html" %}
+
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<style>
+.tpl-card{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px;margin-bottom:16px}
+.tpl-pre{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.85rem;direction:rtl;white-space:pre-wrap;word-wrap:break-word;color:#334155;line-height:1.7}
+.tpl-preview{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;font-size:.9rem;direction:rtl;white-space:pre-wrap;word-wrap:break-word;color:#166534;line-height:1.7}
+.tpl-vars{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px;font-size:.82rem;direction:ltr;color:#92400e}
+.tpl-source{display:inline-flex;align-items:center;border-radius:999px;padding:.25rem .7rem;font-size:.78rem;font-weight:700}
+.tpl-source-company{background:#dbeafe;color:#1e40af}
+.tpl-source-platform{background:#f3e8ff;color:#6b21a8}
+.tpl-btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:10px;padding:.5rem 1rem;font-size:.85rem;font-weight:600;border:1px solid #e5e7eb;background:#fff;color:#374151;text-decoration:none;transition:all .2s}
+.tpl-btn:hover{background:#f8fafc;border-color:#cbd5e1}
+.tpl-btn-primary{background:#2563eb;color:white;border-color:#2563eb}
+.tpl-btn-primary:hover{background:#1d4ed8}
+</style>
+
+{% if error %}
+<div class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm">{{ error }}</div>
+{% endif %}
+
+<div class="tpl-card">
+  <div class="flex items-start justify-between gap-3 flex-wrap mb-4">
+    <div>
+      <h2 class="text-lg font-bold">قالب پیامک: {{ event_title }}</h2>
+      <p class="text-sm text-slate-500 mt-1">کلید رویداد: <code class="text-xs">{{ event_key }}</code></p>
+    </div>
+    {% if template_source %}
+    <span class="tpl-source {% if template_source == 'approved_override' %}tpl-source-company{% else %}tpl-source-platform{% endif %}">
+      {{ template_source_label }}
+    </span>
+    {% endif %}
+  </div>
+
+  {% if template_text %}
+  <h3 class="text-sm font-bold text-slate-700 mb-2">متن قالب</h3>
+  <pre class="tpl-pre">{{ template_text }}</pre>
+
+  {% if allowed_variables %}
+  <div class="tpl-vars mt-4">
+    <strong>متغیرهای مجاز:</strong> {{ allowed_variables }}
+  </div>
+  {% endif %}
+
+  <h3 class="text-sm font-bold text-slate-700 mt-6 mb-2">پیش‌نمایش (با داده نمونه)</h3>
+  <div class="tpl-preview">{{ preview }}</div>
+  {% else %}
+  <p class="text-slate-500 text-sm">هنوز قالبی برای این رویداد تعریف نشده است.</p>
+  {% endif %}
+</div>
+
+<div class="flex items-center gap-3 flex-wrap">
+  <a class="tpl-btn tpl-btn-primary" href="/{{ company_code }}/admin/communication-settings/template/{{ event_key }}/request/">درخواست تغییر قالب پیامک</a>
+  <a class="tpl-btn" href="/{{ company_code }}/admin/communication-settings/">بازگشت به تنظیمات پیام‌ها</a>
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}جزئیات قالب - پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}جزئیات قالب پیام{% endblock %}
+{% block page_description %}{{ template.get_event_key_display }} / {{ template.get_channel_display }}{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block navbar_actions %}
+<a href="/owner-platform/communication-templates/{{ template.id }}/edit/"
+   class="inline-flex items-center gap-2 px-3 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-smooth">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+    <span class="hidden sm:inline">ویرایش</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl space-y-4">
+    <!-- Template Info -->
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <h3 class="text-sm font-semibold text-gray-900 mb-4">مشخصات قالب</h3>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <dt class="text-xs text-gray-500">رویداد</dt>
+                <dd class="text-sm font-medium text-gray-900 mt-0.5">{{ template.get_event_key_display }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500">کانال</dt>
+                <dd class="text-sm font-medium text-gray-900 mt-0.5">{{ template.get_channel_display }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500">نوع گیرنده</dt>
+                <dd class="text-sm font-medium text-gray-900 mt-0.5">{{ template.get_recipient_type_display }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500">محدوده</dt>
+                <dd class="text-sm font-medium text-gray-900 mt-0.5">{% if template.company %}{{ template.company.name }} ({{ template.company.code }}){% else %}عمومی (همه شرکت‌ها){% endif %}</dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500">وضعیت</dt>
+                <dd class="mt-0.5">
+                    {% if template.is_active %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">فعال</span>
+                    {% else %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-500 border border-gray-200">غیرفعال</span>
+                    {% endif %}
+                </dd>
+            </div>
+            <div>
+                <dt class="text-xs text-gray-500">تنظیمات</dt>
+                <dd class="text-sm text-gray-700 mt-0.5">
+                    {% if template.is_required %}<span class="text-orange-600">اجباری</span>{% endif %}
+                    {% if template.allow_company_toggle %}<span class="text-blue-600">قابل تنظیم</span>{% endif %}
+                </dd>
+            </div>
+        </dl>
+    </div>
+
+    <!-- Template Content -->
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <h3 class="text-sm font-semibold text-gray-900 mb-4">محتوای قالب</h3>
+        <div class="space-y-3">
+            <div>
+                <p class="text-xs text-gray-500 mb-1">عنوان:</p>
+                <p class="text-sm text-gray-900 bg-gray-50 rounded-lg px-3 py-2 font-mono" dir="auto">{{ template.title_template }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 mb-1">متن:</p>
+                <p class="text-sm text-gray-900 bg-gray-50 rounded-lg px-3 py-2 whitespace-pre-wrap" dir="auto">{{ template.body_template }}</p>
+            </div>
+            {% if template.action_label %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <p class="text-xs text-gray-500 mb-1">متن دکمه:</p>
+                    <p class="text-sm text-gray-900">{{ template.action_label }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 mb-1">آدرس لینک:</p>
+                    <p class="text-sm text-gray-700 font-mono" dir="ltr">{{ template.action_url_template }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <h3 class="text-sm font-semibold text-gray-900 mb-4">پیش‌نمایش (با داده نمونه)</h3>
+        <div class="border border-blue-100 bg-blue-50/50 rounded-xl p-4 space-y-2">
+            <p class="text-sm font-semibold text-gray-900">{{ preview.title }}</p>
+            <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ preview.body }}</p>
+            {% if preview.action_label %}
+            <div class="pt-2">
+                <span class="inline-flex items-center px-3 py-1.5 bg-brand-600 text-white text-xs font-medium rounded-lg">{{ preview.action_label }}</span>
+                {% if preview.action_url %}
+                <span class="text-xs text-gray-400 mr-2" dir="ltr">{{ preview.action_url }}</span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Back link -->
+    <div class="pt-2">
+        <a href="/owner-platform/communication-templates/" class="text-sm text-gray-500 hover:text-gray-700">
+            &rarr; بازگشت به لیست قالب‌ها
+        </a>
+    </div>
+</div>
+{% endblock %}

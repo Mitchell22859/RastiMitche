@@ -1,0 +1,90 @@
+{% extends "layouts/dashboard.html" %}
+{% load fa_labels %}
+{% block title %}درخواست تغییر قالب #{{ change_request.id }} - پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}بررسی درخواست تغییر قالب پیامک{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_platform.html" %}{% endblock %}
+
+{% block content %}
+<style>
+.req-card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;padding:1.25rem;margin-bottom:1rem}
+.req-label{font-size:.78rem;font-weight:600;color:#64748b;margin-bottom:.25rem}
+.req-value{font-size:.85rem;color:#1e293b}
+.req-pre{background:#f8fafc;border:1px solid #e2e8f0;border-radius:.6rem;padding:.75rem;font-size:.82rem;white-space:pre-wrap;direction:rtl;line-height:1.8;font-family:Tahoma,sans-serif}
+</style>
+
+<div class="req-card">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;">
+<div><div class="req-label">شرکت</div><div class="req-value">{{ change_request.company.name }} ({{ change_request.company.code }})</div></div>
+<div><div class="req-label">رویداد</div><div class="req-value"><code>{{ change_request.event_key }}</code></div></div>
+<div><div class="req-label">لحن درخواستی</div><div class="req-value">{{ change_request.get_requested_tone_display }}</div></div>
+<div><div class="req-label">وضعیت</div><div class="req-value">{{ change_request.status|status_fa }}</div></div>
+<div><div class="req-label">درخواست‌دهنده</div><div class="req-value">{% if change_request.created_by %}{{ change_request.created_by.get_full_name|default:change_request.created_by.username }}{% else %}-{% endif %}</div></div>
+<div><div class="req-label">تاریخ</div><div class="req-value">{{ change_request.created_at|jalali_datetime }}</div></div>
+</div>
+{% if change_request.note %}<div style="margin-top:.75rem;"><div class="req-label">یادداشت شرکت</div><div class="req-value">{{ change_request.note }}</div></div>{% endif %}
+</div>
+
+<div class="req-card">
+<div class="req-label">متن فعلی قالب (زمان ارسال درخواست)</div>
+<div class="req-pre">{{ change_request.current_template_text|default:"قالبی موجود نبوده." }}</div>
+</div>
+
+<div class="req-card">
+<div class="req-label">متن درخواستی شرکت</div>
+<div class="req-pre" style="border-color:#a5b4fc;background:#eef2ff;">{{ change_request.requested_template_text }}</div>
+</div>
+
+{% if master_template %}
+<div class="req-card">
+<div class="req-label">قالب اصلی پلتفرم ({{ change_request.event_key }})</div>
+<div class="req-pre">{{ master_template.template_text }}</div>
+</div>
+{% endif %}
+
+{% if company_template %}
+<div class="req-card">
+<div class="req-label">قالب فعلی اختصاصی شرکت</div>
+<div class="req-pre">{{ company_template.template_text }}</div>
+</div>
+{% endif %}
+
+{% if change_request.status == "pending" %}
+<div class="req-card" style="border:2px solid #6366f1;">
+<h3 style="font-weight:700;margin-bottom:.75rem;">تصمیم شما</h3>
+<div style="display:flex;gap:1rem;flex-wrap:wrap;">
+<form method="post" action="/owner-platform/sms-template-requests/{{ change_request.id }}/approve/" style="flex:1;min-width:300px;">{% csrf_token %}
+<div style="margin-bottom:.5rem;">
+<label style="font-size:.82rem;font-weight:700;">متن نهایی تاییدشده (قابل ویرایش) *</label>
+<textarea name="approved_template_text" rows="6" required style="width:100%;border:1px solid #e2e8f0;border-radius:.5rem;padding:.5rem;font-size:.82rem;direction:rtl;line-height:1.8;font-family:Tahoma,sans-serif;">{{ change_request.requested_template_text }}</textarea>
+<small style="color:#64748b;">می‌توانید متن درخواستی شرکت را اصلاح و سپس تأیید کنید.</small>
+</div>
+<div style="margin-bottom:.5rem;"><label style="font-size:.82rem;font-weight:600;">پاسخ مدیر (اختیاری)</label><textarea name="admin_response" rows="2" style="width:100%;border:1px solid #e2e8f0;border-radius:.5rem;padding:.5rem;font-size:.82rem;" placeholder="توضیح تأیید..."></textarea></div>
+<button type="submit" class="btn btn-primary" style="background:#059669;border-color:#059669;">تأیید و اعمال قالب</button>
+</form>
+<form method="post" action="/owner-platform/sms-template-requests/{{ change_request.id }}/reject/" style="flex:1;min-width:250px;">{% csrf_token %}
+<div style="margin-bottom:.5rem;"><label style="font-size:.82rem;font-weight:600;">دلیل رد</label><textarea name="admin_response" rows="2" style="width:100%;border:1px solid #e2e8f0;border-radius:.5rem;padding:.5rem;font-size:.82rem;" placeholder="دلیل رد درخواست..."></textarea></div>
+<button type="submit" class="btn btn-danger">رد درخواست</button>
+</form>
+</div>
+</div>
+{% elif change_request.status == "approved" %}
+<div class="req-card" style="background:#f0fdf4;border-color:#86efac;">
+<strong style="color:#166534;">تأیید شده</strong>
+{% if change_request.reviewed_by %}<span style="color:#64748b;font-size:.82rem;"> توسط {{ change_request.reviewed_by.get_full_name|default:change_request.reviewed_by.username }}</span>{% endif %}
+{% if change_request.approved_template_text %}<div style="margin-top:.5rem;"><div class="req-label">متن نهایی تاییدشده</div><div class="req-pre">{{ change_request.approved_template_text }}</div></div>{% endif %}
+{% if change_request.admin_response %}<p style="margin-top:.5rem;font-size:.85rem;">{{ change_request.admin_response }}</p>{% endif %}
+</div>
+{% elif change_request.status == "rejected" %}
+<div class="req-card" style="background:#fef2f2;border-color:#fca5a5;">
+<strong style="color:#991b1b;">رد شده</strong>
+{% if change_request.reviewed_by %}<span style="color:#64748b;font-size:.82rem;"> توسط {{ change_request.reviewed_by.get_full_name|default:change_request.reviewed_by.username }}</span>{% endif %}
+{% if change_request.admin_response %}<p style="margin-top:.5rem;font-size:.85rem;">{{ change_request.admin_response }}</p>{% endif %}
+</div>
+{% endif %}
+
+<p style="margin-top:1rem;"><a href="/owner-platform/sms-template-requests/">بازگشت به لیست درخواست‌ها</a></p>
+{% endblock %}

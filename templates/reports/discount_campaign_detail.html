@@ -1,0 +1,61 @@
+{% extends "layouts/dashboard.html" %}
+{% load fa_labels smart_numbers jalali_tags %}
+{% block title %}جزئیات کمپین تخفیف - {{ campaign.title }}{% endblock %}
+{% block page_title %}{{ campaign.title }}{% endblock %}
+{% block page_description %}جزئیات گیرنده‌ها، کدهای ماسک‌شده، پیامک‌ها و استفاده از کدها{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block user_role_label %}{% if request.user.role == "COMPANY_ADMIN" %}مدیر{% else %}کاربر{% endif %}{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+  <div class="bg-white border rounded-2xl p-4"><div class="text-xl font-black">{{ campaign.recipient_total|smart_number }}</div><div class="text-sm text-slate-500">کل افراد گزارش</div></div>
+  <div class="bg-white border rounded-2xl p-4"><div class="text-xl font-black">{{ campaign.excluded_total|smart_number }}</div><div class="text-sm text-slate-500">حذف‌شده قبل ارسال</div></div>
+  <div class="bg-white border rounded-2xl p-4"><div class="text-xl font-black">{{ campaign.code_total|smart_number }}</div><div class="text-sm text-slate-500">کد ساخته‌شده</div></div>
+  <div class="bg-white border rounded-2xl p-4"><div class="text-xl font-black">{{ used_count|smart_number }}</div><div class="text-sm text-slate-500">کد استفاده‌شده</div></div>
+</div>
+
+<div class="bg-white border rounded-2xl p-5 shadow-sm mb-4">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+    <div><span class="text-slate-500">درصد:</span> <b>{{ campaign.percent }}</b>٪</div>
+    <div><span class="text-slate-500">سقف:</span> <b>{{ campaign.max_discount_rial|smart_number }}</b> ریال</div>
+    <div><span class="text-slate-500">انقضا:</span> <b>{{ campaign.expires_at|jalali_datetime }}</b></div>
+  </div>
+</div>
+
+<div class="bg-white border rounded-2xl p-5 shadow-sm">
+  <div class="font-black text-slate-900 mb-3">گیرنده‌ها</div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50"><tr>
+        <th class="p-3 text-right">مشتری</th>
+        <th class="p-3 text-right">موبایل</th>
+        <th class="p-3 text-right">وضعیت گیرنده</th>
+        <th class="p-3 text-right">کد</th>
+        <th class="p-3 text-right">وضعیت کد</th>
+        <th class="p-3 text-right">پیامک</th>
+        <th class="p-3 text-right">استفاده</th>
+        <th class="p-3 text-right">عملیات</th>
+      </tr></thead>
+      <tbody>
+      {% for r in recipients %}
+      <tr class="border-t">
+        <td class="p-3"><div class="font-bold">{{ r.customer_name_snapshot|default:"-" }}</div><div class="text-xs text-slate-500">{{ r.email_snapshot|default:"-" }}</div></td>
+        <td class="p-3" dir="ltr">{{ r.phone_number }}</td>
+        <td class="p-3">{% include "includes/components/status_badge.html" with status=r.status %}</td>
+        <td class="p-3">{% if r.discount_code %}<span dir="ltr">{{ r.discount_code.code_masked }}</span>{% else %}-{% endif %}</td>
+        <td class="p-3">{% if r.discount_code %}{% include "includes/components/status_badge.html" with status=r.discount_code.status %}{% else %}-{% endif %}</td>
+        <td class="p-3">{% if r.sms_status %}{% include "includes/components/status_badge.html" with status=r.sms_status %}{% else %}-{% endif %}</td>
+        <td class="p-3">{% if r.discount_code.used_at %}{{ r.discount_code.used_discount_amount_rial|smart_number }} ریال<br><small>{{ r.discount_code.used_at|jalali_datetime }}</small>{% else %}-{% endif %}</td>
+        <td class="p-3">
+          {% if r.customer_id %}<a class="btn btn-sm btn-outline" href="/{{ company.code }}/admin/customers/{{ r.customer_id }}/">پرونده</a>{% endif %}
+          {% if r.sms_outbox_id %}<a class="btn btn-sm btn-outline" href="/{{ company.code }}/admin/sms/outbox/{{ r.sms_outbox_id }}/">پیامک</a>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+/* =============================================================================
+   Rasti Service - app.css
+   ⚠️ This file is kept for backward compatibility.
+   All styling is now handled via Tailwind CSS CDN + inline <style> in base.html.
+   This file is intentionally minimal to avoid conflicts.
+   ============================================================================= */
+
+/* Jalali datepicker overrides (if present) */
+.jalali-dp-wrapper { z-index: 9999 !important; }

@@ -1,0 +1,24 @@
+{% extends "base_dashboard.html" %}
+{% block title %}تخصیص تکنسین - سفارش #{{ order.id }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>تخصیص تکنسین به سفارش #{{ order.id }}</h1></div>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+
+<div class="card" style="max-width:500px;">
+<p><strong>عنوان:</strong> {{ order.title }}</p>
+<p><strong>مهارت مورد نیاز:</strong> {{ order.required_skill|default:"ندارد" }}</p>
+
+<form method="post" style="margin-top:1rem;">{% csrf_token %}
+<div class="form-group"><label>تکنسین</label>
+<select name="technician_id" class="form-control" required>
+<option value="">-- انتخاب تکنسین --</option>
+{% for t in technicians %}<option value="{{ t.id }}">{{ t.user.get_full_name }} ({{ t.user.phone }})</option>{% endfor %}
+</select></div>
+<button type="submit" class="btn btn-primary">تخصیص</button>
+<a href="/{{ company.code }}/admin/orders/{{ order.id }}/" class="btn btn-outline" style="margin-right:0.5rem;">انصراف</a>
+</form></div>
+{% endblock %}

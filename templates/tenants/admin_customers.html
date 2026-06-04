@@ -1,0 +1,34 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers jalali_tags fa_labels %}
+{% block title %}مشتریان - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block content %}
+<style>
+.customer-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin-bottom:1rem}.customer-stat{background:#fff;border:1px solid #e2e8f0;border-radius:1rem;padding:1rem}.customer-stat .num{font-size:1.35rem;font-weight:900}.customer-stat .lbl{font-size:.78rem;color:#64748b}.customer-search{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}.customer-search input{min-width:260px;flex:1}.customer-phone{direction:ltr;unicode-bidi:plaintext;font-weight:700}.customer-actions{display:flex;gap:.35rem;flex-wrap:wrap}@media(max-width:900px){.customer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.customer-grid{grid-template-columns:1fr}.customer-search input{min-width:100%}}
+</style>
+<div class="page-header"><div><h1>مشتریان</h1><p style="color:#64748b;margin:.35rem 0 0;">پرونده مشتریان بر اساس شماره موبایل و سفارش‌های ثبت‌شده ساخته می‌شود.</p></div><a href="/{{ company.code }}/admin/orders/create/" class="btn btn-primary">+ سفارش جدید</a></div>
+<div class="customer-grid">
+<div class="customer-stat"><div class="num">{{ stats.total_customers|smart_number }}</div><div class="lbl">کل مشتریان</div></div>
+<div class="customer-stat"><div class="num">{{ stats.total_orders|smart_number }}</div><div class="lbl">کل سفارش‌ها</div></div>
+<div class="customer-stat"><div class="num">{{ stats.active_orders|smart_number }}</div><div class="lbl">سفارش‌های باز</div></div>
+<div class="customer-stat"><div class="num">{{ stats.done_orders|smart_number }}</div><div class="lbl">سفارش‌های انجام‌شده</div></div>
+</div>
+<div class="card">
+<form method="get" class="customer-search"><input class="form-control" name="q" value="{{ q }}" placeholder="جستجو بر اساس نام، موبایل یا ایمیل"><button class="btn btn-outline" type="submit">جستجو</button>{% if q %}<a class="btn btn-outline" href="/{{ company.code }}/admin/customers/">حذف فیلتر</a>{% endif %}</form>
+{% if customers %}
+<div class="table-wrapper"><table><thead><tr><th>مشتری</th><th>شماره موبایل</th><th>سفارش‌ها</th><th>وضعیت سفارش‌ها</th><th>آخرین سفارش</th><th>آدرس‌ها</th><th>عملیات</th></tr></thead><tbody>
+{% for c in customers %}<tr>
+<td><strong>{{ c.full_name }}</strong><br><small style="color:#64748b;">{{ c.email|default:"-" }}</small></td>
+<td><span class="customer-phone">{{ c.phone }}</span></td>
+<td>{{ c.orders_count|smart_number }}</td>
+<td><span class="status-badge status-info">باز: {{ c.active_orders_count|smart_number }}</span> <span class="status-badge status-success">انجام: {{ c.done_orders_count|smart_number }}</span> <span class="status-badge status-danger">لغو: {{ c.cancelled_orders_count|smart_number }}</span></td>
+<td>{% if c.last_order_at %}{{ c.last_order_at|jalali_datetime }}{% else %}-{% endif %}</td>
+<td>{{ c.addresses_count|smart_number }}</td>
+<td><div class="customer-actions"><a href="/{{ company.code }}/admin/customers/{{ c.id }}/" class="btn btn-sm btn-outline">پرونده</a><a href="/{{ company.code }}/admin/orders/create/?customer_id={{ c.id }}" class="btn btn-sm btn-primary">سفارش جدید</a></div></td>
+</tr>{% endfor %}
+</tbody></table></div>
+{% else %}<p style="color:#64748b;">مشتری‌ای ثبت نشده یا با جستجوی شما پیدا نشد.</p>{% endif %}
+</div>
+{% endblock %}
