@@ -76,6 +76,21 @@
   --color-info-dark    : #1e40af;
   --color-info-bg      : #dbeafe;
 
+  /* Hover variants for interactive semantic colors */
+  --color-success-hover: #15803d;
+  --color-danger-hover : #b91c1c;
+
+  /* Extended palette — purple and indigo for stat cards and tags */
+  --color-purple-bg : #f5f3ff;
+  --color-purple    : #7c3aed;
+  --color-indigo-bg : #eef2ff;
+  --color-indigo    : #4338ca;
+
+  /* Focus ring shadows — used by form-control:focus states */
+  --color-focus-ring       : rgba(59, 130, 246, 0.12);
+  --color-danger-focus-ring: rgba(220, 38, 38, 0.12);
+  --color-success-focus-ring: rgba(22, 163, 74, 0.12);
+
   /* ---------------------------------------------------------------------------
      Surface Colors (layered backgrounds)
   --------------------------------------------------------------------------- */
@@ -190,10 +205,11 @@
   /* ---------------------------------------------------------------------------
      Transitions
   --------------------------------------------------------------------------- */
-  --transition-fast  : all 0.15s ease;
-  --transition-base  : all 0.2s ease;
-  --transition-slow  : all 0.3s ease;
-  --transition-colors: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  --transition-fast   : all 0.15s ease;
+  --transition-base   : all 0.2s ease;
+  --transition-slow   : all 0.3s ease;
+  --transition-colors : color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  --transition-sidebar: transform 0.25s ease;
 
   /* ---------------------------------------------------------------------------
      Border

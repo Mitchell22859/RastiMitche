@@ -86,7 +86,7 @@
 /* Features section */
 .features-section {
   padding: var(--space-20) 0;
-  background-color: #fff;
+  background-color: var(--color-surface-0);
 }
 
 .section-eyebrow {

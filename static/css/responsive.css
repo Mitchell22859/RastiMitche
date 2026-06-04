@@ -89,6 +89,13 @@
     display: none;
   }
 
+  /* --- Public nav: hide register btn (it lives in mobile menu too) --- */
+  .public-nav-register-btn { display: none; }
+
+  /* --- Topbar: hide subtitle and logout label text to save space --- */
+  .topbar-subtitle      { display: none; }
+  .topbar-logout-label  { display: none; }
+
 }
 
 
@@ -106,7 +113,7 @@
     height: 100vh;
     z-index: var(--z-overlay);
     transform: translateX(100%);
-    transition: transform 0.25s ease;
+    transition: var(--transition-sidebar);
     box-shadow: var(--shadow-2xl);
   }
 
@@ -137,10 +144,13 @@
     padding: var(--space-6) var(--space-4);
   }
 
-  /* --- Public nav: hide desktop links --- */
+  /* --- Public nav: hide desktop links, show mobile toggle --- */
   .public-nav-links {
     display: none;
   }
+
+  .public-nav-mobile-toggle { display: flex; }
+  .auth-mobile-brand        { display: block; }
 
   /* --- Table: horizontal scroll on tablet --- */
   .table-wrapper {
@@ -187,10 +197,14 @@
     display: flex;
   }
 
-  /* --- Public nav: show desktop links --- */
+  /* --- Public nav: show desktop links, hide mobile items --- */
   .public-nav-links {
     display: flex;
   }
+
+  .public-nav-mobile-toggle { display: none; }
+  .auth-mobile-brand        { display: none; }
+  .public-nav-register-btn  { display: inline-flex; }
 
   /* --- Technician shell: more padding on desktop --- */
   .tech-shell {
@@ -279,29 +293,3 @@
 }
 
 
-/* =============================================================================
-   PHASE 2 RESPONSIVE ADDITIONS
-   ============================================================================= */
-
-@media (max-width: 639px) {
-  /* Hide register btn on smallest phones (it's also in mobile menu) */
-  .public-nav-register-btn { display: none; }
-  /* Hide topbar subtitle and logout label text on phones */
-  .topbar-subtitle { display: none; }
-  .topbar-logout-label { display: none; }
-}
-
-@media (max-width: 1023px) {
-  /* Show mobile hamburger on tablets/phones */
-  .public-nav-mobile-toggle { display: flex; }
-  /* Show auth mobile brand on mobile */
-  .auth-mobile-brand { display: block; }
-}
-
-@media (min-width: 1024px) {
-  /* Hide mobile toggle and mobile brand on desktop */
-  .public-nav-mobile-toggle { display: none; }
-  .auth-mobile-brand { display: none; }
-  /* Ensure register btn is always visible on desktop */
-  .public-nav-register-btn { display: inline-flex; }
-}

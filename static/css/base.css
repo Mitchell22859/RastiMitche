@@ -184,6 +184,18 @@ input[type="url"],
 input[type="password"] {
   direction: ltr;
   text-align: right;
+  unicode-bidi: embed;
+}
+
+abbr[title] {
+  cursor: help;
+  text-decoration: underline dotted;
+}
+
+hr {
+  border: none;
+  border-top: var(--border-width) solid var(--border-color);
+  margin: var(--space-4) 0;
 }
 
 textarea {
@@ -311,6 +323,19 @@ table {
   overflow: visible;
   clip: auto;
   white-space: normal;
+}
+
+/* Alias for .sr-only — both conventions exist in the wild */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 /* Reduce motion for users who prefer it */

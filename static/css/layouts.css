@@ -130,7 +130,7 @@
 .sidebar-nav-item.active {
   background-color: rgba(59, 130, 246, 0.1);
   color: var(--color-brand-400);
-  border-right: 3px solid var(--color-brand-500);
+  border-left: 3px solid var(--color-brand-500);
 }
 
 .sidebar-nav-icon {
@@ -559,10 +559,9 @@
 
 
 /* =============================================================================
-   PHASE 2 ADDITIONS
+   PUBLIC FOOTER — INTERIOR GRID
    ============================================================================= */
 
-/* --- Public footer --- */
 .public-footer-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

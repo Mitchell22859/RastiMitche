@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+{#
+  UI Core Preview — DEVELOPER REFERENCE ONLY
+  Not linked in any URL or nav. Load directly as a template to verify component
+  rendering. Do not add a URL or view for this file.
+#}
+
+{% block body %}
+<div style="max-width:900px;margin:0 auto;padding:var(--space-8) var(--space-6);direction:rtl;">
+
+  <h1 style="font-size:var(--font-size-2xl);font-weight:var(--font-weight-extrabold);color:var(--color-slate-900);margin-bottom:var(--space-2);">UI Core Preview</h1>
+  <p style="color:var(--color-slate-500);margin-bottom:var(--space-10);">نمایش کامپوننت‌های پایه — فقط برای توسعه‌دهندگان</p>
+
+  {# ======================================================= #}
+  {# BUTTONS #}
+  {# ======================================================= #}
+  <section style="margin-bottom:var(--space-10);">
+    <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-slate-700);border-bottom:2px solid var(--color-brand-500);display:inline-block;padding-bottom:var(--space-1);margin-bottom:var(--space-5);">دکمه‌ها</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center;margin-bottom:var(--space-4);">
+      <button class="btn btn-primary">اصلی</button>
+      <button class="btn btn-secondary">ثانویه</button>
+      <button class="btn btn-outline">خط‌دار</button>
+      <button class="btn btn-ghost">شفاف</button>
+      <button class="btn btn-danger">حذف</button>
+      <button class="btn btn-success">تأیید</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center;margin-bottom:var(--space-4);">
+      <button class="btn btn-primary btn-sm">کوچک</button>
+      <button class="btn btn-primary">متوسط</button>
+      <button class="btn btn-primary btn-lg">بزرگ</button>
+      <button class="btn btn-outline btn-icon">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      </button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center;">
+      <button class="btn btn-primary" disabled>غیرفعال</button>
+      <button class="btn btn-block btn-outline" style="max-width:16rem;">تمام عرض</button>
+    </div>
+  </section>
+
+  {# ======================================================= #}
+  {# BADGES #}
+  {# ======================================================= #}
+  <section style="margin-bottom:var(--space-10);">
+    <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-slate-700);border-bottom:2px solid var(--color-brand-500);display:inline-block;padding-bottom:var(--space-1);margin-bottom:var(--space-5);">نشان‌ها</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center;">
+      <span class="badge badge-success">تأیید شده</span>
+      <span class="badge badge-warning">در انتظار</span>
+      <span class="badge badge-danger">لغو شده</span>
+      <span class="badge badge-info">ارسال شده</span>
+      <span class="badge badge-neutral">پیش‌نویس</span>
+      <span class="badge badge-brand">برند</span>
+      <span class="badge badge-success badge-sm">کوچک</span>
+    </div>
+  </section>
+
+  {# ======================================================= #}
+  {# ALERTS #}
+  {# ======================================================= #}
+  <section style="margin-bottom:var(--space-10);">
+    <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-slate-700);border-bottom:2px solid var(--color-brand-500);display:inline-block;padding-bottom:var(--space-1);margin-bottom:var(--space-5);">پیام‌ها</h2>
+    <div class="alert alert-success" role="alert">
+      <div class="alert-icon"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+      <div class="alert-body"><strong class="alert-title">موفق</strong>عملیات با موفقیت انجام شد.</div>
+    </div>
+    <div class="alert alert-warning" role="alert">
+      <div class="alert-icon"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+      <div class="alert-body"><strong class="alert-title">هشدار</strong>این عملیات برگشت‌پذیر نیست.</div>
+    </div>
+    <div class="alert alert-danger" role="alert">
+      <div class="alert-icon"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+      <div class="alert-body"><strong class="alert-title">خطا</strong>مشکلی در پردازش رخ داد.</div>
+    </div>
+    <div class="alert alert-info" role="alert">
+      <div class="alert-icon"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+      <div class="alert-body"><strong class="alert-title">اطلاعیه</strong>نسخه جدید در دسترس است.</div>
+    </div>
+  </section>
+
+  {# ======================================================= #}
+  {# CARDS #}
+  {# ======================================================= #}
+  <section style="margin-bottom:var(--space-10);">
+    <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-slate-700);border-bottom:2px solid var(--color-brand-500);display:inline-block;padding-bottom:var(--space-1);margin-bottom:var(--space-5);">کارت‌ها</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--space-4);">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-header-title">کارت استاندارد</h3>
+          <button class="btn btn-ghost btn-sm btn-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01"/></svg></button>
+        </div>
+        <div class="card-body">محتوای کارت اینجا قرار می‌گیرد.</div>
+        <div class="card-footer">
+          <button class="btn btn-outline btn-sm">انصراف</button>
+          <button class="btn btn-primary btn-sm">ذخیره</button>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon blue"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg></div>
+        <span class="stat-card-value">۱۲۸</span>
+        <p class="stat-card-label">کل سفارش‌ها</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon green"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+        <span class="stat-card-value">۹۴</span>
+        <p class="stat-card-label">تکمیل شده</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon amber"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2"/></svg></div>
+        <span class="stat-card-value">۴۵,۰۰۰</span>
+        <p class="stat-card-label">درآمد (تومان)</p>
+      </div>
+    </div>
+  </section>
+
+  {# ======================================================= #}
+  {# FORMS #}
+  {# ======================================================= #}
+  <section style="margin-bottom:var(--space-10);">
+    <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-slate-700);border-bottom:2px solid var(--color-brand-500);display:inline-block;padding-bottom:var(--space-1);margin-bottom:var(--space-5);">فرم‌ها</h2>
+    <div class="card">
+      <form>
+        <div class="form-section">
+          <h3 class="form-section-title">اطلاعات پایه</h3>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label required">نام</label>
+              <input type="text" class="form-control" placeholder="نام را وارد کنید">
+            </div>
+            <div class="form-group">
+              <label class="form-label required">شماره تلفن</label>
+              <input type="tel" class="form-control" placeholder="۰۹۱۲۱۲۳۴۵۶۷">
+              <span class="form-hint">فرمت: ۰۹XXXXXXXXX</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ایمیل</label>
+              <input type="email" class="form-control" placeholder="example@domain.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">وضعیت</label>
+              <select class="form-control">
+                <option>فعال</option>
+                <option>غیرفعال</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">توضیحات</label>
+            <textarea class="form-control" rows="3" placeholder="توضیحات اختیاری..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">با خطا</label>
+            <input type="text" class="form-control is-invalid" value="مقدار اشتباه">
+            <span class="form-error">این فیلد اجباری است.</span>
+          </div>
+          <div class="form-group">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="chk1">
+              <label class="form-check-label" for="chk1">موافقم</label>
+            </div>
+            <div class="form-check">
+              <input type="radio" class="form-check-input" name="r1" id="r1a">
+              <label class="form-check-label" for="r1a">گزینه اول</label>
+            </div>
+            <div class="form-check">
+              <input type="radio" class="form-check-input" name="r1" id="r1b">
+              <label class="form-check-label" for="r1b">گزینه دوم</label>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline">انصراف</button>
+          <button type="submit" class="btn btn-primary">ذخیره</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  {# ======================================================= #}
+  {# TABLE #}
+  {# ======================================================= #}
+  <section style="margin-bottom:var(--space-10);">
+    <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-slate-700);border-bottom:2px solid var(--color-brand-500);display:inline-block;padding-bottom:var(--space-1);margin-bottom:var(--space-5);">جدول</h2>
+    <div class="card card-compact">
+      <div class="table-toolbar">
+        <div class="table-toolbar-filters">
+          <input type="search" class="form-control" placeholder="جستجو..." style="max-width:16rem;">
+        </div>
+        <div class="table-toolbar-actions">
+          <button class="btn btn-primary btn-sm">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            ایجاد
+          </button>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>شناسه</th>
+              <th>نام</th>
+              <th>وضعیت</th>
+              <th>تاریخ</th>
+              <th>عملیات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="num">۱۰۰۱</td>
+              <td>احمد رضایی</td>
+              <td><span class="badge badge-success">تأیید شده</span></td>
+              <td class="num">۱۴۰۳/۱۰/۱۵</td>
+              <td><button class="btn btn-ghost btn-sm btn-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="num">۱۰۰۲</td>
+              <td>مریم محمدی</td>
+              <td><span class="badge badge-warning">در انتظار</span></td>
+              <td class="num">۱۴۰۳/۱۰/۱۶</td>
+              <td><button class="btn btn-ghost btn-sm btn-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="num">۱۰۰۳</td>
+              <td>علی کریمی</td>
+              <td><span class="badge badge-danger">لغو شده</span></td>
+              <td class="num">۱۴۰۳/۱۰/۱۷</td>
+              <td><button class="btn btn-ghost btn-sm btn-icon"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  {# ======================================================= #}
+  {# EMPTY STATE #}
+  {# ======================================================= #}
+  <section style="margin-bottom:var(--space-10);">
+    <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-slate-700);border-bottom:2px solid var(--color-brand-500);display:inline-block;padding-bottom:var(--space-1);margin-bottom:var(--space-5);">حالت خالی</h2>
+    <div class="card">
+      <div class="empty-state">
+        <div class="empty-state-icon"><svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
+        <h3 class="empty-state-title">سفارشی یافت نشد</h3>
+        <p class="empty-state-description">هنوز هیچ سفارشی ثبت نشده است. برای شروع یک سفارش جدید ایجاد کنید.</p>
+        <button class="btn btn-primary btn-sm">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          ایجاد سفارش
+        </button>
+      </div>
+    </div>
+  </section>
+
+  {# ======================================================= #}
+  {# PAGE HEADER #}
+  {# ======================================================= #}
+  <section style="margin-bottom:var(--space-10);">
+    <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-slate-700);border-bottom:2px solid var(--color-brand-500);display:inline-block;padding-bottom:var(--space-1);margin-bottom:var(--space-5);">هدر صفحه</h2>
+    <div style="background:var(--color-surface-1);padding:var(--space-5);border-radius:var(--radius-lg);">
+      <div class="page-header">
+        <div class="page-header-content">
+          <nav class="breadcrumb">
+            <span class="breadcrumb-item"><a href="#">داشبورد</a><span class="breadcrumb-separator">/</span></span>
+            <span class="breadcrumb-item active">سفارش‌ها</span>
+          </nav>
+          <h1 class="page-header-title">مدیریت سفارش‌ها</h1>
+          <p class="page-header-subtitle">لیست کامل سفارش‌های ثبت‌شده</p>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-outline btn-sm">خروجی</button>
+          <button class="btn btn-primary btn-sm">سفارش جدید</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ======================================================= #}
+  {# TABS #}
+  {# ======================================================= #}
+  <section style="margin-bottom:var(--space-10);">
+    <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-slate-700);border-bottom:2px solid var(--color-brand-500);display:inline-block;padding-bottom:var(--space-1);margin-bottom:var(--space-5);">تب‌ها</h2>
+    <div class="card">
+      <nav class="tabs">
+        <a href="#" class="tab-item active">همه</a>
+        <a href="#" class="tab-item">در انتظار</a>
+        <a href="#" class="tab-item">تأیید شده</a>
+        <a href="#" class="tab-item">تکمیل شده</a>
+      </nav>
+      <p style="color:var(--color-slate-500);font-size:var(--font-size-sm);">محتوای تب انتخاب‌شده اینجا نمایش داده می‌شود.</p>
+    </div>
+  </section>
+
+  {# ======================================================= #}
+  {# SKELETON #}
+  {# ======================================================= #}
+  <section style="margin-bottom:var(--space-10);">
+    <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-slate-700);border-bottom:2px solid var(--color-brand-500);display:inline-block;padding-bottom:var(--space-1);margin-bottom:var(--space-5);">حالت بارگذاری (Skeleton)</h2>
+    <div class="card" style="display:grid;grid-template-columns:auto 1fr;gap:var(--space-4);align-items:center;">
+      <div class="skeleton skeleton-avatar"></div>
+      <div>
+        <div class="skeleton skeleton-text w-1-2"></div>
+        <div class="skeleton skeleton-text w-3-4"></div>
+        <div class="skeleton skeleton-text w-1-4"></div>
+      </div>
+    </div>
+  </section>
+
+  {# ======================================================= #}
+  {# MODAL #}
+  {# ======================================================= #}
+  <section style="margin-bottom:var(--space-10);">
+    <h2 style="font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-slate-700);border-bottom:2px solid var(--color-brand-500);display:inline-block;padding-bottom:var(--space-1);margin-bottom:var(--space-5);">مودال (ساختار HTML)</h2>
+    <div style="background:var(--color-surface-2);padding:var(--space-4);border-radius:var(--radius-lg);">
+      <div class="modal" style="position:relative;max-width:100%;margin:0;">
+        <div class="modal-header">
+          <h3 class="modal-title">تأیید عملیات</h3>
+          <button class="btn btn-ghost btn-sm btn-icon"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="modal-body">
+          <p>آیا از انجام این عملیات مطمئن هستید؟ این عمل قابل بازگشت نیست.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline btn-sm">انصراف</button>
+          <button class="btn btn-danger btn-sm">تأیید و حذف</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
