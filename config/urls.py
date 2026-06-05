@@ -37,6 +37,7 @@ from django.http import HttpResponse, HttpResponsePermanentRedirect, HttpRespons
 from django.urls import include, path
 
 from apps.accounts import views as auth_views
+from apps.accounts.views_change_password import change_password_required
 from apps.api.urls import auth_urlpatterns, platform_urlpatterns, tenant_urlpatterns
 from apps.platform_core.health import health_check, health_db_check
 
@@ -101,6 +102,7 @@ urlpatterns = [
     path("login/", auth_views.unified_login, name="login"),
     path("logout/", auth_views.unified_logout, name="logout"),
     path("password-reset/", include("apps.accounts.urls_password_reset")),
+    path("account/change-password-required/", change_password_required, name="change_password_required"),
 
     # =========================================================================
     # PUBLIC PAGES (exempt from tenant resolution)

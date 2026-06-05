@@ -53,7 +53,13 @@ def unified_login(request: HttpRequest) -> HttpResponse:
             elif user.company and not user.company.is_active:
                 error = "دسترسی پنل شرکت توسط مالک پلتفرم محدود شده است. با پشتیبانی تماس بگیرید."
             else:
+                needs_pw_change = (
+                    getattr(user, "must_change_password", False)
+                    or user.check_password("123456")
+                )
                 AuthenticationService.login_user(request=request, user=user)
+                if needs_pw_change:
+                    return redirect("/account/change-password-required/")
                 # Redirect to ?next= if provided, otherwise role-based
                 next_url = request.POST.get("next") or request.GET.get("next")
                 if next_url and next_url.startswith("/"):

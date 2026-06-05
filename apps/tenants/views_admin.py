@@ -273,14 +273,16 @@ def admin_technician_create(request: HttpRequest, **kwargs) -> HttpResponse:
             elif not username:
                 error = "نام کاربری الزامی است."
             else:
+                _tech_password = form.cleaned_data.get("password") or "123456"
                 user = CompanyUser.objects.create_user(
                     username=username,
-                    password=form.cleaned_data.get("password") or "changeme123",
+                    password=_tech_password,
                     company=company,
                     role=UserRole.TECHNICIAN,
                     phone=normalized_phone,
                     first_name=form.cleaned_data["first_name"],
                     last_name=form.cleaned_data["last_name"],
+                    must_change_password=(_tech_password == "123456"),
                 )
                 technician = Technician.objects.create(
                     company=company,
@@ -1557,6 +1559,8 @@ def admin_operator_list(request: HttpRequest, **kwargs) -> HttpResponse:
                 if model_has_field(User, "is_active"):
                     operator.is_active = is_active
                 operator.set_password(password)
+                if hasattr(operator, "must_change_password"):
+                    operator.must_change_password = (password == "123456")
                 operator.save()
                 success = "اپراتور ساخته شد. برای تنظیم دسترسی، دکمه ویرایش همان اپراتور را بزنید."
 
@@ -1850,14 +1854,16 @@ def admin_base_operator_create(request: HttpRequest, **kwargs) -> HttpResponse:
             role = request.POST.get("role", UserRole.COMPANY_STAFF)
             if role not in [UserRole.COMPANY_ADMIN, UserRole.COMPANY_STAFF]:
                 role = UserRole.COMPANY_STAFF
+            _op_password = request.POST.get("password") or "123456"
             operator = CompanyUser.objects.create_user(
                 phone=phone,
-                password=request.POST.get("password") or "changeme123",
+                password=_op_password,
                 company=company,
                 role=role,
                 first_name=request.POST.get("first_name", "").strip(),
                 last_name=request.POST.get("last_name", "").strip(),
                 is_active=True,
+                must_change_password=(_op_password == "123456"),
             )
             return redirect(f"/{company.code}/admin/settings/operators/{operator.id}/edit/")
 

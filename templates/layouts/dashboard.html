@@ -83,6 +83,14 @@
 
     {# ===== PAGE CONTENT ===== #}
     <main class="dashboard-content">
+      {% if request.user.is_authenticated and request.session.pw_change_snoozed %}
+      <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:.83rem;color:#92400e;">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        <span>رمز عبور پیش‌فرض شما هنوز تغییر نکرده است.
+          <a href="/account/change-password-required/" style="font-weight:700;color:#92400e;text-decoration:underline;">همین الان تغییر دهید</a>
+        </span>
+      </div>
+      {% endif %}
       {% block content %}{% endblock %}
     </main>
 
