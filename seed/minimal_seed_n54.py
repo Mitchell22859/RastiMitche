@@ -33,13 +33,13 @@ from django.db import transaction  # noqa: E402
 # Credentials (change before using in any non-local environment)
 # ---------------------------------------------------------------------------
 PLATFORM_OWNER_USERNAME = "platform_owner"
-PLATFORM_OWNER_PASSWORD = "Admin@1234"
+PLATFORM_OWNER_PASSWORD = "123456"
 
 COMPANY_ADMIN_USERNAME = "n54_admin"
-COMPANY_ADMIN_PASSWORD = "Admin@1234"
+COMPANY_ADMIN_PASSWORD = "123456"
 
 TECHNICIAN_USERNAME = "n54_tech"
-TECHNICIAN_PASSWORD = "Admin@1234"
+TECHNICIAN_PASSWORD = "123456"
 
 COMPANY_CODE = "n54"
 COMPANY_NAME = "شرکت نمونه N54"

@@ -37,9 +37,9 @@ python seed/minimal_seed_n54.py
 
 | Username | Role | Password |
 |---|---|---|
-| `platform_owner` | PLATFORM_OWNER | `Admin@1234` |
-| `n54_admin` | COMPANY_ADMIN | `Admin@1234` |
-| `n54_tech` | TECHNICIAN | `Admin@1234` |
+| `platform_owner` | PLATFORM_OWNER | `123456` |
+| `n54_admin` | COMPANY_ADMIN | `123456` |
+| `n54_tech` | TECHNICIAN | `123456` |
 
 > **WARNING:** These are default development credentials.  
 > Never use them in a production or staging environment.  
