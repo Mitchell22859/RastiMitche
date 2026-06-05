@@ -4,9 +4,14 @@ Accounts - Models.
 Custom user model and role system.
 CompanyUser is the AUTH_USER_MODEL for this project.
 """
+import hashlib
+import secrets
+from datetime import timedelta
+
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 from apps.common.models import CompanyOwnedModel
 
@@ -289,3 +294,123 @@ class RegistrationOTP(models.Model):
 
     def __str__(self) -> str:
         return f"OTP: {self.phone} ({self.code})"
+
+
+class PasswordResetOTP(models.Model):
+    """
+    Phone-based OTP for password reset.
+    Linked to a phone number, NOT to a specific user.
+    Account selection happens AFTER OTP verification to prevent enumeration.
+    OTP expires after 2 minutes. Single-use. Max 5 attempts.
+    Code is never stored in plain text — only SHA-256 hash.
+    """
+
+    MAX_ATTEMPTS = 5
+    EXPIRY_SECONDS = 120
+    RESEND_COOLDOWN_SECONDS = 60
+
+    phone = models.CharField(max_length=15, db_index=True)
+    code_hash = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+    attempt_count = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"PasswordResetOTP: {self.phone} (used={self.is_used})"
+
+    @property
+    def is_expired(self) -> bool:
+        return timezone.now() >= self.expires_at
+
+    @classmethod
+    def can_send(cls, phone: str) -> bool:
+        """Rate-limit: True only if no OTP was created in the last RESEND_COOLDOWN_SECONDS."""
+        cutoff = timezone.now() - timedelta(seconds=cls.RESEND_COOLDOWN_SECONDS)
+        return not cls.objects.filter(phone=phone, created_at__gte=cutoff).exists()
+
+    @classmethod
+    def generate_for_phone(cls, phone: str) -> tuple["PasswordResetOTP", str]:
+        """Invalidate previous OTPs for this phone, generate new 6-digit code."""
+        cls.objects.filter(phone=phone, is_used=False).update(is_used=True)
+        plain = "".join(str(secrets.randbelow(10)) for _ in range(6))
+        code_hash = hashlib.sha256(plain.encode()).hexdigest()
+        otp = cls.objects.create(
+            phone=phone,
+            code_hash=code_hash,
+            expires_at=timezone.now() + timedelta(seconds=cls.EXPIRY_SECONDS),
+        )
+        return otp, plain
+
+    def check_code(self, plain: str) -> bool:
+        """Verify code. Increments attempt counter. Returns True only if valid."""
+        if self.is_used or self.is_expired or self.attempt_count >= self.MAX_ATTEMPTS:
+            return False
+        self.attempt_count += 1
+        self.save(update_fields=["attempt_count"])
+        return self.code_hash == hashlib.sha256(plain.encode()).hexdigest()
+
+    def consume(self) -> None:
+        self.is_used = True
+        self.save(update_fields=["is_used"])
+
+
+class PasswordResetSMSBillingPolicy(models.Model):
+    """
+    Per-company configuration of who pays for password reset SMS.
+    Default for all roles is PLATFORM (platform owner pays).
+    Platform owner can change per-company to charge the company for specific roles.
+    """
+
+    class Payer(models.TextChoices):
+        PLATFORM = "PLATFORM", "مالک پلتفرم"
+        COMPANY = "COMPANY", "شرکت"
+
+    company = models.OneToOneField(
+        "tenants.Company",
+        on_delete=models.CASCADE,
+        related_name="password_reset_sms_policy",
+    )
+    company_admin_payer = models.CharField(
+        max_length=20, choices=Payer.choices, default=Payer.PLATFORM,
+        verbose_name="مدیر شرکت",
+    )
+    operator_payer = models.CharField(
+        max_length=20, choices=Payer.choices, default=Payer.PLATFORM,
+        verbose_name="اپراتور",
+    )
+    technician_payer = models.CharField(
+        max_length=20, choices=Payer.choices, default=Payer.PLATFORM,
+        verbose_name="نیروی خدماتی",
+    )
+    customer_payer = models.CharField(
+        max_length=20, choices=Payer.choices, default=Payer.PLATFORM,
+        verbose_name="مشتری",
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["company__name"]
+        verbose_name = "Password Reset SMS Billing Policy"
+
+    def __str__(self) -> str:
+        return f"PasswordResetSMSBillingPolicy: {self.company}"
+
+    def get_payer_for_role(self, role: str) -> str:
+        mapping = {
+            UserRole.COMPANY_ADMIN: self.company_admin_payer,
+            UserRole.COMPANY_STAFF: self.operator_payer,
+            UserRole.TECHNICIAN: self.technician_payer,
+            UserRole.CUSTOMER: self.customer_payer,
+        }
+        return mapping.get(role, self.Payer.PLATFORM)

@@ -83,11 +83,17 @@ def platform_sms_provider_settings(request: HttpRequest) -> HttpResponse:
 
 @require_platform_owner
 def platform_sms_outbox(request: HttpRequest) -> HttpResponse:
+    import re as _re
     status = (request.GET.get("status") or "").strip()
-    messages = PlatformSMSOutbox.objects.select_related("recipient_company", "provider").order_by("-created_at")
+    messages = list(PlatformSMSOutbox.objects.select_related("recipient_company", "provider").order_by("-created_at")[:200])
     if status:
-        messages = messages.filter(status=status)
-    return render(request, "platform_core/platform_sms/outbox.html", {"messages": messages[:200], "status": status, "status_choices": PlatformSMSOutbox.Status.choices})
+        messages = [m for m in messages if m.status == status]
+    for m in messages:
+        if "password_reset" in (m.template_key or ""):
+            m.display_message = _re.sub(r"\b\d{6}\b", "******", m.message or "")
+        else:
+            m.display_message = (m.message or "")
+    return render(request, "platform_core/platform_sms/outbox.html", {"messages": messages, "status": status, "status_choices": PlatformSMSOutbox.Status.choices})
 
 
 

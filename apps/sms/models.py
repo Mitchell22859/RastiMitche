@@ -48,6 +48,7 @@ class SMSTemplate(CompanyOwnedModel):
         OPERATOR_CREATED = 'operator_created', 'ایجاد اپراتور'
         TECHNICIAN_CREATED = 'technician_created', 'ایجاد نیروی خدماتی'
         TECHNICIAN_LOGIN = 'technician_login', 'ورود نیروی خدماتی'
+        COMPANY_USER_PASSWORD_RESET = 'company_user_password_reset', 'بازیابی رمز کاربر شرکت'
         TECHNICIAN_STATUS_CHANGED = 'technician_status_changed', 'تغییر وضعیت نیروی خدماتی'
         TECHNICIAN_WAGE_PERCENT_CHANGED = 'technician_wage_percent_changed', 'تغییر درصد اجرت نیرو'
         SERVICE_CATEGORY_CREATED = 'service_category_created', 'ایجاد رسته خدمات'

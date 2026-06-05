@@ -63,6 +63,7 @@ class PlatformSMSMessageTypeService:
             {"key": Key.SUBSCRIPTION_EXPIRING_ADMIN, "title": "نزدیک شدن پایان اشتراک - مدیر شرکت", "payer": Payer.PLATFORM, "default_company_sms_enabled": True},
             {"key": Key.SUBSCRIPTION_EXPIRED_ADMIN, "title": "پایان اشتراک - مدیر شرکت", "payer": Payer.PLATFORM, "default_company_sms_enabled": True},
             {"key": Key.PLATFORM_PAYMENT_SUCCESS_ADMIN, "title": "پرداخت موفق پلتفرمی - مدیر شرکت", "payer": Payer.PLATFORM, "default_company_sms_enabled": True},
+            {"key": Key.PASSWORD_RESET, "title": "بازیابی رمز عبور", "payer": Payer.PLATFORM, "default_company_sms_enabled": True},
         ]
 
     @staticmethod

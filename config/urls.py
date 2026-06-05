@@ -100,6 +100,7 @@ urlpatterns = [
     # =========================================================================
     path("login/", auth_views.unified_login, name="login"),
     path("logout/", auth_views.unified_logout, name="logout"),
+    path("password-reset/", include("apps.accounts.urls_password_reset")),
 
     # =========================================================================
     # PUBLIC PAGES (exempt from tenant resolution)

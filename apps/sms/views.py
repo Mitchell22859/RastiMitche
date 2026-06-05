@@ -260,6 +260,14 @@ def _attach_sms_outbox_ui_info(*, sms_list, company) -> dict:
             except Exception:
                 sms.ui_display_message = "پیامک تخفیف محرمانه برای مشتری ارسال شد."
             sms.ui_template_key_label = "کد تخفیف مشتری"
+        elif "password_reset" in (getattr(sms, "template_key", "") or ""):
+            import re as _re
+            raw = getattr(sms, "message", "") or ""
+            sms.ui_display_message = _re.sub(r"\b\d{6}\b", "******", raw)
+            try:
+                sms.ui_template_key_label = sms.get_template_key_display() or sms.template_key
+            except Exception:
+                sms.ui_template_key_label = sms.template_key
         else:
             sms.ui_display_message = getattr(sms, "message", "") or ""
             try:

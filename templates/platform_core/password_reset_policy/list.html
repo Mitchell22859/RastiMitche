@@ -1,0 +1,84 @@
+{% extends "layouts/dashboard.html" %}
+{% block title %}سیاست پرداخت پیامک بازیابی رمز{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}سیاست پرداخت پیامک بازیابی رمز عبور{% endblock %}
+{% block page_description %}برای هر شرکت مشخص کنید هزینه پیامک بازیابی رمز عبور بر عهده کیست.{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_platform.html" %}{% endblock %}
+
+{% block content %}
+<div style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:18px;">
+  <p style="font-size:.85rem;color:#64748b;margin-bottom:12px;">
+    پیش‌فرض: <strong>مالک پلتفرم</strong> هزینه همه پیامک‌های بازیابی رمز عبور را می‌پردازد.
+    اگر شرکتی سوءاستفاده کند می‌توانید هزینه را به شرکت منتقل کنید.
+  </p>
+
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
+      <thead>
+        <tr style="background:#f8fafc;">
+          <th style="padding:10px 14px;text-align:right;color:#475569;font-weight:600;">شرکت</th>
+          <th style="padding:10px 14px;text-align:right;color:#475569;font-weight:600;">مدیر</th>
+          <th style="padding:10px 14px;text-align:right;color:#475569;font-weight:600;">اپراتور</th>
+          <th style="padding:10px 14px;text-align:right;color:#475569;font-weight:600;">نیروی خدماتی</th>
+          <th style="padding:10px 14px;text-align:right;color:#475569;font-weight:600;">مشتری</th>
+          <th style="padding:10px 14px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr style="border-top:1px solid #eef2f7;">
+          <td style="padding:10px 14px;font-weight:600;">
+            {{ row.company.name }}
+            <div style="font-size:.75rem;color:#94a3b8;">{{ row.company.code }}</div>
+          </td>
+          {% if row.has_policy %}
+          {% with p=row.policy %}
+          {% for payer_val in p.company_admin_payer|make_list %}{% endfor %}
+          <td style="padding:10px 14px;">
+            <span class="pr-payer-badge pr-payer-{{ p.company_admin_payer|lower }}">
+              {% if p.company_admin_payer == 'COMPANY' %}شرکت{% else %}پلتفرم{% endif %}
+            </span>
+          </td>
+          <td style="padding:10px 14px;">
+            <span class="pr-payer-badge pr-payer-{{ p.operator_payer|lower }}">
+              {% if p.operator_payer == 'COMPANY' %}شرکت{% else %}پلتفرم{% endif %}
+            </span>
+          </td>
+          <td style="padding:10px 14px;">
+            <span class="pr-payer-badge pr-payer-{{ p.technician_payer|lower }}">
+              {% if p.technician_payer == 'COMPANY' %}شرکت{% else %}پلتفرم{% endif %}
+            </span>
+          </td>
+          <td style="padding:10px 14px;">
+            <span class="pr-payer-badge pr-payer-{{ p.customer_payer|lower }}">
+              {% if p.customer_payer == 'COMPANY' %}شرکت{% else %}پلتفرم{% endif %}
+            </span>
+          </td>
+          {% endwith %}
+          {% else %}
+          <td colspan="4" style="padding:10px 14px;color:#94a3b8;font-size:.8rem;">{{ default_label }}</td>
+          {% endif %}
+          <td style="padding:10px 14px;">
+            <a href="/owner-platform/password-reset-policy/{{ row.company.id }}/"
+               style="padding:.3rem .7rem;border:1px solid #e5e7eb;border-radius:8px;font-size:.78rem;background:#fff;color:#334155;text-decoration:none;">
+              ویرایش
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="padding:16px;color:#94a3b8;text-align:center;">هیچ شرکتی ثبت نشده.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+.pr-payer-badge{display:inline-flex;align-items:center;border-radius:999px;padding:.2rem .55rem;font-size:.75rem;font-weight:700;}
+.pr-payer-company{background:#fee2e2;color:#991b1b;}
+.pr-payer-platform{background:#dcfce7;color:#166534;}
+</style>
+{% endblock %}

@@ -15,6 +15,7 @@ from . import views_payment_gateways
 from . import views_platform_sms
 from . import views_sms_billing
 from . import views_sms_template_requests
+from . import views_password_reset_policy
 
 app_name = "platform_core"
 
@@ -68,6 +69,10 @@ urlpatterns = [
     path("sms-template-requests/<int:request_id>/", views_sms_template_requests.request_detail, name="owner_sms_template_request_detail"),
     path("sms-template-requests/<int:request_id>/approve/", views_sms_template_requests.request_approve, name="owner_sms_template_request_approve"),
     path("sms-template-requests/<int:request_id>/reject/", views_sms_template_requests.request_reject, name="owner_sms_template_request_reject"),
+
+    # Password Reset SMS Billing Policy
+    path("password-reset-policy/", views_password_reset_policy.policy_list, name="password_reset_policy"),
+    path("password-reset-policy/<int:company_id>/", views_password_reset_policy.policy_edit, name="password_reset_policy_edit"),
 
     # Company Management
     path("companies/", views.company_list, name="companies"),

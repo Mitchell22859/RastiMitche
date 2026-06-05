@@ -185,6 +185,7 @@ TENANT_EXEMPT_PREFIXES = [
     "logout",
     "loginlogin",
     "owner-platform",
+    "password-reset",
     "features",
     "pricing",
     "about",

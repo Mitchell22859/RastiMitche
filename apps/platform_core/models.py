@@ -527,6 +527,7 @@ class PlatformSMSMessageTypeSetting(models.Model):
         SUBSCRIPTION_EXPIRING_ADMIN = "subscription_expiring_admin", "نزدیک شدن پایان اشتراک - مدیر شرکت"
         SUBSCRIPTION_EXPIRED_ADMIN = "subscription_expired_admin", "پایان اشتراک - مدیر شرکت"
         PLATFORM_PAYMENT_SUCCESS_ADMIN = "platform_payment_success_admin", "پرداخت موفق پلتفرمی - مدیر شرکت"
+        PASSWORD_RESET = "password_reset", "بازیابی رمز عبور"
 
     key = models.CharField(max_length=80, choices=MessageKey.choices, unique=True)
     title = models.CharField(max_length=200)
