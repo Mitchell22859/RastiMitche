@@ -1,36 +1,93 @@
 {% extends "base_dashboard.html" %}
 {% load smart_numbers jalali_tags %}
 
-{% block title %}دستمزد تکنسین‌ها{% endblock %}
+{% block title %}گزارش نیروهای خدماتی — {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 py-8" dir="rtl">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">گزارش مالی</h1>
-  {% include "tenants/financial_reports/_nav.html" %}
+<div class="page-header" dir="rtl">
+  <div>
+    <h1>وضعیت حساب نیروهای خدماتی</h1>
+    <p style="color:var(--color-slate-500);margin:.35rem 0 0;font-size:.9rem;">
+      خلاصه مانده حساب، اجرت ثبت‌شده و تسویه‌ها به تفکیک هر نیروی خدماتی
+    </p>
+  </div>
+</div>
 
-  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 border-b border-gray-200">
+{% include "tenants/financial_reports/_nav.html" %}
+
+{% if rows %}
+<div class="card" dir="rtl" style="padding:0;overflow:hidden;">
+  <div class="table-wrapper" style="border:none;border-radius:0;">
+    <table class="data-table">
+      <thead>
         <tr>
-          <th class="text-right px-4 py-3 font-medium text-gray-600">تکنسین</th>
-          <th class="text-left px-4 py-3 font-medium text-gray-600">بستانکار (ریال)</th>
-          <th class="text-left px-4 py-3 font-medium text-gray-600">بدهکار (ریال)</th>
-          <th class="text-left px-4 py-3 font-medium text-gray-600">مانده (ریال)</th>
+          <th>نیروی خدماتی</th>
+          <th style="text-align:left;direction:ltr;">بستانکاری کل (ریال)</th>
+          <th style="text-align:left;direction:ltr;">بدهکاری کل (ریال)</th>
+          <th style="text-align:left;direction:ltr;">مانده (ریال)</th>
+          <th>وضعیت حساب</th>
+          <th>عملیات</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-100">
+      <tbody>
         {% for row in rows %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3 font-medium text-gray-800">{{ row.technician.user.get_full_name|default:row.technician.user.username }}</td>
-          <td class="px-4 py-3 text-green-700" dir="ltr">{{ row.credit|smart_number }}</td>
-          <td class="px-4 py-3 text-red-600" dir="ltr">{{ row.debit|smart_number }}</td>
-          <td class="px-4 py-3 font-bold {% if row.balance > 0 %}text-orange-600{% else %}text-green-700{% endif %}" dir="ltr">{{ row.balance|smart_number }}</td>
+        <tr>
+          <td>
+            <div style="font-weight:var(--font-weight-semibold);color:var(--color-slate-800);">
+              {{ row.technician.user.get_full_name|default:row.technician.user.username }}
+            </div>
+            <div style="font-size:.75rem;color:var(--color-slate-400);">{{ row.technician.user.username }}</div>
+          </td>
+          <td style="text-align:left;direction:ltr;">
+            <span class="amount-positive">{{ row.credit|smart_number }}</span>
+          </td>
+          <td style="text-align:left;direction:ltr;">
+            <span class="amount-negative">{{ row.debit|smart_number }}</span>
+          </td>
+          <td style="text-align:left;direction:ltr;">
+            <span class="{% if row.balance > 0 %}amount-positive{% elif row.balance < 0 %}amount-negative{% else %}amount-neutral{% endif %}">
+              {{ row.balance|smart_number }}
+            </span>
+          </td>
+          <td>
+            {% if row.balance > 0 %}
+              <span class="badge badge-warning">شرکت بدهکار است</span>
+              <div style="font-size:.72rem;color:var(--color-warning-dark);margin-top:.3rem;">
+                شرکت باید {{ row.balance|smart_number }} ریال بپردازد.
+              </div>
+            {% elif row.balance < 0 %}
+              <span class="badge badge-danger">نیروی خدماتی بدهکار است</span>
+              <div style="font-size:.72rem;color:var(--color-danger-dark);margin-top:.3rem;">
+                {% widthratio row.balance 1 -1 %} ریال باید به شرکت پرداخت شود.
+              </div>
+            {% else %}
+              <span class="badge badge-success">تسویه</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex;flex-wrap:wrap;gap:.35rem;">
+              <a href="/{{ company.code }}/admin/technicians/{{ row.technician.id }}/ledger/"
+                 class="btn btn-sm btn-outline">دفتر حساب</a>
+              <a href="/{{ company.code }}/admin/technicians/{{ row.technician.id }}/ledger/settlement/"
+                 class="btn btn-sm btn-secondary">ثبت تسویه</a>
+            </div>
+          </td>
         </tr>
-        {% empty %}
-        <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">تکنسینی ثبت نشده</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+{% else %}
+<div class="card empty-state" dir="rtl">
+  <div class="empty-state-icon" style="font-size:2.5rem;">👷</div>
+  <p style="color:var(--color-slate-500);margin:.75rem 0 .35rem;font-size:.95rem;font-weight:600;">هیچ نیروی خدماتی ثبت نشده</p>
+  <p style="color:var(--color-slate-400);font-size:.85rem;">پس از ثبت و پرداخت فاکتور توسط نیروهای خدماتی، اطلاعات اینجا نمایش داده می‌شود.</p>
+</div>
+{% endif %}
+
 {% endblock %}

@@ -1,49 +1,127 @@
 {% extends "base_dashboard.html" %}
 {% load smart_numbers jalali_tags %}
 
-{% block title %}کارمزد پلتفرم{% endblock %}
+{% block title %}کارمزد پلتفرم — {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 py-8" dir="rtl">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">گزارش مالی</h1>
-  {% include "tenants/financial_reports/_nav.html" %}
-
-  <div class="bg-white border {% if balance > 0 %}border-red-300 bg-red-50{% else %}border-green-300 bg-green-50{% endif %} rounded-lg p-4 mb-6 flex justify-between items-center">
-    <span class="text-sm font-medium">مانده کارمزد پلتفرم</span>
-    <span class="text-lg font-bold {% if balance > 0 %}text-red-700{% else %}text-green-700{% endif %}" dir="ltr">{{ balance|smart_number }} ریال</span>
+<div class="page-header" dir="rtl">
+  <div>
+    <h1>گزارش کارمزد پلتفرم</h1>
+    <p style="color:var(--color-slate-500);margin:.35rem 0 0;font-size:.9rem;">
+      دفتر بدهی شرکت به پلتفرم بابت کارمزد فاکتورهای پرداخت‌شده
+    </p>
   </div>
+</div>
 
-  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 border-b border-gray-200">
+{% include "tenants/financial_reports/_nav.html" %}
+
+{# ── مانده کلی ── #}
+<div class="balance-insight {% if balance > 0 %}negative{% else %}zero{% endif %}" dir="rtl" style="margin-bottom:1.5rem;">
+  <div class="balance-insight-icon">
+    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+  </div>
+  <div class="balance-insight-body">
+    {% if balance > 0 %}
+      <div class="balance-insight-title">بدهی باز شرکت به پلتفرم</div>
+      <div class="balance-insight-amount">{{ balance|smart_number }} ریال</div>
+      <div class="balance-insight-detail">این مبلغ کارمزد تسویه‌نشده است. برای پرداخت با پشتیبانی پلتفرم تماس بگیرید.</div>
+    {% else %}
+      <div class="balance-insight-title">وضعیت کارمزد پلتفرم</div>
+      <div class="balance-insight-amount">تسویه‌شده</div>
+      <div class="balance-insight-detail">بدهی باز به پلتفرم وجود ندارد.</div>
+    {% endif %}
+  </div>
+</div>
+
+{# ── جدول ورودی‌ها ── #}
+{% if entries %}
+<div class="card" dir="rtl" style="padding:0;overflow:hidden;">
+  <div class="card-header" style="padding:1rem 1.25rem;">
+    <span class="card-header-title">دفتر کارمزد پلتفرم</span>
+    <span class="badge {% if balance > 0 %}badge-danger{% else %}badge-success{% endif %}">
+      مانده: {{ balance|smart_number }} ریال
+    </span>
+  </div>
+  <div class="table-wrapper" style="border:none;border-radius:0;">
+    <table class="data-table">
+      <thead>
         <tr>
-          <th class="text-right px-4 py-3 font-medium text-gray-600">نوع</th>
-          <th class="text-right px-4 py-3 font-medium text-gray-600">منبع</th>
-          <th class="text-left px-4 py-3 font-medium text-gray-600">مبلغ (ریال)</th>
-          <th class="text-left px-4 py-3 font-medium text-gray-600">مانده بعد (ریال)</th>
-          <th class="text-right px-4 py-3 font-medium text-gray-600">توضیح</th>
-          <th class="text-left px-4 py-3 font-medium text-gray-600">تاریخ</th>
+          <th>تاریخ</th>
+          <th>نوع رویداد</th>
+          <th>منشأ</th>
+          <th>فاکتور</th>
+          <th style="text-align:left;direction:ltr;">مبلغ (ریال)</th>
+          <th style="text-align:left;direction:ltr;">مانده پس از رویداد (ریال)</th>
+          <th>شرح</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-100">
+      <tbody>
         {% for entry in entries %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3">
-            <span class="px-2 py-0.5 rounded text-xs font-medium {% if entry.entry_type == 'debit' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
-              {{ entry.get_entry_type_display }}
+        <tr class="{% if entry.entry_type == 'debit' %}ledger-debit-row{% else %}ledger-credit-row{% endif %}">
+          <td style="white-space:nowrap;color:var(--color-slate-500);">{{ entry.created_at|jalali_date }}</td>
+          <td>
+            {% if entry.entry_type == 'debit' %}
+              <span class="badge badge-danger">بدهی به پلتفرم</span>
+            {% else %}
+              <span class="badge badge-success">تسویه‌شده</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="source-pill">{{ entry.get_source_display }}</span>
+          </td>
+          <td>
+            {% if entry.invoice %}
+              <a href="/{{ company.code }}/admin/invoices/{{ entry.invoice_id }}/"
+                 style="color:var(--color-brand-600);font-weight:600;">
+                {{ entry.invoice.invoice_number|default:entry.invoice_id }}
+              </a>
+            {% else %}
+              <span style="color:var(--color-slate-400);">—</span>
+            {% endif %}
+          </td>
+          <td style="text-align:left;direction:ltr;font-weight:700;">
+            {% if entry.entry_type == 'debit' %}
+              <span class="amount-negative">{{ entry.amount_rial|smart_number }}</span>
+            {% else %}
+              <span class="amount-positive">{{ entry.amount_rial|smart_number }}</span>
+            {% endif %}
+          </td>
+          <td style="text-align:left;direction:ltr;">
+            <span class="{% if entry.balance_after > 0 %}amount-negative{% elif entry.balance_after < 0 %}amount-positive{% else %}amount-neutral{% endif %}">
+              {{ entry.balance_after|smart_number }}
             </span>
           </td>
-          <td class="px-4 py-3 text-gray-600 text-xs">{{ entry.get_source_display }}</td>
-          <td class="px-4 py-3 font-medium" dir="ltr">{{ entry.amount_rial|smart_number }}</td>
-          <td class="px-4 py-3 text-gray-500" dir="ltr">{{ entry.balance_after|smart_number }}</td>
-          <td class="px-4 py-3 text-gray-600 text-xs">{{ entry.description|default:"—" }}</td>
-          <td class="px-4 py-3 text-gray-500">{{ entry.created_at|jalali_date }}</td>
+          <td style="color:var(--color-slate-500);font-size:.85rem;">{{ entry.description|default:"—" }}</td>
         </tr>
-        {% empty %}
-        <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">هیچ رکورد کارمزدی ثبت نشده</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+<div class="alert alert-info" dir="rtl" style="font-size:.82rem;margin-top:.5rem;">
+  <div class="alert-body">
+    <strong>راهنما:</strong>
+    ردیف‌های «بدهی به پلتفرم» یعنی کارمزد فاکتورهای پرداخت‌شده به حساب بدهی شرکت اضافه شده.
+    ردیف‌های «تسویه‌شده» یعنی شرکت کارمزد خود را پرداخت کرده و از بدهی کسر شده است.
+    مانده مثبت نشان‌دهنده بدهی باز شرکت به پلتفرم است.
+  </div>
+</div>
+
+{% else %}
+<div class="card empty-state" dir="rtl">
+  <div class="empty-state-icon" style="font-size:2.5rem;">💰</div>
+  <p style="color:var(--color-slate-500);margin:.75rem 0 .35rem;font-size:.95rem;font-weight:600;">هنوز کارمزدی برای پلتفرم ثبت نشده</p>
+  <p style="color:var(--color-slate-400);font-size:.85rem;">
+    کارمزد پلتفرم پس از پرداخت اولین فاکتور (در صورت تعریف درصد کارمزد در تنظیمات مالی) اینجا نمایش داده می‌شود.
+  </p>
+</div>
+{% endif %}
+
 {% endblock %}

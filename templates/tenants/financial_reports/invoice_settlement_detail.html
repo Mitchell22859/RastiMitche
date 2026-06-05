@@ -1,40 +1,98 @@
 {% extends "base_dashboard.html" %}
 {% load smart_numbers jalali_tags %}
 
-{% block title %}تسویه فاکتورها{% endblock %}
+{% block title %}تسویه فاکتورها — {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 py-8" dir="rtl">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">گزارش مالی</h1>
-  {% include "tenants/financial_reports/_nav.html" %}
+<div class="page-header" dir="rtl">
+  <div>
+    <h1>گزارش تسویه فاکتورها</h1>
+    <p style="color:var(--color-slate-500);margin:.35rem 0 0;font-size:.9rem;">
+      جزئیات تسویه مالی تمام فاکتورهای پرداخت‌شده — آخرین ۲۰۰ فاکتور
+    </p>
+  </div>
+</div>
 
-  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 border-b border-gray-200">
+{% include "tenants/financial_reports/_nav.html" %}
+
+{% if invoices %}
+<div class="card" dir="rtl" style="padding:0;overflow:hidden;">
+  <div class="table-wrapper" style="border:none;border-radius:0;">
+    <table class="data-table">
+      <thead>
         <tr>
-          <th class="text-right px-4 py-3 font-medium text-gray-600">شماره فاکتور</th>
-          <th class="text-right px-4 py-3 font-medium text-gray-600">تکنسین</th>
-          <th class="text-left px-4 py-3 font-medium text-gray-600">مبلغ کل (ریال)</th>
-          <th class="text-left px-4 py-3 font-medium text-gray-600">دستمزد تکنسین (ریال)</th>
-          <th class="text-left px-4 py-3 font-medium text-gray-600">تاریخ پرداخت</th>
+          <th>فاکتور</th>
+          <th>مشتری</th>
+          <th>نیروی خدماتی</th>
+          <th>تاریخ پرداخت</th>
+          <th style="text-align:left;direction:ltr;">مبلغ کل (ریال)</th>
+          <th style="text-align:left;direction:ltr;">سهم نیروی خدماتی (ریال)</th>
+          <th style="text-align:left;direction:ltr;">سهم شرکت (ریال)</th>
+          <th>روش دریافت</th>
+          <th>عملیات</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-100">
+      <tbody>
         {% for inv in invoices %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3">
-            <a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/" class="text-blue-600 hover:underline">{{ inv.invoice_number }}</a>
+        <tr>
+          <td>
+            <a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/"
+               style="color:var(--color-brand-600);font-weight:var(--font-weight-semibold);">
+              {{ inv.invoice_number }}
+            </a>
           </td>
-          <td class="px-4 py-3 text-gray-700">{{ inv.order.technician.user.get_full_name|default:"—" }}</td>
-          <td class="px-4 py-3" dir="ltr">{{ inv.total_amount|smart_number }}</td>
-          <td class="px-4 py-3 text-purple-700" dir="ltr">{{ inv.settled_technician_wage_amount|smart_number|default:"—" }}</td>
-          <td class="px-4 py-3 text-gray-500">{{ inv.paid_at|jalali_date|default:"—" }}</td>
+          <td style="color:var(--color-slate-700);">{{ inv.display_customer_name|default:"—" }}</td>
+          <td style="color:var(--color-slate-700);">
+            {% if inv.order and inv.order.technician %}
+              <a href="/{{ company.code }}/admin/technicians/{{ inv.order.technician.id }}/ledger/"
+                 style="color:var(--color-slate-700);">
+                {{ inv.order.technician.user.get_full_name|default:inv.order.technician.user.username }}
+              </a>
+            {% else %}
+              <span style="color:var(--color-slate-400);">—</span>
+            {% endif %}
+          </td>
+          <td style="white-space:nowrap;color:var(--color-slate-500);">{{ inv.paid_at|jalali_date|default:"—" }}</td>
+          <td style="text-align:left;direction:ltr;font-weight:var(--font-weight-semibold);">
+            {{ inv.total_amount|smart_number }}
+          </td>
+          <td style="text-align:left;direction:ltr;color:#7c3aed;font-weight:var(--font-weight-semibold);">
+            {{ inv.settled_technician_wage|default:inv.settled_technician_gross_share|smart_number|default:"—" }}
+          </td>
+          <td style="text-align:left;direction:ltr;color:var(--color-success);font-weight:var(--font-weight-semibold);">
+            {{ inv.settled_company_share|smart_number|default:"—" }}
+          </td>
+          <td>
+            {% if inv.settled_payment_method == "cash" %}
+              <span class="badge badge-info">نقدی</span>
+            {% elif inv.settled_payment_method == "online" or inv.settled_payment_method == "gateway" %}
+              <span class="badge badge-success">آنلاین</span>
+            {% elif inv.settled_payment_method %}
+              <span class="badge badge-neutral">{{ inv.settled_payment_method }}</span>
+            {% else %}
+              <span class="badge badge-neutral">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/"
+               class="btn btn-sm btn-outline">مشاهده فاکتور</a>
+          </td>
         </tr>
-        {% empty %}
-        <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">هیچ فاکتور پرداخت‌شده‌ای یافت نشد</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+{% else %}
+<div class="card empty-state" dir="rtl">
+  <div class="empty-state-icon" style="font-size:2.5rem;">📄</div>
+  <p style="color:var(--color-slate-500);margin:.75rem 0 .35rem;font-size:.95rem;font-weight:600;">هنوز هیچ فاکتور پرداخت‌شده‌ای وجود ندارد</p>
+  <p style="color:var(--color-slate-400);font-size:.85rem;">پس از ثبت پرداخت اولین فاکتور، گزارش تسویه اینجا نمایش داده می‌شود.</p>
+</div>
+{% endif %}
+
 {% endblock %}

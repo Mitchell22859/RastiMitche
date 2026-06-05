@@ -1,70 +1,184 @@
 {% extends "base_dashboard.html" %}
 {% load smart_numbers jalali_tags %}
 
-{% block title %}گزارش حسابرسی{% endblock %}
+{% block title %}حسابرسی مالی — {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 py-8" dir="rtl">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">گزارش مالی</h1>
-  {% include "tenants/financial_reports/_nav.html" %}
-
-  {% if missing_tech_ledger_count == 0 and missing_platform_fee_count == 0 %}
-  <div class="bg-green-50 border border-green-300 rounded-lg p-4 text-green-800 text-sm">
-    همه فاکتورهای پرداخت‌شده دارای ورودی دفترکل هستند.
+<div class="page-header" dir="rtl">
+  <div>
+    <h1>گزارش حسابرسی مالی</h1>
+    <p style="color:var(--color-slate-500);margin:.35rem 0 0;font-size:.9rem;">
+      شناسایی خودکار مغایرت‌ها و موارد نیازمند بررسی در دفاتر مالی
+    </p>
   </div>
-  {% endif %}
-
-  {% if missing_tech_ledger_count > 0 %}
-  <div class="bg-white border border-red-200 rounded-lg overflow-hidden mb-6">
-    <div class="bg-red-50 border-b border-red-200 px-4 py-3">
-      <h2 class="font-semibold text-red-800">فاکتورهای فاقد ورودی دفترکل تکنسین ({{ missing_tech_ledger_count }})</h2>
-    </div>
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 border-b border-gray-200">
-        <tr>
-          <th class="text-right px-4 py-2 font-medium text-gray-600">شماره فاکتور</th>
-          <th class="text-left px-4 py-2 font-medium text-gray-600">مبلغ (ریال)</th>
-          <th class="text-left px-4 py-2 font-medium text-gray-600">تاریخ پرداخت</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100">
-        {% for inv in missing_tech_ledger %}
-        <tr>
-          <td class="px-4 py-2"><a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/" class="text-blue-600 hover:underline">{{ inv.invoice_number }}</a></td>
-          <td class="px-4 py-2" dir="ltr">{{ inv.total_amount|smart_number }}</td>
-          <td class="px-4 py-2 text-gray-500">{{ inv.paid_at|jalali_date|default:"—" }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endif %}
-
-  {% if missing_platform_fee_count > 0 %}
-  <div class="bg-white border border-orange-200 rounded-lg overflow-hidden">
-    <div class="bg-orange-50 border-b border-orange-200 px-4 py-3">
-      <h2 class="font-semibold text-orange-800">فاکتورهای فاقد ورودی کارمزد پلتفرم ({{ missing_platform_fee_count }})</h2>
-    </div>
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 border-b border-gray-200">
-        <tr>
-          <th class="text-right px-4 py-2 font-medium text-gray-600">شماره فاکتور</th>
-          <th class="text-left px-4 py-2 font-medium text-gray-600">مبلغ (ریال)</th>
-          <th class="text-left px-4 py-2 font-medium text-gray-600">تاریخ پرداخت</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-100">
-        {% for inv in missing_platform_fee %}
-        <tr>
-          <td class="px-4 py-2"><a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/" class="text-blue-600 hover:underline">{{ inv.invoice_number }}</a></td>
-          <td class="px-4 py-2" dir="ltr">{{ inv.total_amount|smart_number }}</td>
-          <td class="px-4 py-2 text-gray-500">{{ inv.paid_at|jalali_date|default:"—" }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endif %}
-
 </div>
+
+{% include "tenants/financial_reports/_nav.html" %}
+
+{# ── خلاصه وضعیت ── #}
+{% if missing_tech_ledger_count == 0 and missing_platform_fee_count == 0 %}
+<div class="balance-insight zero" dir="rtl" style="margin-bottom:1.5rem;">
+  <div class="balance-insight-icon">
+    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+  </div>
+  <div class="balance-insight-body">
+    <div class="balance-insight-title">دفاتر مالی سالم هستند</div>
+    <div class="balance-insight-detail">هیچ مغایرت شناسایی‌شده‌ای وجود ندارد. تمام فاکتورهای پرداخت‌شده دارای ورودی دفترکل هستند.</div>
+  </div>
+</div>
+
+{% else %}
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;" dir="rtl">
+  <div class="stat-card">
+    <div class="stat-card-icon {% if missing_tech_ledger_count > 0 %}red{% else %}green{% endif %}">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+    <span class="stat-card-value" style="color:{% if missing_tech_ledger_count > 0 %}var(--color-danger){% else %}var(--color-success){% endif %};">{{ missing_tech_ledger_count }}</span>
+    <div class="stat-card-label">فاکتور بدون دفتر حساب نیروی خدماتی</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card-icon {% if missing_platform_fee_count > 0 %}amber{% else %}green{% endif %}">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+    <span class="stat-card-value" style="color:{% if missing_platform_fee_count > 0 %}var(--color-warning){% else %}var(--color-success){% endif %};">{{ missing_platform_fee_count }}</span>
+    <div class="stat-card-label">فاکتور بدون ثبت کارمزد پلتفرم</div>
+  </div>
+</div>
+{% endif %}
+
+{# ── مغایرت ۱: دفتر حساب نیروی خدماتی ── #}
+{% if missing_tech_ledger_count > 0 %}
+<div class="audit-item critical" dir="rtl" style="margin-bottom:1rem;">
+  <div class="audit-item-header">
+    <div style="display:flex;align-items:center;gap:.75rem;">
+      <span class="badge severity-critical">بحرانی</span>
+      <strong style="color:var(--color-danger-dark);">فاکتور پرداخت‌شده بدون ورودی دفتر حساب نیروی خدماتی</strong>
+    </div>
+    <span class="badge badge-danger">{{ missing_tech_ledger_count }} مورد</span>
+  </div>
+  <div class="audit-item-body">
+    <div class="audit-item-meta">
+      <div>
+        <div class="audit-item-meta-label">مشکل چیست؟</div>
+        <div style="color:var(--color-slate-700);font-size:.85rem;">این فاکتورها به وضعیت پرداخت‌شده رسیده‌اند اما اجرت نیروی خدماتی در دفترکل ثبت نشده است. ممکن است به دلیل خطا در پردازش رخ داده باشد.</div>
+      </div>
+      <div>
+        <div class="audit-item-meta-label">اقدام پیشنهادی</div>
+        <div style="color:var(--color-slate-700);font-size:.85rem;">دستور <code style="background:var(--color-slate-100);padding:.1rem .3rem;border-radius:.25rem;font-size:.8rem;">backfill_financial_ledgers</code> را اجرا کنید یا با پشتیبانی فنی تماس بگیرید.</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto;margin-top:1rem;">
+      <table class="data-table" style="font-size:.82rem;">
+        <thead>
+          <tr>
+            <th>شماره فاکتور</th>
+            <th style="text-align:left;direction:ltr;">مبلغ (ریال)</th>
+            <th>تاریخ پرداخت</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in missing_tech_ledger %}
+          <tr>
+            <td>
+              <a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/"
+                 style="color:var(--color-brand-600);font-weight:600;">{{ inv.invoice_number }}</a>
+            </td>
+            <td style="text-align:left;direction:ltr;font-weight:600;">{{ inv.total_amount|smart_number }}</td>
+            <td style="color:var(--color-slate-500);">{{ inv.paid_at|jalali_date|default:"—" }}</td>
+            <td>
+              <a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/" class="btn btn-sm btn-outline">مشاهده</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ── مغایرت ۲: کارمزد پلتفرم ── #}
+{% if missing_platform_fee_count > 0 %}
+<div class="audit-item warning" dir="rtl" style="margin-bottom:1rem;">
+  <div class="audit-item-header">
+    <div style="display:flex;align-items:center;gap:.75rem;">
+      <span class="badge severity-warning">هشدار</span>
+      <strong style="color:var(--color-warning-dark);">فاکتور پرداخت‌شده بدون ثبت کارمزد پلتفرم</strong>
+    </div>
+    <span class="badge badge-warning">{{ missing_platform_fee_count }} مورد</span>
+  </div>
+  <div class="audit-item-body">
+    <div class="audit-item-meta">
+      <div>
+        <div class="audit-item-meta-label">مشکل چیست؟</div>
+        <div style="color:var(--color-slate-700);font-size:.85rem;">این فاکتورها پرداخت‌شده هستند اما کارمزد پلتفرم در دفتر بدهی ثبت نشده است. این فاکتورها ممکن است شامل کارمزد نشوند (درصد صفر) یا در به‌روزرسانی قدیمی ثبت شده باشند.</div>
+      </div>
+      <div>
+        <div class="audit-item-meta-label">اقدام پیشنهادی</div>
+        <div style="color:var(--color-slate-700);font-size:.85rem;">با گزینه <code style="background:var(--color-slate-100);padding:.1rem .3rem;border-radius:.25rem;font-size:.8rem;">--fix-platform-fees</code> دستور backfill را اجرا کنید تا کارمزدهای گمشده ثبت شوند.</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto;margin-top:1rem;">
+      <table class="data-table" style="font-size:.82rem;">
+        <thead>
+          <tr>
+            <th>شماره فاکتور</th>
+            <th style="text-align:left;direction:ltr;">مبلغ (ریال)</th>
+            <th>تاریخ پرداخت</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in missing_platform_fee %}
+          <tr>
+            <td>
+              <a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/"
+                 style="color:var(--color-brand-600);font-weight:600;">{{ inv.invoice_number }}</a>
+            </td>
+            <td style="text-align:left;direction:ltr;font-weight:600;">{{ inv.total_amount|smart_number }}</td>
+            <td style="color:var(--color-slate-500);">{{ inv.paid_at|jalali_date|default:"—" }}</td>
+            <td>
+              <a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/" class="btn btn-sm btn-outline">مشاهده</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ── وضعیت سالم ── #}
+{% if missing_tech_ledger_count == 0 %}
+<div class="alert alert-success" dir="rtl">
+  <div class="alert-body">دفتر حساب نیروهای خدماتی: تمام فاکتورهای پرداخت‌شده دارای ورودی دفترکل هستند.</div>
+</div>
+{% endif %}
+
+{% if missing_platform_fee_count == 0 %}
+<div class="alert alert-success" dir="rtl">
+  <div class="alert-body">کارمزد پلتفرم: هیچ مغایرتی در ثبت کارمزد شناسایی نشد.</div>
+</div>
+{% endif %}
+
+<div class="alert alert-info" dir="rtl" style="font-size:.82rem;margin-top:.5rem;">
+  <div class="alert-body">
+    <strong>توجه:</strong>
+    این گزارش به‌صورت خودکار مغایرت‌های رایج را شناسایی می‌کند.
+    برای رفع مغایرت‌ها، دستور مدیریتی <code style="background:rgba(0,0,0,.08);padding:.1rem .3rem;border-radius:.25rem;">backfill_financial_ledgers</code>
+    با گزینه <code style="background:rgba(0,0,0,.08);padding:.1rem .3rem;border-radius:.25rem;">--dry-run</code> اجرا کنید.
+  </div>
+</div>
+
 {% endblock %}

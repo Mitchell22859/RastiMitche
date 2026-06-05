@@ -1,119 +1,144 @@
 {% extends "base_dashboard.html" %}
 {% load smart_numbers jalali_tags %}
-{% block title %}دفتر حساب تکنسین - {{ technician.user.get_full_name }} - {{ company.name }}{% endblock %}
+{% block title %}دفتر حساب — {{ technician.user.get_full_name|default:technician.user.username }} — {{ company.name }}{% endblock %}
 {% block sidebar_brand %}{{ company.name }}{% endblock %}
 {% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
 {% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
-{% block content %}
-<style>
-.ledger-balance-card{background:#fff;border:1px solid #e2e8f0;border-radius:1rem;padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
-.ledger-balance-num{font-size:1.6rem;font-weight:900}
-.ledger-balance-num.positive{color:#16a34a}
-.ledger-balance-num.negative{color:#dc2626}
-.ledger-balance-num.zero{color:#64748b}
-.ledger-lbl{font-size:.8rem;color:#64748b;margin-top:.2rem}
-.ledger-source-badge{display:inline-block;padding:.15rem .5rem;border-radius:.4rem;font-size:.72rem;font-weight:700;background:#f1f5f9;color:#475569}
-.entry-credit td{background:#f0fdf4}
-.entry-debit td{background:#fff7f7}
-</style>
 
-<div class="page-header">
+{% block content %}
+<div class="page-header" dir="rtl">
   <div>
     <h1>دفتر حساب: {{ technician.user.get_full_name|default:technician.user.username }}</h1>
-    <p style="color:#64748b;margin:.35rem 0 0;">صورت‌حساب مالی تکنسین</p>
+    <p style="color:var(--color-slate-500);margin:.35rem 0 0;font-size:.9rem;">صورت‌حساب مالی نیروی خدماتی</p>
   </div>
-  <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
     <a href="/{{ company.code }}/admin/technicians/{{ technician.id }}/ledger/settlement/" class="btn btn-primary">ثبت تسویه دستی</a>
-    <a href="/{{ company.code }}/admin/technicians/{{ technician.id }}/edit/" class="btn btn-outline">ویرایش تکنسین</a>
-    <a href="/{{ company.code }}/admin/technicians/" class="btn btn-outline">بازگشت به لیست</a>
+    <a href="/{{ company.code }}/admin/technicians/{{ technician.id }}/edit/" class="btn btn-outline">ویرایش پروفایل</a>
+    <a href="/{{ company.code }}/admin/financial-reports/technicians/" class="btn btn-ghost btn-sm">← بازگشت</a>
   </div>
 </div>
 
 {% if messages %}
   {% for msg in messages %}
-  <div class="card" style="background:{% if msg.tags == 'success' %}#f0fdf4{% elif msg.tags == 'warning' %}#fffbeb{% else %}#fef2f2{% endif %};border-color:{% if msg.tags == 'success' %}#bbf7d0{% elif msg.tags == 'warning' %}#fde68a{% else %}#fecaca{% endif %};margin-bottom:.75rem;padding:.75rem 1rem;color:#1e293b;">
+  <div class="alert {% if msg.tags == 'success' %}alert-success{% elif msg.tags == 'warning' %}alert-warning{% else %}alert-error{% endif %}" dir="rtl">
     {{ msg }}
   </div>
   {% endfor %}
 {% endif %}
 
-<div class="ledger-balance-card">
-  <div>
-    <div class="ledger-balance-num {% if balance > 0 %}positive{% elif balance < 0 %}negative{% else %}zero{% endif %}">
-      {{ balance|smart_number }} ریال
+{# ── کارت مانده حساب ── #}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;" dir="rtl">
+
+  <div class="balance-insight {% if balance > 0 %}positive{% elif balance < 0 %}negative{% else %}zero{% endif %}">
+    <div class="balance-insight-icon">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+      </svg>
     </div>
-    <div class="ledger-lbl">
-      {% if balance > 0 %}
-        شرکت به این تکنسین بدهکار است.
-      {% elif balance < 0 %}
-        این تکنسین به شرکت بدهکار است.
-      {% else %}
-        حساب تکنسین تسویه است.
-      {% endif %}
+    <div class="balance-insight-body">
+      <div class="balance-insight-title">مانده حساب</div>
+      <div class="balance-insight-amount">{{ balance|smart_number }} ریال</div>
+      <div class="balance-insight-detail">
+        {% if balance > 0 %}
+          شرکت باید {{ balance|smart_number }} ریال به این نیروی خدماتی پرداخت کند.
+        {% elif balance < 0 %}
+          این نیروی خدماتی باید {% widthratio balance 1 -1 %} ریال به شرکت پرداخت کند.
+        {% else %}
+          حساب این نیروی خدماتی تسویه است.
+        {% endif %}
+      </div>
     </div>
   </div>
-  <div style="color:#94a3b8;font-size:.8rem;max-width:380px;">
-    موجودی مثبت یعنی شرکت هنوز اجرت تکنسین را پرداخت نکرده.<br>
-    موجودی منفی یعنی تکنسین وجهی را که از مشتری گرفته هنوز به شرکت تحویل نداده.
+
+  <div class="card" style="margin:0;display:flex;flex-direction:column;justify-content:center;">
+    <div style="color:var(--color-slate-500);font-size:.75rem;margin-bottom:.5rem;">راهنمای دفتر حساب</div>
+    <ul style="margin:0;padding:0 1.25rem;color:var(--color-slate-600);font-size:.82rem;line-height:2;">
+      <li><span style="color:var(--color-success);font-weight:700;">بستانکار:</span> اجرت ثبت‌شده یا پرداخت دستی شرکت به نیرو</li>
+      <li><span style="color:var(--color-danger);font-weight:700;">بدهکار:</span> وجه نقد دریافتی از مشتری یا تسویه انجام‌شده</li>
+      <li>موجودی مثبت = شرکت بدهکار است</li>
+      <li>موجودی منفی = نیروی خدماتی بدهکار است</li>
+    </ul>
+  </div>
+
+</div>
+
+{# ── جدول دفتر حساب ── #}
+{% if entries %}
+<div class="card" dir="rtl" style="padding:0;overflow:hidden;">
+  <div class="card-header" style="padding:1rem 1.25rem;">
+    <span class="card-header-title">رویدادهای مالی</span>
+    <span class="badge badge-neutral">{{ entries|length }} رویداد</span>
+  </div>
+  <div class="table-wrapper" style="border:none;border-radius:0;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>تاریخ</th>
+          <th>نوع رویداد</th>
+          <th>منشأ</th>
+          <th>فاکتور / سفارش</th>
+          <th style="text-align:left;direction:ltr;">بستانکار (ریال)</th>
+          <th style="text-align:left;direction:ltr;">بدهکار (ریال)</th>
+          <th style="text-align:left;direction:ltr;">مانده پس از رویداد (ریال)</th>
+          <th>شرح</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+        <tr class="{% if entry.entry_type == 'credit' %}ledger-credit-row{% else %}ledger-debit-row{% endif %}">
+          <td style="white-space:nowrap;color:var(--color-slate-500);font-size:.82rem;">{{ entry.created_at|jalali_datetime }}</td>
+          <td>
+            {% if entry.entry_type == 'credit' %}
+              <span class="badge badge-success">بستانکار</span>
+            {% else %}
+              <span class="badge badge-danger">بدهکار</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="source-pill">{{ entry.get_source_display }}</span>
+          </td>
+          <td>
+            {% if entry.invoice %}
+              <a href="/{{ company.code }}/admin/invoices/{{ entry.invoice.id }}/"
+                 style="color:var(--color-brand-600);font-weight:600;">{{ entry.invoice.invoice_number }}</a>
+            {% elif entry.order %}
+              <a href="/{{ company.code }}/admin/orders/{{ entry.order.id }}/"
+                 style="color:var(--color-brand-600);">#{{ entry.order.id }}</a>
+            {% else %}
+              <span style="color:var(--color-slate-400);">—</span>
+            {% endif %}
+          </td>
+          <td style="text-align:left;direction:ltr;">
+            {% if entry.entry_type == 'credit' %}
+              <span class="amount-positive">+{{ entry.amount_rial|smart_number }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td style="text-align:left;direction:ltr;">
+            {% if entry.entry_type == 'debit' %}
+              <span class="amount-negative">-{{ entry.amount_rial|smart_number }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td style="text-align:left;direction:ltr;">
+            <span class="{% if entry.balance_after > 0 %}amount-positive{% elif entry.balance_after < 0 %}amount-negative{% else %}amount-neutral{% endif %}">
+              {{ entry.balance_after|smart_number }}
+            </span>
+          </td>
+          <td style="color:var(--color-slate-500);font-size:.8rem;max-width:180px;">{{ entry.description|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 
-{% if entries %}
-<div class="card" style="overflow-x:auto;">
-  <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
-    <thead>
-      <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;">
-        <th style="padding:.6rem .75rem;text-align:right;font-weight:800;">تاریخ</th>
-        <th style="padding:.6rem .75rem;text-align:right;font-weight:800;">نوع</th>
-        <th style="padding:.6rem .75rem;text-align:right;font-weight:800;">منشأ</th>
-        <th style="padding:.6rem .75rem;text-align:right;font-weight:800;">فاکتور/سفارش</th>
-        <th style="padding:.6rem .75rem;text-align:left;font-weight:800;">مبلغ (ریال)</th>
-        <th style="padding:.6rem .75rem;text-align:left;font-weight:800;">موجودی بعد</th>
-        <th style="padding:.6rem .75rem;text-align:right;font-weight:800;">توضیح</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for entry in entries %}
-      <tr class="{% if entry.entry_type == 'credit' %}entry-credit{% else %}entry-debit{% endif %}" style="border-bottom:1px solid #f1f5f9;">
-        <td style="padding:.55rem .75rem;white-space:nowrap;">{{ entry.created_at|jalali_datetime }}</td>
-        <td style="padding:.55rem .75rem;">
-          {% if entry.entry_type == 'credit' %}
-            <span style="color:#16a34a;font-weight:700;">بستانکار</span>
-          {% else %}
-            <span style="color:#dc2626;font-weight:700;">بدهکار</span>
-          {% endif %}
-        </td>
-        <td style="padding:.55rem .75rem;">
-          <span class="ledger-source-badge">{{ entry.get_source_display }}</span>
-        </td>
-        <td style="padding:.55rem .75rem;">
-          {% if entry.invoice %}
-            <a href="/{{ company.code }}/admin/invoices/{{ entry.invoice.id }}/" style="color:#2563eb;">{{ entry.invoice.invoice_number }}</a>
-          {% elif entry.order %}
-            <a href="/{{ company.code }}/admin/orders/{{ entry.order.id }}/" style="color:#2563eb;">#{{ entry.order.id }}</a>
-          {% else %}
-            —
-          {% endif %}
-        </td>
-        <td style="padding:.55rem .75rem;text-align:left;direction:ltr;font-weight:700;
-                   color:{% if entry.entry_type == 'credit' %}#16a34a{% else %}#dc2626{% endif %}">
-          {% if entry.entry_type == 'credit' %}+{% else %}-{% endif %}{{ entry.amount_rial|smart_number }}
-        </td>
-        <td style="padding:.55rem .75rem;text-align:left;direction:ltr;
-                   color:{% if entry.balance_after >= 0 %}#16a34a{% else %}#dc2626{% endif %}">
-          {{ entry.balance_after|smart_number }}
-        </td>
-        <td style="padding:.55rem .75rem;color:#475569;font-size:.8rem;">{{ entry.description|default:"—" }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
 {% else %}
-<div class="card" style="text-align:center;padding:3rem;color:#94a3b8;">
-  <div style="font-size:2rem;">📋</div>
-  <div style="margin-top:.5rem;">هیچ تراکنش مالی ثبت نشده است.</div>
-  <div style="font-size:.8rem;margin-top:.35rem;">پس از ثبت پرداخت فاکتور مرتبط با این تکنسین، اطلاعات اینجا نمایش داده می‌شود.</div>
+<div class="card empty-state" dir="rtl">
+  <div style="font-size:2.5rem;">📋</div>
+  <p style="color:var(--color-slate-500);margin:.75rem 0 .35rem;font-size:.95rem;font-weight:600;">هیچ رویداد مالی ثبت نشده</p>
+  <p style="color:var(--color-slate-400);font-size:.85rem;">پس از پرداخت اولین فاکتور مرتبط با این نیروی خدماتی، دفتر حساب اینجا نمایش داده می‌شود.</p>
+  <div style="margin-top:1rem;">
+    <a href="/{{ company.code }}/admin/technicians/{{ technician.id }}/ledger/settlement/" class="btn btn-primary btn-sm">ثبت تسویه دستی</a>
+  </div>
 </div>
 {% endif %}
 

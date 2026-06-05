@@ -1,45 +1,141 @@
 {% extends "base_dashboard.html" %}
 {% load smart_numbers jalali_tags %}
 
-{% block title %}کنترل نقدی{% endblock %}
+{% block title %}کنترل وجه نقد — {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 py-8" dir="rtl">
-  <h1 class="text-2xl font-bold text-gray-800 mb-6">گزارش مالی</h1>
-  {% include "tenants/financial_reports/_nav.html" %}
+<div class="page-header" dir="rtl">
+  <div>
+    <h1>کنترل وجه نقد</h1>
+    <p style="color:var(--color-slate-500);margin:.35rem 0 0;font-size:.9rem;">
+      وجوهی که نیروهای خدماتی مستقیماً از مشتریان دریافت کرده‌اند
+    </p>
+  </div>
+</div>
 
-  <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 flex justify-between items-center">
-    <span class="text-sm font-medium text-orange-800">مجموع نقدی دریافتی توسط تکنسین‌ها (بدهی به شرکت)</span>
-    <span class="text-lg font-bold text-orange-700" dir="ltr">{{ tech_cash_total|smart_number }} ریال</span>
+{% include "tenants/financial_reports/_nav.html" %}
+
+{# ── کارت خلاصه ── #}
+<div class="stat-grid stat-grid-3" dir="rtl" style="margin-bottom:1.5rem;">
+  <div class="stat-card">
+    <div class="stat-card-icon red">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+      </svg>
+    </div>
+    <span class="stat-card-value" style="color:var(--color-danger);">{{ tech_cash_total|smart_number }}</span>
+    <div class="stat-card-label">کل وجه دریافتی توسط نیروها (ریال)</div>
+    <div style="font-size:.75rem;color:var(--color-slate-400);margin-top:.35rem;">
+      این مبلغ باید به شرکت تحویل داده شود یا از حساب کسر شود.
+    </div>
   </div>
 
-  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-    <table class="w-full text-sm">
-      <thead class="bg-gray-50 border-b border-gray-200">
+  <div class="stat-card">
+    <div class="stat-card-icon amber">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+    <span class="stat-card-value" style="color:var(--color-warning);">{{ tech_cash_entries|length }}</span>
+    <div class="stat-card-label">تعداد رویداد دریافت نقدی</div>
+    <div style="font-size:.75rem;color:var(--color-slate-400);margin-top:.35rem;">آخرین ۲۰۰ رویداد</div>
+  </div>
+
+  <div class="balance-insight {% if tech_cash_total > 0 %}warning{% else %}zero{% endif %}" style="margin:0;align-items:center;">
+    <div class="balance-insight-icon">
+      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+    <div class="balance-insight-body">
+      {% if tech_cash_total > 0 %}
+        <div class="balance-insight-title">نیاز به پیگیری</div>
+        <div style="font-size:.82rem;margin-top:.25rem;">
+          نیروهای خدماتی جمعاً <strong>{{ tech_cash_total|smart_number }} ریال</strong> از مشتریان دریافت کرده‌اند که باید در حساب‌شان لحاظ شود.
+        </div>
+      {% else %}
+        <div class="balance-insight-title">وضعیت: مناسب</div>
+        <div style="font-size:.82rem;margin-top:.25rem;">هیچ دریافت نقدی تسویه‌نشده‌ای وجود ندارد.</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{# ── جدول رویدادها ── #}
+{% if tech_cash_entries %}
+<div class="card" dir="rtl" style="padding:0;overflow:hidden;">
+  <div class="card-header" style="padding:1rem 1.25rem;">
+    <span class="card-header-title">رویدادهای دریافت نقدی توسط نیروهای خدماتی</span>
+    <span class="badge badge-warning">{{ tech_cash_entries|length }} مورد</span>
+  </div>
+  <div class="table-wrapper" style="border:none;border-radius:0;">
+    <table class="data-table">
+      <thead>
         <tr>
-          <th class="text-right px-4 py-3 font-medium text-gray-600">تکنسین</th>
-          <th class="text-right px-4 py-3 font-medium text-gray-600">فاکتور</th>
-          <th class="text-left px-4 py-3 font-medium text-gray-600">مبلغ (ریال)</th>
-          <th class="text-left px-4 py-3 font-medium text-gray-600">تاریخ</th>
+          <th>تاریخ</th>
+          <th>فاکتور</th>
+          <th>نیروی خدماتی</th>
+          <th style="text-align:left;direction:ltr;">مبلغ دریافتی (ریال)</th>
+          <th>شرح</th>
+          <th>عملیات</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-100">
+      <tbody>
         {% for entry in tech_cash_entries %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3 text-gray-800">{{ entry.technician.user.get_full_name|default:entry.technician.user.username }}</td>
-          <td class="px-4 py-3">
+        <tr>
+          <td style="white-space:nowrap;color:var(--color-slate-500);">{{ entry.created_at|jalali_date }}</td>
+          <td>
             {% if entry.invoice %}
-            <a href="/{{ company.code }}/admin/invoices/{{ entry.invoice_id }}/" class="text-blue-600 hover:underline">{{ entry.invoice.invoice_number }}</a>
-            {% else %}—{% endif %}
+              <a href="/{{ company.code }}/admin/invoices/{{ entry.invoice_id }}/"
+                 style="color:var(--color-brand-600);font-weight:600;">
+                {{ entry.invoice.invoice_number }}
+              </a>
+            {% else %}
+              <span style="color:var(--color-slate-400);">—</span>
+            {% endif %}
           </td>
-          <td class="px-4 py-3 font-medium" dir="ltr">{{ entry.amount_rial|smart_number }}</td>
-          <td class="px-4 py-3 text-gray-500">{{ entry.created_at|jalali_date }}</td>
+          <td style="font-weight:var(--font-weight-medium);">
+            <a href="/{{ company.code }}/admin/technicians/{{ entry.technician.id }}/ledger/"
+               style="color:var(--color-slate-700);">
+              {{ entry.technician.user.get_full_name|default:entry.technician.user.username }}
+            </a>
+          </td>
+          <td style="text-align:left;direction:ltr;color:var(--color-danger);font-weight:700;">
+            {{ entry.amount_rial|smart_number }}
+          </td>
+          <td style="color:var(--color-slate-500);font-size:.85rem;">{{ entry.description|default:"دریافت نقدی از مشتری" }}</td>
+          <td>
+            <a href="/{{ company.code }}/admin/technicians/{{ entry.technician.id }}/ledger/"
+               class="btn btn-sm btn-outline">دفتر حساب</a>
+          </td>
         </tr>
-        {% empty %}
-        <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">هیچ رکوردی یافت نشد</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+<div class="alert alert-warning" dir="rtl" style="font-size:.82rem;">
+  <div class="alert-body">
+    <strong>توجه:</strong>
+    این جدول نشان می‌دهد چه مقدار وجه توسط هر نیروی خدماتی از مشتری دریافت شده است.
+    پس از کسر اجرت نیروی خدماتی، مابقی باید به شرکت تحویل داده یا از حساب وی کسر شود.
+    برای مدیریت تسویه، از دکمه «دفتر حساب» استفاده کنید.
+  </div>
+</div>
+
+{% else %}
+<div class="card empty-state" dir="rtl">
+  <div class="empty-state-icon" style="font-size:2.5rem;">💵</div>
+  <p style="color:var(--color-slate-500);margin:.75rem 0 .35rem;font-size:.95rem;font-weight:600;">هیچ دریافت نقدی توسط نیروهای خدماتی ثبت نشده</p>
+  <p style="color:var(--color-slate-400);font-size:.85rem;">زمانی که نیروی خدماتی وجه فاکتور را مستقیماً از مشتری دریافت کند، اینجا نمایش داده می‌شود.</p>
+</div>
+{% endif %}
+
 {% endblock %}

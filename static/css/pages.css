@@ -849,3 +849,376 @@
   color: var(--color-slate-700);
   font-weight: var(--font-weight-medium);
 }
+
+
+/* =============================================================================
+   FINANCIAL DASHBOARD — Payment P6 UI Redesign
+   Classes for financial reports, invoice detail, technician ledger.
+   All values reference design tokens from tokens.css.
+   ============================================================================= */
+
+/* --- Financial sub-navigation --- */
+.fin-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-bottom: var(--space-6);
+  padding: var(--space-1);
+  background: var(--color-slate-100);
+  border-radius: var(--radius-lg);
+}
+
+.fin-subnav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-2) var(--space-3-5);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-slate-600);
+  text-decoration: none;
+  transition: var(--transition-base);
+  white-space: nowrap;
+}
+
+.fin-subnav-item:hover {
+  background: var(--color-surface-0);
+  color: var(--color-slate-800);
+  text-decoration: none;
+}
+
+.fin-subnav-item.active {
+  background: var(--color-surface-0);
+  color: var(--color-brand-700);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-xs);
+}
+
+.fin-subnav-item svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.fin-subnav-item.active svg {
+  opacity: 1;
+}
+
+/* --- Stats grid --- */
+.stat-grid {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.stat-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.stat-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.stat-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 900px) {
+  .stat-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 540px) {
+  .stat-grid-4, .stat-grid-3, .stat-grid-2 { grid-template-columns: 1fr; }
+}
+
+/* --- Balance insight box --- */
+.balance-insight {
+  border-radius: var(--radius-lg);
+  padding: var(--space-5) var(--space-6);
+  margin-bottom: var(--space-6);
+  border: var(--border-width) solid;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.balance-insight.positive {
+  background: var(--color-success-light);
+  border-color: var(--color-success-border);
+  color: var(--color-success-dark);
+}
+
+.balance-insight.negative {
+  background: var(--color-danger-light);
+  border-color: var(--color-danger-border);
+  color: var(--color-danger-dark);
+}
+
+.balance-insight.zero {
+  background: var(--color-slate-50);
+  border-color: var(--color-slate-200);
+  color: var(--color-slate-600);
+}
+
+.balance-insight.warning {
+  background: var(--color-warning-light);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning-dark);
+}
+
+.balance-insight-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.balance-insight.positive .balance-insight-icon { background: var(--color-success-bg); }
+.balance-insight.negative .balance-insight-icon { background: var(--color-danger-bg); }
+.balance-insight.zero .balance-insight-icon     { background: var(--color-slate-200); }
+.balance-insight.warning .balance-insight-icon  { background: var(--color-warning-bg); }
+
+.balance-insight-body { flex: 1; }
+
+.balance-insight-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-1);
+}
+
+.balance-insight-amount {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  direction: ltr;
+  display: inline-block;
+}
+
+.balance-insight-detail {
+  font-size: var(--font-size-sm);
+  opacity: 0.8;
+  margin-top: var(--space-1);
+}
+
+/* --- Financial breakdown (invoice detail) --- */
+.fin-breakdown {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-base);
+}
+
+.fin-breakdown td {
+  padding: var(--space-2-5) var(--space-3);
+  border-bottom: var(--border-width) solid var(--color-slate-100);
+  vertical-align: middle;
+}
+
+.fin-breakdown td:last-child {
+  text-align: left;
+  direction: ltr;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.fin-breakdown .lbl {
+  color: var(--color-slate-500);
+  font-size: var(--font-size-sm);
+}
+
+.fin-breakdown .section-divider td {
+  background: var(--color-slate-50);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-slate-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--color-slate-200);
+}
+
+.fin-breakdown .total-row td {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  border-top: 2px solid var(--color-slate-800);
+  border-bottom: none;
+  padding-top: var(--space-3-5);
+}
+
+.fin-breakdown .sub-total-row td {
+  font-weight: var(--font-weight-semibold);
+  border-top: var(--border-width) solid var(--color-slate-300);
+}
+
+.fin-breakdown .deduction td:last-child {
+  color: var(--color-danger);
+}
+
+.fin-breakdown .tech-wage td:last-child {
+  color: #7c3aed;
+}
+
+.fin-breakdown .platform-fee td:last-child {
+  color: var(--color-warning-dark);
+}
+
+.fin-breakdown .company-net td:last-child {
+  color: var(--color-success-dark);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-extrabold);
+}
+
+/* --- Payment action cards --- */
+.payment-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+@media (max-width: 640px) {
+  .payment-actions-grid { grid-template-columns: 1fr; }
+}
+
+.payment-action-card {
+  border: 2px solid;
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  background: var(--color-surface-0);
+  transition: var(--transition-base);
+}
+
+.payment-action-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.payment-action-card.company {
+  border-color: var(--color-brand-200);
+  background: var(--color-brand-50);
+}
+
+.payment-action-card.technician {
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-light);
+}
+
+.payment-action-card.gateway {
+  border-color: var(--color-slate-200);
+  background: var(--color-slate-50);
+}
+
+.payment-action-card-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-slate-800);
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.payment-action-card-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-slate-600);
+  line-height: var(--line-height-base);
+  margin-bottom: var(--space-4);
+}
+
+.payment-action-card-effect {
+  font-size: var(--font-size-xs);
+  color: var(--color-slate-500);
+  background: rgba(255,255,255,0.6);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-4);
+  line-height: 1.7;
+}
+
+/* --- Audit severity badges --- */
+.severity-critical {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-dark);
+}
+
+.severity-warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-dark);
+}
+
+.severity-info {
+  background: var(--color-info-bg);
+  color: var(--color-info-dark);
+}
+
+.severity-ok {
+  background: var(--color-success-bg);
+  color: var(--color-success-dark);
+}
+
+/* --- Audit warning item --- */
+.audit-item {
+  border: var(--border-width) solid var(--color-slate-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+}
+
+.audit-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface-1);
+  border-bottom: var(--border-width) solid var(--color-slate-200);
+}
+
+.audit-item.critical .audit-item-header { background: var(--color-danger-bg); border-color: var(--color-danger-border); }
+.audit-item.warning .audit-item-header  { background: var(--color-warning-bg); border-color: var(--color-warning-border); }
+
+.audit-item-body {
+  padding: var(--space-4) var(--space-5);
+}
+
+.audit-item-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 640px) {
+  .audit-item-meta { grid-template-columns: 1fr; }
+}
+
+.audit-item-meta-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-slate-500);
+  margin-bottom: var(--space-1);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* --- Ledger table rows --- */
+.ledger-credit-row td { background: #f0fdf4; }
+.ledger-debit-row td  { background: #fff7f7; }
+
+/* Source label pill */
+.source-pill {
+  display: inline-block;
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-slate-100);
+  color: var(--color-slate-600);
+  white-space: nowrap;
+}
+
+/* Amount display — always LTR, monospaced-ish */
+.amount-positive { color: var(--color-success); font-weight: var(--font-weight-bold); direction: ltr; display: inline-block; }
+.amount-negative { color: var(--color-danger);  font-weight: var(--font-weight-bold); direction: ltr; display: inline-block; }
+.amount-neutral  { color: var(--color-slate-500); font-weight: var(--font-weight-semibold); direction: ltr; display: inline-block; }
+
+/* Purple accent (technician wage) */
+.text-purple { color: #7c3aed; }
+.bg-purple-light { background: #f5f3ff; }
+
+/* Stat card purple/indigo fallbacks if tokens missing */
+.stat-card-icon.purple { background: #f5f3ff; color: #7c3aed; }
+.stat-card-icon.indigo { background: #eef2ff; color: #4f46e5; }
