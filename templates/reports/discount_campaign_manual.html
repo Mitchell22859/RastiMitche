@@ -1,0 +1,167 @@
+{% extends "layouts/dashboard.html" %}
+{% load fa_labels smart_numbers jalali_tags %}
+{% block title %}کمپین دستی - {{ company.name }}{% endblock %}
+{% block page_title %}ساخت کمپین تخفیف دستی{% endblock %}
+{% block page_description %}کد تخفیف دلخواه وارد کنید و شماره‌های مجاز را مشخص کنید.{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block user_role_label %}{% if request.user.role == "COMPANY_ADMIN" %}مدیر{% else %}کاربر{% endif %}{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block content %}
+<style>
+  .discount-form-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; }
+  .discount-field label { display:block; font-size:.82rem; font-weight:800; color:#475569; margin-bottom:.35rem; }
+  .discount-field input, .discount-field textarea { width:100%; border:1px solid #cbd5e1; border-radius:.65rem; padding:.6rem .75rem; background:#fff; }
+  .discount-field input:required { border-color:#94a3b8; }
+  .discount-field textarea[readonly] { background:#f8fafc; color:#334155; cursor:not-allowed; }
+  .discount-help { font-size:.75rem; color:#64748b; margin-top:.35rem; }
+  .discount-required { color:#dc2626; margin-right:.2rem; }
+  @media(max-width:900px){ .discount-form-grid { grid-template-columns:1fr 1fr; } }
+  @media(max-width:560px){ .discount-form-grid { grid-template-columns:1fr; } }
+</style>
+
+{% if messages %}
+<div style="margin-bottom:1rem;">
+  {% for message in messages %}
+  <div style="padding:.7rem 1rem;border-radius:.75rem;font-size:.85rem;margin-bottom:.4rem;
+              background:{% if message.tags == 'error' %}#fee2e2{% else %}#dcfce7{% endif %};
+              color:{% if message.tags == 'error' %}#991b1b{% else %}#166534{% endif %};
+              border:1px solid {% if message.tags == 'error' %}#fca5a5{% else %}#86efac{% endif %};">
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<form method="post" class="bg-white border rounded-2xl p-5 shadow-sm mb-4" id="discountManualForm">{% csrf_token %}
+  <div class="discount-form-grid">
+    <div class="discount-field">
+      <label>عنوان کمپین <span class="discount-required">*</span></label>
+      <input class="form-control" name="title" required placeholder="مثلاً کمپین یلدا ۱۴۰۵" autocomplete="off">
+    </div>
+    <div class="discount-field">
+      <label>کد تخفیف <span class="discount-required">*</span></label>
+      <input class="form-control js-custom-code" name="custom_code" required maxlength="50"
+             placeholder="مثلاً YALDA20" autocomplete="off" dir="ltr"
+             style="text-transform:uppercase;letter-spacing:.08em;font-weight:700;">
+      <div class="discount-help">حروف انگلیسی و اعداد — خودکار به حروف بزرگ تبدیل می‌شود.</div>
+    </div>
+    <div class="discount-field">
+      <label>درصد تخفیف <span class="discount-required">*</span></label>
+      <input class="form-control js-percent" name="percent" required inputmode="decimal" placeholder="20" autocomplete="off">
+    </div>
+    <div class="discount-field">
+      <label>سقف تخفیف ریال <span class="discount-required">*</span></label>
+      <input class="form-control js-money" name="max_discount_rial" required inputmode="numeric" placeholder="300,000" autocomplete="off" dir="ltr">
+    </div>
+  </div>
+
+  <div class="mt-3 discount-field" style="max-width:300px;">
+    <label>تاریخ انقضا <span class="discount-required">*</span></label>
+    <input class="form-control js-expiry" name="expires_at" required placeholder="{{ default_expires_at }}" autocomplete="off" dir="ltr"
+           pattern="^[0-9۰-۹٠-٩]{4}/[0-9۰-۹٠-٩]{2}/[0-9۰-۹٠-٩]{2}$" title="تاریخ را دقیقاً به صورت 1405/12/21 وارد کنید.">
+  </div>
+
+  <div class="mt-4 discount-field">
+    <label>متن پیامک</label>
+    <textarea class="form-control" id="discountSmsPreview" rows="4" readonly></textarea>
+    <div class="discount-help">پیش‌نمایش — کد واقعی که وارد کرده‌اید نمایش داده می‌شود.</div>
+  </div>
+
+  <div class="mt-4 discount-field">
+    <label>شماره‌های مجاز <span class="discount-required">*</span></label>
+    <textarea class="form-control" name="phone_list" required rows="10"
+              placeholder="09121234567&#10;09351234567&#10;09011234567&#10;...&#10;یک شماره در هر خط (یا جداشده با ویرگول یا فاصله)"
+              dir="ltr" style="font-size:.85rem;font-family:monospace;">{{ phone_list_value }}</textarea>
+    <div class="discount-help">فقط این شماره‌ها می‌توانند از این کد استفاده کنند. یک شماره در هر خط — یا با ویرگول/فاصله جدا کنید. اگر هر شماره‌ای نامعتبر باشد، هیچ چیزی ذخیره نمی‌شود و خطا نمایش داده می‌شود.</div>
+  </div>
+
+  <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+    <button type="submit" class="btn btn-primary">ساخت کمپین و ارسال پیامک</button>
+    <a href="/{{ company.code }}/admin/reports/discount-campaigns/" class="btn btn-outline">بازگشت</a>
+    <span style="color:#64748b;font-size:.8rem;">کد واقعی در پنل نمایش داده نمی‌شود و فقط از طریق پیامک ارسال می‌شود.</span>
+  </div>
+</form>
+
+<script>
+(function () {
+    function onReady(fn) {
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn);
+        else fn();
+    }
+    onReady(function () {
+        var rawCompanyName = "{{ company.name|default:company.code|escapejs }}";
+        var companyLine = rawCompanyName.indexOf("شرکت ") === 0 ? rawCompanyName : ("شرکت " + rawCompanyName);
+
+        function normalizeDigits(value) {
+            value = (value || "").toString();
+            var fa = "۰۱۲۳۴۵۶۷۸۹", ar = "٠١٢٣٤٥٦٧٨٩";
+            for (var i = 0; i < 10; i++) {
+                value = value.replaceAll(fa[i], String(i)).replaceAll(ar[i], String(i));
+            }
+            return value;
+        }
+        function digitsOnly(v) { return normalizeDigits(v).replace(/[^\d]/g, ""); }
+        function formatRial(v) {
+            var raw = digitsOnly(v);
+            if (!raw || /^0+$/.test(raw)) return "";
+            return raw.replace(/^0+(?=\d)/, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        var customCodeEl = document.querySelector('[name="custom_code"]');
+        var percentEl = document.querySelector('[name="percent"]');
+        var capEl = document.querySelector('[name="max_discount_rial"]');
+        var expiresEl = document.querySelector('[name="expires_at"]');
+        var smsEl = document.getElementById("discountSmsPreview");
+
+        if (customCodeEl) {
+            customCodeEl.addEventListener("input", function () {
+                customCodeEl.value = customCodeEl.value.toUpperCase().replace(/\s/g, "");
+                updatePreview();
+            });
+        }
+
+        function previewText() {
+            var code = customCodeEl ? (customCodeEl.value || "").trim() : "YALDA20";
+            var percent = percentEl ? digitsOnly(percentEl.value) : "";
+            var cap = capEl ? formatRial(capEl.value) : "";
+            var expires = expiresEl ? (expiresEl.value || "").trim() : "";
+            if (!code) code = "YALDA20";
+            if (!percent) percent = "20";
+            if (!cap) cap = "300,000";
+            if (!expires) expires = "1405/12/21";
+            return [companyLine, "کد تخفیف شما: " + code,
+                    "تخفیف " + percent + "٪ تا سقف " + cap + " ریال",
+                    "اعتبار تا " + expires].join("\n");
+        }
+
+        function updatePreview() { if (smsEl) smsEl.value = previewText(); }
+
+        if (percentEl) percentEl.addEventListener("input", updatePreview);
+        if (expiresEl) expiresEl.addEventListener("input", updatePreview);
+        if (capEl) {
+            capEl.addEventListener("input", updatePreview);
+            capEl.addEventListener("blur", function () { capEl.value = formatRial(capEl.value); updatePreview(); });
+        }
+
+        function validDate(v) {
+            v = normalizeDigits((v || "").trim());
+            if (!/^\d{4}\/\d{2}\/\d{2}$/.test(v)) return false;
+            var p = v.split("/");
+            return parseInt(p[1]) >= 1 && parseInt(p[1]) <= 12 && parseInt(p[2]) >= 1 && parseInt(p[2]) <= 31;
+        }
+
+        var form = document.getElementById("discountManualForm");
+        if (form) {
+            form.addEventListener("submit", function (e) {
+                if (capEl) { var f = formatRial(capEl.value); if (!f) { e.preventDefault(); alert("سقف تخفیف الزامی است."); capEl.focus(); return; } capEl.value = f; }
+                if (expiresEl && !validDate(expiresEl.value)) { e.preventDefault(); alert("تاریخ انقضا باید به صورت 1405/12/21 وارد شود."); expiresEl.focus(); return; }
+            });
+        }
+
+        updatePreview();
+    });
+})();
+</script>
+{% endblock %}

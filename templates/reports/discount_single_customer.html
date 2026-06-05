@@ -42,6 +42,12 @@
       <input class="form-control js-expiry" name="expires_at" required placeholder="{{ default_expires_at }}" autocomplete="off" dir="ltr" pattern="^[0-9۰-۹٠-٩]{4}/[0-9۰-۹٠-٩]{2}/[0-9۰-۹٠-٩]{2}$" title="تاریخ را دقیقاً به صورت 1405/12/21 وارد کنید.">
     </div>
   </div>
+  <div class="mt-3 discount-field" style="max-width:320px;">
+    <label>کد تخفیف <span class="discount-required">*</span></label>
+    <input class="form-control js-custom-code" name="custom_code" required maxlength="50" placeholder="مثلاً VIPSERVICE یا CLEAN10" autocomplete="off" dir="ltr"
+           style="text-transform:uppercase;letter-spacing:.05em;">
+    <div class="discount-help">وارد کردن کد تخفیف الزامی است. این کد فقط برای شماره‌های ثبت‌شده در همین کمپین قابل استفاده خواهد بود.</div>
+  </div>
   <div class="mt-4 discount-field">
     <label>متن پیامک</label>
     <textarea class="form-control" id="discountSmsPreview" rows="4" readonly></textarea>
@@ -117,12 +123,14 @@
         var percentEl = field(["discount_percent", "percent", "percentage"], "درصد تخف");
         var capEl = field(["max_discount_rial", "max_discount", "max_discount_amount", "discount_cap_rial", "cap"], "سقف تخفیف");
         var expiresEl = field(["expires_at", "expires_on", "expires_date", "expires_at_jalali", "expires_jalali"], "تاریخ انقضا");
+        var customCodeEl = document.querySelector('[name="custom_code"]');
         var smsEl = document.getElementById("discountSmsPreview") ||
             field(["sms_text", "message_text", "sms_message", "message", "text", "body"], "متن پیامک") ||
             document.querySelector("textarea");
 
         var required = [
             {el: titleEl, name: "عنوان کمپین"},
+            {el: customCodeEl, name: "کد تخفیف"},
             {el: percentEl, name: "درصد تخفیف"},
             {el: capEl, name: "سقف تخفیف ریال"},
             {el: expiresEl, name: "تاریخ انقضا"}
@@ -182,9 +190,11 @@
             if (!cap) cap = "300,000";
             if (!expires) expires = "1405/12/21";
 
+            var customCode = customCodeEl ? (customCodeEl.value || "").trim().toUpperCase().replace(/\s/g, "") : "";
+            var codeDisplay = customCode || "********";
             return [
                 companyLine,
-                "کد تخفیف شما: ********",
+                "کد تخفیف شما: " + codeDisplay,
                 "تخفیف " + percent + "٪ تا سقف " + cap + " ریال",
                 "اعتبار تا " + expires
             ].join("\n");
@@ -198,6 +208,10 @@
 
         if (percentEl) percentEl.addEventListener("input", updatePreview);
         if (expiresEl) expiresEl.addEventListener("input", updatePreview);
+        if (customCodeEl) customCodeEl.addEventListener("input", function () {
+            customCodeEl.value = customCodeEl.value.toUpperCase().replace(/\s/g, "");
+            updatePreview();
+        });
 
         if (capEl) {
             capEl.addEventListener("input", updatePreview);

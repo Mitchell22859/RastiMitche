@@ -400,6 +400,40 @@ def _discount_required_post_errors(request):
     return errors
 
 
+def _discount_normalize_required_code(raw_code):
+    """Normalize a custom campaign code; returns (normalized, error_str)."""
+    from .discount_services import normalize_campaign_code
+    normalized = normalize_campaign_code(raw_code)
+    if not normalized:
+        return "", "کد تخفیف الزامی است."
+    return normalized, ""
+
+
+def _discount_check_phone_code_overlap(company, normalized_code, normalized_phones, *, exclude_campaign_id=None):
+    """
+    Return a list of phones that already exist in an active (non-expired, non-cancelled)
+    campaign with the same code in this company.
+    """
+    from django.utils import timezone as tz
+    from .models import DiscountCampaign, DiscountCampaignAllowedPhone
+    now = tz.now()
+    active_qs = DiscountCampaign.objects.filter(
+        company=company,
+        custom_code=normalized_code,
+        expires_at__gt=now,
+    ).exclude(status=DiscountCampaign.Status.CANCELLED)
+    if exclude_campaign_id:
+        active_qs = active_qs.exclude(id=exclude_campaign_id)
+    campaign_ids = list(active_qs.values_list("id", flat=True))
+    if not campaign_ids:
+        return []
+    return list(
+        DiscountCampaignAllowedPhone.objects
+        .filter(company=company, campaign_id__in=campaign_ids, normalized_phone__in=normalized_phones)
+        .values_list("normalized_phone", flat=True)
+    )
+
+
 def _discount_segment_candidates(request, company):
     """Reuse the same filtering logic as the customer segment report."""
     from django.db.models import Q, Sum
@@ -601,6 +635,12 @@ def discount_campaign_create_from_segment(request: HttpRequest, **kwargs) -> Htt
 
     if request.method == "POST":
         required_errors = _discount_required_post_errors(request)
+
+        custom_code_raw = request.POST.get("custom_code", "")
+        normalized_code, code_error = _discount_normalize_required_code(custom_code_raw)
+        if code_error:
+            required_errors.append(code_error)
+
         if required_errors:
             for error in required_errors:
                 messages.error(request, error)
@@ -615,6 +655,20 @@ def discount_campaign_create_from_segment(request: HttpRequest, **kwargs) -> Htt
             messages.error(request, "هیچ مشتری‌ای برای ارسال انتخاب نشده است.")
             return redirect(request.path + ("?" + request.GET.urlencode() if request.GET else ""))
 
+        # Check phone/code overlap with active campaigns
+        from apps.sms.services import normalize_sms_phone_number
+        selected_phones = [
+            normalize_sms_phone_number(c.get("phone", "") or "") or ""
+            for c in candidates
+            if int(c.get("customer_id") or 0) in selected_ids
+        ]
+        selected_phones = [p for p in selected_phones if p]
+        if normalized_code and selected_phones:
+            conflicts = _discount_check_phone_code_overlap(company, normalized_code, selected_phones)
+            if conflicts:
+                messages.error(request, f"این شماره‌ها قبلاً در یک کمپین فعال با همین کد تخفیف ثبت شده‌اند: {', '.join(conflicts)}")
+                return redirect(request.path + ("?" + request.GET.urlencode() if request.GET else ""))
+
         campaign = DiscountCampaignService.create_campaign(
             company=company,
             title=(request.POST.get("title") or "کمپین تخفیف هدفمند").strip(),
@@ -627,6 +681,7 @@ def discount_campaign_create_from_segment(request: HttpRequest, **kwargs) -> Htt
             created_by=request.user,
             filter_snapshot=filters,
             message_template=DEFAULT_DISCOUNT_MESSAGE_TEMPLATE,
+            custom_code=normalized_code,
         )
         messages.success(request, "کمپین ساخته شد و پیامک‌ها در صف ارسال قرار گرفتند.")
         return redirect(f"/{company.code}/admin/reports/discount-campaigns/{campaign.id}/")
@@ -678,10 +733,25 @@ def discount_campaign_single_customer(request: HttpRequest, customer_id: int, **
 
     if request.method == "POST":
         required_errors = _discount_required_post_errors(request)
+
+        custom_code_raw = request.POST.get("custom_code", "")
+        normalized_code, code_error = _discount_normalize_required_code(custom_code_raw)
+        if code_error:
+            required_errors.append(code_error)
+
         if required_errors:
             for error in required_errors:
                 messages.error(request, error)
             return redirect(request.path)
+
+        # Check phone/code overlap
+        from apps.sms.services import normalize_sms_phone_number
+        customer_phone = normalize_sms_phone_number(customer.phone or "") or ""
+        if normalized_code and customer_phone:
+            conflicts = _discount_check_phone_code_overlap(company, normalized_code, [customer_phone])
+            if conflicts:
+                messages.error(request, "این شماره موبایل قبلاً در یک کمپین فعال با همین کد تخفیف ثبت شده است.")
+                return redirect(request.path)
 
         row = {
             "customer_id": customer.id,
@@ -702,6 +772,7 @@ def discount_campaign_single_customer(request: HttpRequest, customer_id: int, **
             created_by=request.user,
             filter_snapshot={"single_customer_id": customer.id},
             message_template=DEFAULT_DISCOUNT_MESSAGE_TEMPLATE,
+            custom_code=normalized_code,
         )
         messages.success(request, "کد تخفیف اختصاصی ساخته شد و پیامک آن در صف ارسال قرار گرفت.")
         return redirect(f"/{company.code}/admin/reports/discount-campaigns/{campaign.id}/")
@@ -719,4 +790,126 @@ def discount_campaign_single_customer(request: HttpRequest, customer_id: int, **
         "customer_name": customer_name,
         "default_expires_at": default_expires_at,
         "default_message_template": DEFAULT_DISCOUNT_MESSAGE_TEMPLATE,
+    })
+
+
+@require_tenant_role("COMPANY_ADMIN", "COMPANY_STAFF")
+def discount_campaign_create_manual(request: HttpRequest, **kwargs) -> HttpResponse:
+    """Create a manual discount campaign with a required custom code and a phone whitelist."""
+    from django.shortcuts import redirect
+    from django.contrib import messages
+    from django.utils import timezone
+    import datetime
+    import re as _re
+
+    from apps.common.phone_utils import normalize_iran_mobile
+    from apps.sms.services import normalize_sms_phone_number
+    from .discount_services import DEFAULT_DISCOUNT_MESSAGE_TEMPLATE, DiscountCampaignService
+    from .models import DiscountCampaign
+
+    company = request.company
+    phone_list_value = ""
+
+    if request.method == "POST":
+        phone_list_value = request.POST.get("phone_list", "")
+        required_errors = _discount_required_post_errors(request)
+
+        # Code is required
+        custom_code_raw = (request.POST.get("custom_code") or "").strip()
+        normalized_code, code_error = _discount_normalize_required_code(custom_code_raw)
+        if code_error:
+            required_errors.append(code_error)
+
+        # Parse phone list — accept newlines, commas, spaces as separators
+        raw_lines = _re.split(r"[\n\r,،\s]+", phone_list_value)
+        raw_lines = [ln.strip() for ln in raw_lines if ln.strip()]
+        normalized_phones = []  # list of (original, normalized, line_number)
+        invalid_phones = []     # list of (original, line_number)
+        seen_normalized = set()
+
+        for idx, raw in enumerate(raw_lines, start=1):
+            norm = normalize_sms_phone_number(raw) or normalize_iran_mobile(raw) or ""
+            if not norm:
+                invalid_phones.append((raw, idx))
+            elif norm in seen_normalized:
+                pass  # silently skip duplicates
+            else:
+                seen_normalized.add(norm)
+                normalized_phones.append((raw, norm, idx))
+
+        if not raw_lines:
+            required_errors.append("لیست شماره موبایل الزامی است.")
+
+        # Show all invalid phones before doing anything — stop here with clear errors
+        if invalid_phones and not required_errors:
+            invalid_list = ", ".join(f"ردیف {ln}: {raw}" for raw, ln in invalid_phones)
+            messages.error(request, f"شماره‌های زیر معتبر نیستند و کمپین ذخیره نشد: {invalid_list}")
+            return render(request, "reports/discount_campaign_manual.html", {
+                "company": company,
+                "default_expires_at": request.POST.get("expires_at", ""),
+                "default_message_template": DEFAULT_DISCOUNT_MESSAGE_TEMPLATE,
+                "phone_list_value": phone_list_value,
+            })
+
+        if not normalized_phones and not required_errors:
+            required_errors.append("هیچ شماره موبایل معتبری در لیست یافت نشد.")
+
+        if required_errors:
+            for err in required_errors:
+                messages.error(request, err)
+            return render(request, "reports/discount_campaign_manual.html", {
+                "company": company,
+                "default_expires_at": request.POST.get("expires_at", ""),
+                "default_message_template": DEFAULT_DISCOUNT_MESSAGE_TEMPLATE,
+                "phone_list_value": phone_list_value,
+            })
+
+        # Check phone/code overlap with active campaigns
+        all_normalized = [norm for _, norm, _ in normalized_phones]
+        if normalized_code and all_normalized:
+            conflicts = _discount_check_phone_code_overlap(company, normalized_code, all_normalized)
+            if conflicts:
+                conflict_display = ", ".join(conflicts)
+                messages.error(request, f"این شماره موبایل‌ها قبلاً در یک کمپین فعال با همین کد تخفیف ثبت شده‌اند: {conflict_display}")
+                return render(request, "reports/discount_campaign_manual.html", {
+                    "company": company,
+                    "default_expires_at": request.POST.get("expires_at", ""),
+                    "default_message_template": DEFAULT_DISCOUNT_MESSAGE_TEMPLATE,
+                    "phone_list_value": phone_list_value,
+                })
+
+        # All valid — save campaign
+        recipients = [
+            {"customer_id": 0, "name": "", "phone": raw, "email": "", "last_address": ""}
+            for raw, _, _ in normalized_phones
+        ]
+        campaign = DiscountCampaignService.create_campaign(
+            company=company,
+            title=(request.POST.get("title") or "کمپین دستی").strip(),
+            source=DiscountCampaign.Source.MANUAL,
+            percent=_discount_decimal(request.POST.get("percent"), "20"),
+            max_discount_rial=_discount_int(request.POST.get("max_discount_rial"), 300000),
+            expires_at=_discount_parse_expiry(request.POST.get("expires_at")),
+            recipients=recipients,
+            selected_customer_ids=None,
+            created_by=request.user,
+            filter_snapshot={},
+            message_template=DEFAULT_DISCOUNT_MESSAGE_TEMPLATE,
+            custom_code=normalized_code,
+        )
+        messages.success(request, f"کمپین دستی ساخته شد. کد: {normalized_code} — {len(normalized_phones)} شماره ثبت شد.")
+        return redirect(f"/{company.code}/admin/reports/discount-campaigns/{campaign.id}/")
+
+    default_expires = timezone.localdate() + datetime.timedelta(days=30)
+    try:
+        from apps.common.jalali import format_jalali_date
+        default_expires_at = format_jalali_date(default_expires)
+    except Exception:
+        default_expires_at = default_expires.strftime("%Y/%m/%d")
+
+    return render(request, "reports/discount_campaign_manual.html", {
+        "company": company,
+        "default_expires_at": default_expires_at,
+        "default_message_template": DEFAULT_DISCOUNT_MESSAGE_TEMPLATE,
+        "phone_list_value": phone_list_value,
     })

@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from apps.sms.services import SMSQueueService, normalize_sms_phone_number
 
-from .models import DiscountCampaign, DiscountCampaignRecipient, DiscountCode
+from .models import DiscountCampaign, DiscountCampaignAllowedPhone, DiscountCampaignRecipient, DiscountCode
 
 def _discount_campaign_format_rial(value):
     try:
@@ -34,6 +34,12 @@ DEFAULT_DISCOUNT_MESSAGE_TEMPLATE = """{{ company_name }}
 
 def normalize_discount_code(value: str) -> str:
     return (value or "").strip().replace(" ", "")
+
+
+def normalize_campaign_code(value: str) -> str:
+    """Normalize a custom campaign code: uppercase English, strip spaces, keep alphanumeric only."""
+    v = (value or "").strip().upper().replace(" ", "").replace("\t", "")
+    return "".join(ch for ch in v if ch.isalnum())
 
 
 def generate_discount_code(length: int = 8) -> str:
@@ -108,10 +114,15 @@ class DiscountCampaignService:
         created_by=None,
         filter_snapshot: dict | None = None,
         message_template: str = "",
+        custom_code: str = "",
     ) -> DiscountCampaign:
         selected_customer_ids = selected_customer_ids or set()
         username = getattr(created_by, "username", "") or ""
         user_id = getattr(created_by, "id", None)
+
+        normalized_custom_code = normalize_campaign_code(custom_code)
+        if not normalized_custom_code:
+            raise ValueError("کد تخفیف الزامی است و نمی‌تواند خالی باشد.")
 
         with transaction.atomic():
             campaign = DiscountCampaign.objects.create(
@@ -127,6 +138,7 @@ class DiscountCampaignService:
                 created_by_id=user_id,
                 created_by_username=username,
                 recipient_total=len(recipients),
+                custom_code=normalized_custom_code,
             )
 
             excluded_total = 0
@@ -155,25 +167,26 @@ class DiscountCampaignService:
                     excluded_total += 1
                     continue
 
-                created = DiscountCodeService.create_code(
-                    company=company,
+                phone_number = recipient.phone_number
+                normalized_phone = normalize_sms_phone_number(phone_number) or phone_number
+
+                DiscountCampaignAllowedPhone.objects.get_or_create(
                     campaign=campaign,
-                    customer_id=customer_id or None,
-                    customer_name=recipient.customer_name_snapshot,
-                    phone_number=recipient.phone_number,
-                    percent=campaign.percent,
-                    max_discount_rial=campaign.max_discount_rial,
-                    expires_at=campaign.expires_at,
+                    normalized_phone=normalized_phone,
+                    defaults={
+                        "company": company,
+                        "phone": phone_number,
+                        "customer_id": customer_id or None,
+                    },
                 )
-                recipient.discount_code = created["discount_code"]
                 recipient.status = DiscountCampaignRecipient.Status.CODE_CREATED
-                recipient.save(update_fields=["discount_code", "status", "updated_at"])
+                recipient.save(update_fields=["status", "updated_at"])
                 code_total += 1
 
-                sms = DiscountCodeService.queue_sms_for_code(
+                sms = DiscountCodeService.queue_sms_direct(
                     campaign=campaign,
-                    discount_code=created["discount_code"],
-                    raw_code=created["raw_code"],
+                    phone_number=normalized_phone,
+                    code=normalized_custom_code,
                     customer_name=recipient.customer_name_snapshot,
                 )
                 if sms is not None:
@@ -219,6 +232,22 @@ class DiscountCodeService:
         raise ValueError("ساخت کد تخفیف یکتا ناموفق بود.")
 
     @staticmethod
+    def queue_sms_direct(*, campaign: DiscountCampaign, phone_number: str, code: str, customer_name: str = ""):
+        """Queue SMS for a custom campaign code (no DiscountCode record required)."""
+        message = _render_message(
+            campaign=campaign,
+            code=code,
+            customer_name=customer_name,
+            phone_number=phone_number,
+        )
+        return SMSQueueService.queue(
+            company=campaign.company,
+            phone_number=phone_number,
+            message=message,
+            template_key=DISCOUNT_SMS_TEMPLATE_KEY,
+        )
+
+    @staticmethod
     def queue_sms_for_code(*, campaign: DiscountCampaign, discount_code: DiscountCode, raw_code: str, customer_name: str = ""):
         message = _render_message(
             campaign=campaign,
@@ -237,6 +266,54 @@ class DiscountCodeService:
             discount_code.status = DiscountCode.Status.SMS_QUEUED
             discount_code.save(update_fields=["sms_outbox_id", "status", "updated_at"])
         return sms
+
+    @staticmethod
+    @transaction.atomic
+    def _apply_campaign_code(*, company, invoice, campaign: DiscountCampaign) -> tuple[bool, str, int]:
+        """Apply a campaign-level custom code to an invoice, checking the phone whitelist."""
+        if campaign.expires_at and campaign.expires_at < timezone.now():
+            return False, "مهلت استفاده از این کد تخفیف تمام شده است.", 0
+
+        invoice_phone = normalize_sms_phone_number(getattr(invoice, "display_customer_phone", "") or "") or ""
+
+        has_whitelist = campaign.allowed_phones.exists()
+        if has_whitelist:
+            if not invoice_phone:
+                return False, "این کد تخفیف برای شماره موبایل شما فعال نیست.", 0
+
+            allowed = (
+                DiscountCampaignAllowedPhone.objects
+                .select_for_update()
+                .filter(campaign=campaign, normalized_phone=invoice_phone)
+                .first()
+            )
+            if allowed is None:
+                return False, "این کد تخفیف برای شماره موبایل شما فعال نیست.", 0
+
+            if allowed.used_at is not None:
+                if allowed.used_invoice_id == invoice.id:
+                    return True, "کد تخفیف قبلاً برای این فاکتور اعمال شده است.", int(allowed.used_discount_amount_rial or 0)
+                return False, "این کد تخفیف قبلاً توسط شما استفاده شده است.", 0
+
+        base_amount = int(getattr(invoice, "total_amount", 0) or 0)
+        if base_amount <= 0:
+            return False, "مبلغ فاکتور برای اعمال تخفیف معتبر نیست.", 0
+
+        percent_amount = int((Decimal(base_amount) * Decimal(campaign.percent)) / Decimal("100"))
+        discount_amount = min(percent_amount, int(campaign.max_discount_rial or 0))
+        if discount_amount <= 0:
+            return False, "مبلغ تخفیف برای این فاکتور صفر است.", 0
+
+        invoice.campaign_discount_amount = int(getattr(invoice, "campaign_discount_amount", 0) or 0) + discount_amount
+        invoice.recalculate_totals(save=True)
+
+        if has_whitelist and allowed:
+            allowed.used_at = timezone.now()
+            allowed.used_invoice_id = invoice.id
+            allowed.used_discount_amount_rial = discount_amount
+            allowed.save(update_fields=["used_at", "used_invoice_id", "used_discount_amount_rial"])
+
+        return True, f"کد تخفیف اعمال شد. مبلغ تخفیف: {discount_amount:,} ریال", discount_amount
 
     @staticmethod
     @transaction.atomic
@@ -259,7 +336,41 @@ class DiscountCodeService:
             .first()
         )
         if discount_code is None:
-            return False, "کد تخفیف معتبر نیست.", 0
+            # Try custom campaign code path — multiple campaigns may share the same code.
+            # Find non-expired campaigns with this code for this company, then pick the one
+            # whose whitelist includes the invoice phone. If multiple qualify, use the newest.
+            normalized_custom = normalize_campaign_code(code_value)
+            if not normalized_custom:
+                return False, "کد تخفیف معتبر نیست.", 0
+            now = timezone.now()
+            matching_campaigns = list(
+                DiscountCampaign.objects.filter(
+                    company=company,
+                    custom_code=normalized_custom,
+                    expires_at__gt=now,
+                ).exclude(status=DiscountCampaign.Status.CANCELLED)
+                .order_by("-id")
+            )
+            if not matching_campaigns:
+                return False, "کد تخفیف معتبر نیست.", 0
+
+            invoice_phone = normalize_sms_phone_number(
+                getattr(invoice, "display_customer_phone", "") or ""
+            ) or ""
+
+            # Find first campaign (newest first) where this phone is whitelisted
+            target_campaign = None
+            for c in matching_campaigns:
+                if c.allowed_phones.filter(normalized_phone=invoice_phone).exists():
+                    target_campaign = c
+                    break
+
+            if target_campaign is None:
+                return False, "این کد تخفیف برای شماره موبایل شما فعال نیست.", 0
+
+            return DiscountCodeService._apply_campaign_code(
+                company=company, invoice=invoice, campaign=target_campaign
+            )
 
         if discount_code.status == DiscountCode.Status.USED:
             # TODO (minimal idempotency fix): if the code was already applied to THIS

@@ -59,6 +59,8 @@ class DiscountCampaign(CompanyOwnedModel):
     max_discount_rial = models.PositiveBigIntegerField(default=300000)
     expires_at = models.DateTimeField(db_index=True)
 
+    custom_code = models.CharField(max_length=50, blank=True, db_index=True)
+
     message_template = models.TextField(blank=True)
     filter_snapshot = models.JSONField(default=dict, blank=True)
 
@@ -76,6 +78,7 @@ class DiscountCampaign(CompanyOwnedModel):
         indexes = [
             models.Index(fields=["company", "status", "created_at"], name="disc_campaign_company_idx"),
             models.Index(fields=["company", "source"], name="disc_campaign_source_idx"),
+            models.Index(fields=["company", "custom_code"], name="disc_campaign_code_idx"),
         ]
 
     def __str__(self) -> str:
@@ -179,3 +182,38 @@ class DiscountCampaignRecipient(CompanyOwnedModel):
 
     def __str__(self) -> str:
         return f"{self.customer_name_snapshot or self.phone_number} ({self.status})"
+
+
+class DiscountCampaignAllowedPhone(CompanyOwnedModel):
+    """
+    Phone whitelist for custom-code campaigns.
+    When a campaign has a custom_code, only phones in this list can use it.
+    """
+
+    campaign = models.ForeignKey(
+        DiscountCampaign,
+        on_delete=models.CASCADE,
+        related_name="allowed_phones",
+    )
+    phone = models.CharField(max_length=20)
+    normalized_phone = models.CharField(max_length=20, db_index=True)
+    customer_id = models.PositiveIntegerField(null=True, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+    used_invoice_id = models.PositiveIntegerField(null=True, blank=True)
+    used_discount_amount_rial = models.PositiveBigIntegerField(default=0)
+
+    class Meta:
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["campaign", "normalized_phone"],
+                name="unique_allowed_phone_per_campaign",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["company", "campaign", "normalized_phone"], name="disc_allowed_phone_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.phone} → campaign {self.campaign_id}"
