@@ -87,6 +87,7 @@ urlpatterns = [
     path("admin/technicians/<int:technician_id>/delete/", views_admin.admin_technician_delete, name="admin_technician_delete"),
     path("admin/technicians/<int:technician_id>/toggle-active/", views_admin.admin_technician_toggle_active, name="admin_technician_toggle_active"),
     path("admin/technicians/<int:technician_id>/ledger/", payouts_views.technician_ledger, name="admin_technician_ledger"),
+    path("admin/technicians/<int:technician_id>/ledger/settlement/", payouts_views.technician_settlement, name="admin_technician_settlement"),
 
     # Admin: Customers — central customer file and history
     path("admin/customers/", views_admin.admin_customer_list, name="admin_customers"),

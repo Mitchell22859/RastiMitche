@@ -16,6 +16,7 @@ from . import views_platform_sms
 from . import views_sms_billing
 from . import views_sms_template_requests
 from . import views_password_reset_policy
+from . import views_technician_verification
 
 app_name = "platform_core"
 
@@ -73,6 +74,10 @@ urlpatterns = [
     # Password Reset SMS Billing Policy
     path("password-reset-policy/", views_password_reset_policy.policy_list, name="password_reset_policy"),
     path("password-reset-policy/<int:company_id>/", views_password_reset_policy.policy_edit, name="password_reset_policy_edit"),
+
+    # Technician Financial Verification (P3)
+    path("technician-financial-verifications/", views_technician_verification.verification_list, name="technician_verifications"),
+    path("technician-financial-verifications/<int:technician_id>/", views_technician_verification.verification_detail, name="technician_verification_detail"),
 
     # Company Management
     path("companies/", views.company_list, name="companies"),

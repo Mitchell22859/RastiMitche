@@ -238,6 +238,7 @@ class TechnicianLedgerService:
         reference: str = "",
         description: str = "",
         created_by=None,
+        idempotency_key: str | None = None,
     ):
         """
         Record a manual settlement between company and technician.
@@ -262,24 +263,36 @@ class TechnicianLedgerService:
             raise ValueError("amount_rial must be positive.")
 
         if direction == "COMPANY_PAID_TECHNICIAN":
+            # Company wired/gave money to technician → reduces positive balance
             entry_type = TechnicianLedgerEntry.EntryType.DEBIT
             desc = description or f"پرداخت تسویه به تکنسین — مرجع: {reference}"
         elif direction == "TECHNICIAN_PAID_COMPANY":
-            # Technician returned company's share; reduce company's receivable
-            # By convention: a credit here decreases technician's obligation.
-            # See TODO above.
-            entry_type = TechnicianLedgerEntry.EntryType.DEBIT
+            # Technician returned cash to company → increases balance toward zero
+            entry_type = TechnicianLedgerEntry.EntryType.CREDIT
             desc = description or f"تحویل وجه نقد توسط تکنسین — مرجع: {reference}"
+        elif direction == "ADJUSTMENT_CREDIT":
+            entry_type = TechnicianLedgerEntry.EntryType.CREDIT
+            desc = description or f"اصلاح بستانکاری — مرجع: {reference}"
+        elif direction == "ADJUSTMENT_DEBIT":
+            entry_type = TechnicianLedgerEntry.EntryType.DEBIT
+            desc = description or f"اصلاح بدهکاری — مرجع: {reference}"
         else:
             raise ValueError(f"Unknown direction: {direction!r}")
 
-        idempotency_key = f"manual_settlement:{uuid.uuid4().hex}"
+        if not idempotency_key:
+            idempotency_key = f"manual_settlement:{uuid.uuid4().hex}"
+
+        source = (
+            TechnicianLedgerEntry.Source.ADJUSTMENT
+            if direction in ("ADJUSTMENT_CREDIT", "ADJUSTMENT_DEBIT")
+            else TechnicianLedgerEntry.Source.MANUAL_SETTLEMENT
+        )
 
         return TechnicianLedgerService._write_entry(
             company=company,
             technician=technician,
             entry_type=entry_type,
-            source=TechnicianLedgerEntry.Source.MANUAL_SETTLEMENT,
+            source=source,
             amount_rial=amount_rial,
             idempotency_key=idempotency_key,
             description=desc,

@@ -1,0 +1,206 @@
+{% extends "layouts/dashboard.html" %}
+{% load fa_labels %}
+{% block title %}تأیید مالی: {{ technician.user.get_full_name }} - پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}تأیید مالی تکنسین{% endblock %}
+{% block page_description %}{{ technician.user.get_full_name|default:technician.user.username }} — {{ technician.company.name }}{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block navbar_actions %}
+<a href="/owner-platform/technician-financial-verifications/"
+   class="inline-flex items-center gap-2 px-3 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 font-medium rounded-lg transition-smooth">
+  بازگشت به لیست
+</a>
+{% endblock %}
+
+{% block content %}
+
+{% if success %}
+<div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-5 py-3 mb-5 text-sm">
+  {{ success }}
+</div>
+{% endif %}
+
+{% if error %}
+<div class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-5 py-3 mb-5 text-sm">
+  {{ error }}
+</div>
+{% endif %}
+
+{# Info Card #}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+  <div class="px-5 py-4 border-b border-gray-100">
+    <h3 class="text-sm font-semibold text-gray-800">اطلاعات تکنسین</h3>
+  </div>
+  <div class="divide-y divide-gray-50">
+    <div class="flex items-center px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500">شرکت</span>
+      <span class="text-sm text-gray-900">{{ technician.company.name }} <span class="text-gray-400 font-mono text-xs">({{ technician.company.code }})</span></span>
+    </div>
+    <div class="flex items-center px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500">نام</span>
+      <span class="text-sm text-gray-900">{{ technician.user.get_full_name|default:"—" }}</span>
+    </div>
+    <div class="flex items-center px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500">نام‌کاربری</span>
+      <span class="text-sm text-gray-900 font-mono">{{ technician.user.username }}</span>
+    </div>
+    <div class="flex items-center px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500">تلفن</span>
+      <span class="text-sm text-gray-900">{{ technician.user.phone|default:"—" }}</span>
+    </div>
+    <div class="flex items-center px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500">شماره شبا</span>
+      <span class="text-sm text-gray-900 font-mono" dir="ltr">{{ technician.shaba_number|default:"—" }}</span>
+    </div>
+    <div class="flex items-center px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500">وضعیت تأیید</span>
+      <span class="text-sm font-semibold
+        {% if technician.financial_verification_status == 'verified' %}text-green-600
+        {% elif technician.financial_verification_status == 'pending' %}text-yellow-600
+        {% elif technician.financial_verification_status == 'rejected' %}text-red-600
+        {% else %}text-gray-400{% endif %}">
+        {{ technician.get_financial_verification_status_display }}
+      </span>
+    </div>
+    <div class="flex items-center px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500">شبا تأییدشده</span>
+      <span class="text-sm text-gray-900">{% if technician.shaba_verified %}بله{% else %}خیر{% endif %}</span>
+    </div>
+    {% if technician.shaba_verified_at %}
+    <div class="flex items-center px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500">تاریخ تأیید شبا</span>
+      <span class="text-sm text-gray-900">{{ technician.shaba_verified_at|jalali_datetime }}</span>
+    </div>
+    {% endif %}
+    <div class="flex items-center px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500">شناسه پذیرنده فرعی</span>
+      <span class="text-sm text-gray-900 font-mono">{{ technician.sub_merchant_id|default:"—" }}</span>
+    </div>
+    {% if technician.verification_note %}
+    <div class="flex items-start px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500 pt-0.5">یادداشت</span>
+      <span class="text-sm text-gray-700">{{ technician.verification_note }}</span>
+    </div>
+    {% endif %}
+    {% if technician.verified_by %}
+    <div class="flex items-center px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500">تأیید توسط</span>
+      <span class="text-sm text-gray-900">{{ technician.verified_by.get_full_name }}</span>
+    </div>
+    {% endif %}
+    {% if technician.rejected_by %}
+    <div class="flex items-center px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500">رد توسط</span>
+      <span class="text-sm text-gray-900">{{ technician.rejected_by.get_full_name }}</span>
+    </div>
+    {% endif %}
+    {% if technician.verification_updated_at %}
+    <div class="flex items-center px-5 py-3">
+      <span class="w-44 text-sm font-medium text-gray-500">آخرین به‌روزرسانی</span>
+      <span class="text-sm text-gray-900">{{ technician.verification_updated_at|jalali_datetime }}</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{# Actions #}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+  {# Approve #}
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-green-100 bg-green-50">
+      <h3 class="text-sm font-semibold text-green-800">تأیید شبا</h3>
+    </div>
+    <form method="post" class="p-5">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="approve">
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-gray-500 mb-1">شناسه پذیرنده فرعی (اختیاری)</label>
+        <input type="text" name="sub_merchant_id"
+               value="{{ technician.sub_merchant_id }}"
+               placeholder="برای split gateway لازم است"
+               class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+      </div>
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-gray-500 mb-1">یادداشت (اختیاری)</label>
+        <textarea name="verification_note" rows="2"
+                  class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-400"
+                  placeholder="توضیح اختیاری...">{{ technician.verification_note }}</textarea>
+      </div>
+      <button type="submit"
+              class="w-full px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-smooth">
+        تأیید کن
+      </button>
+    </form>
+  </div>
+
+  {# Reject #}
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-red-100 bg-red-50">
+      <h3 class="text-sm font-semibold text-red-800">رد درخواست</h3>
+    </div>
+    <form method="post" class="p-5">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="reject">
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-gray-500 mb-1">دلیل رد <span class="text-red-500">*</span></label>
+        <textarea name="verification_note" rows="3" required
+                  class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-400"
+                  placeholder="دلیل رد درخواست را بنویسید..."></textarea>
+      </div>
+      <button type="submit"
+              class="w-full px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-smooth">
+        رد کن
+      </button>
+    </form>
+  </div>
+
+  {# Set Sub Merchant ID #}
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+      <h3 class="text-sm font-semibold text-gray-800">ویرایش شناسه پذیرنده فرعی</h3>
+    </div>
+    <form method="post" class="p-5">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="set_sub_merchant">
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-gray-500 mb-1">شناسه پذیرنده فرعی</label>
+        <input type="text" name="sub_merchant_id"
+               value="{{ technician.sub_merchant_id }}"
+               placeholder="sub_merchant_id از درگاه"
+               class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand-500">
+      </div>
+      <button type="submit"
+              class="w-full px-4 py-2 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition-smooth">
+        ذخیره
+      </button>
+    </form>
+  </div>
+
+  {# Clear #}
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+      <h3 class="text-sm font-semibold text-gray-800">بازنشانی وضعیت</h3>
+    </div>
+    <div class="p-5">
+      <p class="text-sm text-gray-500 mb-4">وضعیت به «ارسال نشده» برمی‌گردد. شبا حفظ می‌شود.</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="clear">
+        <button type="submit"
+                class="w-full px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-smooth">
+          بازنشانی
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

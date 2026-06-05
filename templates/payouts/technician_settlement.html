@@ -1,0 +1,90 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers %}
+{% block title %}ثبت تسویه دستی - {{ technician.user.get_full_name }} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1>ثبت تسویه دستی</h1>
+    <p style="color:#64748b;margin:.35rem 0 0;">تکنسین: {{ technician.user.get_full_name|default:technician.user.username }}</p>
+  </div>
+  <div>
+    <a href="/{{ company.code }}/admin/technicians/{{ technician.id }}/ledger/" class="btn btn-outline">بازگشت به دفتر حساب</a>
+  </div>
+</div>
+
+<div class="card" style="background:#fff;border:1px solid #e2e8f0;border-radius:1rem;padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:inline-flex;align-items:center;gap:1rem;">
+  <div>
+    <div style="font-size:.75rem;color:#64748b;margin-bottom:.2rem;">موجودی فعلی</div>
+    <div style="font-size:1.4rem;font-weight:900;color:{% if balance > 0 %}#16a34a{% elif balance < 0 %}#dc2626{% else %}#64748b{% endif %};">
+      {{ balance|smart_number }} ریال
+    </div>
+    <div style="font-size:.75rem;color:#94a3b8;margin-top:.2rem;">
+      {% if balance > 0 %}شرکت به این تکنسین بدهکار است.
+      {% elif balance < 0 %}این تکنسین به شرکت بدهکار است.
+      {% else %}حساب تکنسین تسویه است.{% endif %}
+    </div>
+  </div>
+</div>
+
+{% if errors %}
+<div class="card" style="background:#fef2f2;border:1px solid #fecaca;border-radius:.75rem;padding:.75rem 1rem;margin-bottom:1rem;">
+  <ul style="margin:0;padding:0 1.25rem;color:#dc2626;font-size:.85rem;">
+    {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="card" style="background:#fff;border:1px solid #e2e8f0;border-radius:1rem;padding:1.5rem;max-width:560px;">
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="idempotency_token" value="{{ idempotency_token }}">
+
+    <div style="margin-bottom:1rem;">
+      <label style="display:block;font-size:.85rem;font-weight:700;color:#374151;margin-bottom:.4rem;">جهت تسویه</label>
+      {% for value, label in directions %}
+      <label style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;font-size:.9rem;cursor:pointer;">
+        <input type="radio" name="direction" value="{{ value }}"
+               {% if form.direction == value %}checked{% elif not form and value == 'COMPANY_PAID_TECHNICIAN' %}checked{% endif %}
+               style="accent-color:#2563eb;">
+        {{ label }}
+      </label>
+      {% endfor %}
+    </div>
+
+    <div style="margin-bottom:1rem;">
+      <label style="display:block;font-size:.85rem;font-weight:700;color:#374151;margin-bottom:.4rem;" for="id_amount">مبلغ (ریال)</label>
+      <input type="number" id="id_amount" name="amount" min="1" step="1"
+             value="{{ form.amount|default:'' }}"
+             placeholder="مثال: 500000"
+             style="width:100%;padding:.55rem .75rem;border:1px solid #d1d5db;border-radius:.5rem;font-size:.9rem;direction:ltr;">
+    </div>
+
+    <div style="margin-bottom:1rem;">
+      <label style="display:block;font-size:.85rem;font-weight:700;color:#374151;margin-bottom:.4rem;" for="id_reference">شماره مرجع / کد پیگیری (اختیاری)</label>
+      <input type="text" id="id_reference" name="reference"
+             value="{{ form.reference|default:'' }}"
+             placeholder="مثال: ۱۲۳۴۵۶"
+             style="width:100%;padding:.55rem .75rem;border:1px solid #d1d5db;border-radius:.5rem;font-size:.9rem;">
+    </div>
+
+    <div style="margin-bottom:1.25rem;">
+      <label style="display:block;font-size:.85rem;font-weight:700;color:#374151;margin-bottom:.4rem;" for="id_note">
+        توضیحات <span style="color:#dc2626;font-size:.75rem;">(برای تعدیل الزامی)</span>
+      </label>
+      <textarea id="id_note" name="note" rows="2"
+                placeholder="توضیح اختیاری درباره این تسویه..."
+                style="width:100%;padding:.55rem .75rem;border:1px solid #d1d5db;border-radius:.5rem;font-size:.9rem;resize:vertical;">{{ form.note|default:'' }}</textarea>
+    </div>
+
+    <div style="display:flex;gap:.75rem;">
+      <button type="submit" class="btn btn-primary">ثبت تسویه</button>
+      <a href="/{{ company.code }}/admin/technicians/{{ technician.id }}/ledger/" class="btn btn-outline">انصراف</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

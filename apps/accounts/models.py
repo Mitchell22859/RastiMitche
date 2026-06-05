@@ -169,6 +169,24 @@ class Technician(CompanyOwnedModel):
         db_index=True,
     )
 
+    # Verification audit fields (Payment P3)
+    verified_by = models.ForeignKey(
+        "accounts.CompanyUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="verified_technicians",
+    )
+    rejected_by = models.ForeignKey(
+        "accounts.CompanyUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="rejected_technicians",
+    )
+    verification_note = models.TextField(blank=True)
+    verification_updated_at = models.DateTimeField(null=True, blank=True)
+
     def __str__(self) -> str:
         return f"Technician: {self.user.get_full_name()}"
 

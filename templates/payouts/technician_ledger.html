@@ -20,13 +20,22 @@
 <div class="page-header">
   <div>
     <h1>دفتر حساب: {{ technician.user.get_full_name|default:technician.user.username }}</h1>
-    <p style="color:#64748b;margin:.35rem 0 0;">صورت‌حساب مالی تکنسین — فقط خواندنی</p>
+    <p style="color:#64748b;margin:.35rem 0 0;">صورت‌حساب مالی تکنسین</p>
   </div>
   <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+    <a href="/{{ company.code }}/admin/technicians/{{ technician.id }}/ledger/settlement/" class="btn btn-primary">ثبت تسویه دستی</a>
     <a href="/{{ company.code }}/admin/technicians/{{ technician.id }}/edit/" class="btn btn-outline">ویرایش تکنسین</a>
     <a href="/{{ company.code }}/admin/technicians/" class="btn btn-outline">بازگشت به لیست</a>
   </div>
 </div>
+
+{% if messages %}
+  {% for msg in messages %}
+  <div class="card" style="background:{% if msg.tags == 'success' %}#f0fdf4{% elif msg.tags == 'warning' %}#fffbeb{% else %}#fef2f2{% endif %};border-color:{% if msg.tags == 'success' %}#bbf7d0{% elif msg.tags == 'warning' %}#fde68a{% else %}#fecaca{% endif %};margin-bottom:.75rem;padding:.75rem 1rem;color:#1e293b;">
+    {{ msg }}
+  </div>
+  {% endfor %}
+{% endif %}
 
 <div class="ledger-balance-card">
   <div>
@@ -35,11 +44,11 @@
     </div>
     <div class="ledger-lbl">
       {% if balance > 0 %}
-        شرکت به تکنسین بدهکار است
+        شرکت به این تکنسین بدهکار است.
       {% elif balance < 0 %}
-        تکنسین به شرکت بدهکار است
+        این تکنسین به شرکت بدهکار است.
       {% else %}
-        حساب تسویه است
+        حساب تکنسین تسویه است.
       {% endif %}
     </div>
   </div>
