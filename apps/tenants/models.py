@@ -63,6 +63,10 @@ class CompanyFinancialPolicy(models.Model):
         HALF_HALF = "half_half", "Split equally"
         PROPORTIONAL_SHARE = "proportional_share", "Split by share ratio"
 
+    class PayoutStrategy(models.TextChoices):
+        DIRECT_TO_COMPANY = "direct_to_company", "واریز کامل به حساب شرکت"
+        SPLIT_WITH_TECHNICIAN = "split_with_technician", "تسهیم با تکنسین تأییدشده"
+
     company = models.OneToOneField(
         Company,
         on_delete=models.CASCADE,
@@ -79,6 +83,17 @@ class CompanyFinancialPolicy(models.Model):
         choices=DiscountPolicy.choices,
         default=DiscountPolicy.TECHNICIAN,
         help_text="Who absorbs extra/manual invoice discounts by default.",
+    )
+    # Payout strategy fields (Payment P2)
+    payout_strategy = models.CharField(
+        max_length=30,
+        choices=PayoutStrategy.choices,
+        default=PayoutStrategy.DIRECT_TO_COMPANY,
+        help_text="نحوه پرداخت دستمزد تکنسین پس از وصول فاکتور",
+    )
+    platform_fee_percent = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        help_text="درصد کارمزد پلتفرم از کل مبلغ فاکتور — فقط توسط پلتفرم قابل تغییر است",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -216,6 +216,20 @@ class PaymentVerifyService:
                     discount_code_id=_resolve_discount_code_id(payment.invoice),
                 )
 
+            # Record split decision snapshot (non-blocking; never raises)
+            if payment.invoice:
+                try:
+                    from apps.payouts.services_split import PaymentSplitDecisionService
+                    # Reload invoice to pick up settled_* fields written by mark_paid
+                    fresh_invoice = payment.invoice.__class__.objects.get(pk=payment.invoice.pk)
+                    PaymentSplitDecisionService.create_snapshot(payment, fresh_invoice)
+                except Exception:
+                    import logging
+                    logging.getLogger(__name__).exception(
+                        "Failed to create split snapshot for payment %s",
+                        payment.id,
+                    )
+
             return True, "Payment verified successfully."
         else:
             # Mark payment as failed

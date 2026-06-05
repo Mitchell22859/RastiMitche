@@ -96,6 +96,16 @@ def admin_company_settings(request: HttpRequest, **kwargs) -> HttpResponse:
     error = ""
     success = ""
 
+    from apps.tenants.models import CompanyFinancialPolicy
+    financial_policy, _ = CompanyFinancialPolicy.objects.get_or_create(
+        company=company,
+        defaults={
+            "campaign_discount_policy": CompanyFinancialPolicy.DiscountPolicy.COMPANY,
+            "extra_discount_policy": CompanyFinancialPolicy.DiscountPolicy.TECHNICIAN,
+            "payout_strategy": CompanyFinancialPolicy.PayoutStrategy.DIRECT_TO_COMPANY,
+        },
+    )
+
     if request.method == "POST":
         try:
             company.name = request.POST.get("name", "").strip() or company.name
@@ -136,6 +146,14 @@ def admin_company_settings(request: HttpRequest, **kwargs) -> HttpResponse:
                 "future_orders_visible_after",
                 "auto_recycle_cancel_request",
             ])
+
+            # Payout strategy — company admin may change strategy; platform_fee_percent is read-only here
+            new_strategy = request.POST.get("payout_strategy", "")
+            valid_strategies = {c[0] for c in CompanyFinancialPolicy.PayoutStrategy.choices}
+            if new_strategy in valid_strategies:
+                financial_policy.payout_strategy = new_strategy
+            financial_policy.save(update_fields=["payout_strategy", "updated_at"])
+
             success = "تنظیمات با موفقیت ذخیره شد."
         except ValueError as exc:
             error = str(exc)
@@ -143,6 +161,7 @@ def admin_company_settings(request: HttpRequest, **kwargs) -> HttpResponse:
     return render(request, "tenants/admin_company_settings.html", {
         "company": company,
         "settings_obj": settings_obj,
+        "financial_policy": financial_policy,
         "error": error,
         "success": success,
     })
@@ -291,6 +310,7 @@ def admin_technician_create(request: HttpRequest, **kwargs) -> HttpResponse:
                     service_wage_percent=_parse_wage_percent(request.POST.get("service_wage_percent", "0")),
                     goods_wage_percent=_parse_wage_percent(request.POST.get("goods_wage_percent", "0")),
                     travel_wage_percent=_parse_wage_percent(request.POST.get("travel_wage_percent", "0")),
+                    shaba_number=_parse_shaba(request.POST.get("shaba_number", "")),
                 )
                 # Create legacy free-text skills
                 skills_str = form.cleaned_data.get("skills", "")
@@ -358,8 +378,24 @@ def admin_technician_edit(request: HttpRequest, technician_id: int, **kwargs) ->
             technician.service_wage_percent = _parse_wage_percent(request.POST.get("service_wage_percent", "0"))
             technician.goods_wage_percent = _parse_wage_percent(request.POST.get("goods_wage_percent", "0"))
             technician.travel_wage_percent = _parse_wage_percent(request.POST.get("travel_wage_percent", "0"))
+            new_shaba = _parse_shaba(request.POST.get("shaba_number", ""))
+            if new_shaba != technician.shaba_number:
+                # SHABA changed — reset verification so platform owner re-reviews
+                technician.shaba_number = new_shaba
+                if new_shaba:
+                    from apps.accounts.models import Technician as _Tech
+                    technician.financial_verification_status = _Tech.FinancialVerificationStatus.PENDING
+                    technician.shaba_verified = False
+                    technician.shaba_verified_at = None
+                else:
+                    from apps.accounts.models import Technician as _Tech
+                    technician.financial_verification_status = _Tech.FinancialVerificationStatus.NOT_SUBMITTED
+                    technician.shaba_verified = False
+                    technician.shaba_verified_at = None
             technician.save(update_fields=[
-                "is_available", "service_wage_percent", "goods_wage_percent", "travel_wage_percent", "updated_at",
+                "is_available", "service_wage_percent", "goods_wage_percent", "travel_wage_percent",
+                "shaba_number", "shaba_verified", "shaba_verified_at", "financial_verification_status",
+                "updated_at",
             ])
             # Update skills
             skills_str = form.cleaned_data.get("skills", "")
@@ -913,6 +949,16 @@ def _parse_wage_percent(value, default=0):
         return result
     except (InvalidOperation, ValueError, TypeError):
         return Decimal(str(default))
+
+
+def _parse_shaba(value: str) -> str:
+    """Normalize and validate SHABA format: IR + 24 digits, max 26 chars."""
+    v = (value or "").strip().upper().replace(" ", "").replace("-", "")
+    if not v:
+        return ""
+    if len(v) > 26:
+        v = v[:26]
+    return v
 
 
 def _get_customer_display_name(customer: Customer | None) -> str:

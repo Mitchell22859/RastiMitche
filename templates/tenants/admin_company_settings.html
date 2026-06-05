@@ -97,6 +97,37 @@
         </div>
     </div>
 
+    <div class="card" style="margin-bottom:1rem;">
+        <div class="card-header">تنظیمات مالی و پرداخت دستمزد</div>
+        <p style="color:#64748b;margin-top:0;">
+            نحوه پرداخت دستمزد نیروی خدماتی پس از وصول فاکتور را از اینجا تنظیم کنید.
+        </p>
+
+        <div class="form-group">
+            <label>استراتژی پرداخت دستمزد</label>
+            <select name="payout_strategy" class="form-control" style="max-width:420px;">
+                <option value="direct_to_company" {% if financial_policy.payout_strategy == "direct_to_company" %}selected{% endif %}>
+                    واریز کامل به حساب شرکت
+                </option>
+                <option value="split_with_technician" {% if financial_policy.payout_strategy == "split_with_technician" %}selected{% endif %}>
+                    تسهیم با تکنسین تأییدشده
+                </option>
+            </select>
+            <small style="color:#64748b;display:block;margin-top:.4rem;">
+                اگر تسهیم با تکنسین فعال باشد، فقط در صورتی سهم تکنسین مستقیم پرداخت می‌شود که اطلاعات مالی تکنسین توسط پلتفرم تأیید شده باشد.
+                در غیر این صورت سهم تکنسین در حساب دفتری او ثبت می‌شود.
+            </small>
+        </div>
+
+        {% if financial_policy.platform_fee_percent %}
+        <div class="form-group">
+            <label>درصد کارمزد پلتفرم</label>
+            <input class="form-control" value="{{ financial_policy.platform_fee_percent }}٪" readonly style="max-width:160px;background:#f8fafc;color:#64748b;">
+            <small style="color:#64748b;">این مقدار توسط پلتفرم تنظیم می‌شود و قابل تغییر نیست.</small>
+        </div>
+        {% endif %}
+    </div>
+
     <div style="display:flex;gap:.5rem;align-items:center;">
         <button type="submit" class="btn btn-primary">ذخیره تنظیمات</button>
         <a href="/{{ company.code }}/admin/" class="btn btn-outline">بازگشت</a>

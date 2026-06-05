@@ -145,6 +145,30 @@ class Technician(CompanyOwnedModel):
         help_text="درصد سهم تکنسین از ایاب و ذهاب (0-100)",
     )
 
+    # Financial verification fields (Payment P2)
+    class FinancialVerificationStatus(models.TextChoices):
+        NOT_SUBMITTED = "not_submitted", "ارسال نشده"
+        PENDING = "pending", "در انتظار بررسی"
+        VERIFIED = "verified", "تأییدشده"
+        REJECTED = "rejected", "رد شده"
+
+    shaba_number = models.CharField(
+        max_length=26, blank=True,
+        help_text="شماره شبا: IR + 24 رقم",
+    )
+    shaba_verified = models.BooleanField(default=False)
+    shaba_verified_at = models.DateTimeField(null=True, blank=True)
+    sub_merchant_id = models.CharField(
+        max_length=100, blank=True,
+        help_text="شناسه پذیرنده فرعی در درگاه پرداخت — توسط پلتفرم تکمیل می‌شود",
+    )
+    financial_verification_status = models.CharField(
+        max_length=20,
+        choices=FinancialVerificationStatus.choices,
+        default=FinancialVerificationStatus.NOT_SUBMITTED,
+        db_index=True,
+    )
+
     def __str__(self) -> str:
         return f"Technician: {self.user.get_full_name()}"
 

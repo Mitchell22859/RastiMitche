@@ -2,6 +2,7 @@
 Payouts - Models.
 
 Financial ledger for technician wages and settlements.
+Also contains PaymentSplitSnapshot for split-decision audit trail.
 
 Convention:
   CREDIT  → company owes technician (positive balance contribution)
@@ -102,3 +103,55 @@ class TechnicianLedgerEntry(CompanyOwnedModel):
     def __str__(self) -> str:
         sign = "+" if self.entry_type == self.EntryType.CREDIT else "-"
         return f"{sign}{self.amount_rial:,} [{self.source}] key={self.idempotency_key}"
+
+
+class PaymentSplitSnapshot(CompanyOwnedModel):
+    """
+    Immutable audit record of the split decision made at payment initiation/verification.
+
+    Written once per payment. Answers:
+    - What was the payout strategy at the time of this payment?
+    - Was the technician verified?
+    - How much goes directly to the technician vs. stays in company account?
+
+    This snapshot is NOT the ledger (TechnicianLedgerEntry handles balances).
+    It is the audit trail for the split routing decision.
+    """
+
+    payment = models.OneToOneField(
+        "payments.Payment",
+        on_delete=models.CASCADE,
+        related_name="split_snapshot",
+    )
+    invoice = models.ForeignKey(
+        "invoices.Invoice",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="split_snapshots",
+    )
+
+    # --- Amounts at decision time ---
+    total_amount = models.PositiveBigIntegerField(default=0)
+    platform_fee_amount = models.PositiveBigIntegerField(default=0)
+    company_deposit_amount = models.PositiveBigIntegerField(default=0)
+    technician_direct_amount = models.PositiveBigIntegerField(default=0)
+    technician_ledger_amount = models.PositiveBigIntegerField(default=0)
+
+    # --- Snapshot of settings at decision time ---
+    payout_strategy_snapshot = models.CharField(max_length=30, blank=True)
+    technician_verified_snapshot = models.BooleanField(default=False)
+    technician_sub_merchant_id_snapshot = models.CharField(max_length=100, blank=True)
+    platform_fee_percent_snapshot = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0
+    )
+
+    should_split_with_technician = models.BooleanField(default=False)
+    reason = models.CharField(max_length=300, blank=True)
+    raw_decision = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"SplitSnapshot payment={self.payment_id} split={self.should_split_with_technician}"
