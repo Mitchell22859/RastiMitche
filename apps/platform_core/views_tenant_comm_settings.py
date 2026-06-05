@@ -6,7 +6,7 @@ Phase 19B: Template view, preview, and change request views.
 """
 from __future__ import annotations
 
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.template import Context, Template
 
@@ -131,6 +131,8 @@ def tenant_comm_settings(request: HttpRequest, **kwargs) -> HttpResponse:
     success = ""
     error = ""
 
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
     if request.method == "POST":
         event_key = request.POST.get("event_key", "").strip()
         field = request.POST.get("field", "").strip()
@@ -139,13 +141,25 @@ def tenant_comm_settings(request: HttpRequest, **kwargs) -> HttpResponse:
         definition = EVENT_DEFINITIONS.get(event_key)
         if not definition or definition.payer != Payer.COMPANY:
             error = "این رویداد برای تنظیمات شرکت معتبر نیست."
+            if is_ajax:
+                return JsonResponse({"ok": False, "message": error}, status=400)
         elif field not in ("sms_enabled", "in_app_enabled"):
             error = "نوع تنظیم معتبر نیست."
+            if is_ajax:
+                return JsonResponse({"ok": False, "message": error}, status=400)
         else:
             setting = _get_or_create_notification_setting(company, event_key, definition)
             setattr(setting, field, value)
             setting.save(update_fields=[field, "updated_at"])
             success = "تنظیمات پیام ذخیره شد."
+            if is_ajax:
+                return JsonResponse({
+                    "ok": True,
+                    "message": success,
+                    "event_key": event_key,
+                    "field": field,
+                    "new_value": value,
+                })
 
     event_rows = _build_event_rows(company)
 
