@@ -32,6 +32,7 @@ from .views_redirects import (
     legacy_reports_redirect,
 )
 from apps.platform_core import views_tenant_payment_gateway as tenant_pg_views
+from . import views_financial_reports as financial_report_views
 
 app_name = "tenants"
 
@@ -151,6 +152,14 @@ urlpatterns = [
     path("admin/communication-settings/", tenant_comm_views.tenant_comm_settings, name="admin_communication_settings"),
     path("admin/communication-settings/template/<str:event_key>/", tenant_comm_views.tenant_sms_template_view, name="admin_sms_template_view"),
     path("admin/communication-settings/template/<str:event_key>/request/", tenant_comm_views.tenant_sms_template_change_request, name="admin_sms_template_request"),
+
+    # Admin: Financial Reports (P6)
+    path("admin/financial-reports/summary/", financial_report_views.financial_summary, name="financial_summary"),
+    path("admin/financial-reports/technicians/", financial_report_views.technician_breakdown, name="financial_technician_breakdown"),
+    path("admin/financial-reports/invoices/", financial_report_views.invoice_settlement_detail, name="financial_invoice_settlement"),
+    path("admin/financial-reports/cash-control/", financial_report_views.cash_control, name="financial_cash_control"),
+    path("admin/financial-reports/platform-fees/", financial_report_views.platform_fee_report, name="financial_platform_fees"),
+    path("admin/financial-reports/audit/", financial_report_views.audit_report, name="financial_audit"),
 
     # Admin: Reports & Notifications
     path("admin/reports/", include("apps.reports.urls")),

@@ -1,0 +1,40 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers jalali_tags %}
+
+{% block title %}تسویه فاکتورها{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8" dir="rtl">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">گزارش مالی</h1>
+  {% include "tenants/financial_reports/_nav.html" %}
+
+  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="text-right px-4 py-3 font-medium text-gray-600">شماره فاکتور</th>
+          <th class="text-right px-4 py-3 font-medium text-gray-600">تکنسین</th>
+          <th class="text-left px-4 py-3 font-medium text-gray-600">مبلغ کل (ریال)</th>
+          <th class="text-left px-4 py-3 font-medium text-gray-600">دستمزد تکنسین (ریال)</th>
+          <th class="text-left px-4 py-3 font-medium text-gray-600">تاریخ پرداخت</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for inv in invoices %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3">
+            <a href="/{{ company.code }}/admin/invoices/{{ inv.id }}/" class="text-blue-600 hover:underline">{{ inv.invoice_number }}</a>
+          </td>
+          <td class="px-4 py-3 text-gray-700">{{ inv.order.technician.user.get_full_name|default:"—" }}</td>
+          <td class="px-4 py-3" dir="ltr">{{ inv.total_amount|smart_number }}</td>
+          <td class="px-4 py-3 text-purple-700" dir="ltr">{{ inv.settled_technician_wage_amount|smart_number|default:"—" }}</td>
+          <td class="px-4 py-3 text-gray-500">{{ inv.paid_at|jalali_date|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">هیچ فاکتور پرداخت‌شده‌ای یافت نشد</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

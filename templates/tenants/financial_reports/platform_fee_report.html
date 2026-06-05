@@ -1,0 +1,49 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers jalali_tags %}
+
+{% block title %}کارمزد پلتفرم{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8" dir="rtl">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">گزارش مالی</h1>
+  {% include "tenants/financial_reports/_nav.html" %}
+
+  <div class="bg-white border {% if balance > 0 %}border-red-300 bg-red-50{% else %}border-green-300 bg-green-50{% endif %} rounded-lg p-4 mb-6 flex justify-between items-center">
+    <span class="text-sm font-medium">مانده کارمزد پلتفرم</span>
+    <span class="text-lg font-bold {% if balance > 0 %}text-red-700{% else %}text-green-700{% endif %}" dir="ltr">{{ balance|smart_number }} ریال</span>
+  </div>
+
+  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="text-right px-4 py-3 font-medium text-gray-600">نوع</th>
+          <th class="text-right px-4 py-3 font-medium text-gray-600">منبع</th>
+          <th class="text-left px-4 py-3 font-medium text-gray-600">مبلغ (ریال)</th>
+          <th class="text-left px-4 py-3 font-medium text-gray-600">مانده بعد (ریال)</th>
+          <th class="text-right px-4 py-3 font-medium text-gray-600">توضیح</th>
+          <th class="text-left px-4 py-3 font-medium text-gray-600">تاریخ</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for entry in entries %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded text-xs font-medium {% if entry.entry_type == 'debit' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+              {{ entry.get_entry_type_display }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-gray-600 text-xs">{{ entry.get_source_display }}</td>
+          <td class="px-4 py-3 font-medium" dir="ltr">{{ entry.amount_rial|smart_number }}</td>
+          <td class="px-4 py-3 text-gray-500" dir="ltr">{{ entry.balance_after|smart_number }}</td>
+          <td class="px-4 py-3 text-gray-600 text-xs">{{ entry.description|default:"—" }}</td>
+          <td class="px-4 py-3 text-gray-500">{{ entry.created_at|jalali_date }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">هیچ رکورد کارمزدی ثبت نشده</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

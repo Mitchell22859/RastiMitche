@@ -379,4 +379,6 @@ def _payment_collected_by_technician(payment) -> bool:
     if payment is None:
         return False
     metadata = getattr(payment, "metadata", {}) or {}
+    if metadata.get("payment_source") == "CASH_RECEIVED_BY_TECHNICIAN":
+        return True
     return bool(metadata.get("technician_id"))

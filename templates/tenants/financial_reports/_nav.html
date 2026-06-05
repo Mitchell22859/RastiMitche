@@ -1,0 +1,9 @@
+{% comment %}Financial report sub-navigation{% endcomment %}
+<nav class="flex flex-wrap gap-2 mb-6 text-sm" dir="rtl">
+  <a href="/{{ company.code }}/admin/financial-reports/summary/" class="px-3 py-1.5 rounded border {% if request.resolver_match.url_name == 'financial_summary' %}bg-blue-600 text-white border-blue-600{% else %}border-gray-300 text-gray-700 hover:bg-gray-50{% endif %}">خلاصه مالی</a>
+  <a href="/{{ company.code }}/admin/financial-reports/technicians/" class="px-3 py-1.5 rounded border {% if request.resolver_match.url_name == 'financial_technician_breakdown' %}bg-blue-600 text-white border-blue-600{% else %}border-gray-300 text-gray-700 hover:bg-gray-50{% endif %}">دستمزد تکنسین‌ها</a>
+  <a href="/{{ company.code }}/admin/financial-reports/invoices/" class="px-3 py-1.5 rounded border {% if request.resolver_match.url_name == 'financial_invoice_settlement' %}bg-blue-600 text-white border-blue-600{% else %}border-gray-300 text-gray-700 hover:bg-gray-50{% endif %}">تسویه فاکتورها</a>
+  <a href="/{{ company.code }}/admin/financial-reports/cash-control/" class="px-3 py-1.5 rounded border {% if request.resolver_match.url_name == 'financial_cash_control' %}bg-blue-600 text-white border-blue-600{% else %}border-gray-300 text-gray-700 hover:bg-gray-50{% endif %}">کنترل نقدی</a>
+  <a href="/{{ company.code }}/admin/financial-reports/platform-fees/" class="px-3 py-1.5 rounded border {% if request.resolver_match.url_name == 'financial_platform_fees' %}bg-blue-600 text-white border-blue-600{% else %}border-gray-300 text-gray-700 hover:bg-gray-50{% endif %}">کارمزد پلتفرم</a>
+  <a href="/{{ company.code }}/admin/financial-reports/audit/" class="px-3 py-1.5 rounded border {% if request.resolver_match.url_name == 'financial_audit' %}bg-blue-600 text-white border-blue-600{% else %}border-gray-300 text-gray-700 hover:bg-gray-50{% endif %}">گزارش حسابرسی</a>
+</nav>

@@ -332,4 +332,15 @@ class InvoiceMarkPaidService:
                 getattr(invoice, "id", None),
             )
 
+        # Record platform fee receivable for cash/manual payments (P6).
+        try:
+            from apps.payouts.services_platform_fee import PlatformFeeService
+            PlatformFeeService.record_invoice_fee(invoice, payment=payment)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception(
+                "Failed to record platform fee for invoice %s — ledger will need backfill.",
+                getattr(invoice, "id", None),
+            )
+
         return invoice

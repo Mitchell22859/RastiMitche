@@ -155,3 +155,82 @@ class PaymentSplitSnapshot(CompanyOwnedModel):
 
     def __str__(self) -> str:
         return f"SplitSnapshot payment={self.payment_id} split={self.should_split_with_technician}"
+
+
+class CompanyPlatformFeeEntry(CompanyOwnedModel):
+    """
+    One immutable row in the company's platform-fee ledger.
+
+    Convention (from platform's perspective):
+      DEBIT  → company owes platform more (fee accrued on a cash/manual payment).
+      CREDIT → company paid / platform fee was settled.
+
+    balance_after is the running total of what the company owes the platform
+    at the moment this entry was written. Positive = company still owes.
+
+    idempotency_key is globally unique.  Callers must supply a deterministic key
+    (e.g. "platform_fee:invoice:42") so that retries never double-create.
+    """
+
+    class EntryType(models.TextChoices):
+        DEBIT = "debit", "بدهکار (شرکت به پلتفرم)"
+        CREDIT = "credit", "بستانکار (تسویه)"
+
+    class Source(models.TextChoices):
+        CASH_INVOICE = "cash_invoice", "فاکتور نقدی"
+        ONLINE_GATEWAY = "online_gateway", "درگاه آنلاین"
+        MANUAL_ADJUSTMENT = "manual_adjustment", "تعدیل دستی"
+        PLATFORM_FEE_SETTLEMENT = "platform_fee_settlement", "تسویه کارمزد"
+        REFUND = "refund", "برگشت"
+
+    invoice = models.ForeignKey(
+        "invoices.Invoice",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="platform_fee_entries",
+    )
+    payment = models.ForeignKey(
+        "payments.Payment",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="platform_fee_entries",
+    )
+
+    entry_type = models.CharField(max_length=10, choices=EntryType.choices, db_index=True)
+    source = models.CharField(max_length=40, choices=Source.choices, db_index=True)
+
+    amount_rial = models.PositiveBigIntegerField()
+    balance_after = models.BigIntegerField(
+        help_text="Running balance after this entry. Positive = company still owes platform."
+    )
+    platform_fee_percent_snapshot = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        help_text="Platform fee percent at time of recording.",
+    )
+
+    description = models.TextField(blank=True)
+    idempotency_key = models.CharField(max_length=200, unique=True, db_index=True)
+
+    created_by = models.ForeignKey(
+        "accounts.CompanyUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_platform_fee_entries",
+    )
+    metadata = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(
+                fields=["company", "created_at"],
+                name="platform_fee_company_date_idx",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        sign = "+" if self.entry_type == self.EntryType.DEBIT else "-"
+        return f"{sign}{self.amount_rial:,} [{self.source}] key={self.idempotency_key}"

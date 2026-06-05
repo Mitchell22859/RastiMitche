@@ -1,0 +1,46 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers jalali_tags %}
+
+{% block title %}خلاصه مالی{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8" dir="rtl">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">گزارش مالی</h1>
+  {% include "tenants/financial_reports/_nav.html" %}
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+
+    <div class="bg-white border border-gray-200 rounded-lg p-5">
+      <p class="text-sm text-gray-500 mb-1">تعداد فاکتورهای پرداخت‌شده</p>
+      <p class="text-2xl font-bold text-gray-800">{{ total_invoices }}</p>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-lg p-5">
+      <p class="text-sm text-gray-500 mb-1">مجموع درآمد (ریال)</p>
+      <p class="text-2xl font-bold text-blue-700">{{ total_invoiced|smart_number }}</p>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-lg p-5">
+      <p class="text-sm text-gray-500 mb-1">بدهی به تکنسین‌ها (ریال)</p>
+      <p class="text-2xl font-bold {% if tech_net_owed > 0 %}text-red-600{% else %}text-green-600{% endif %}">{{ tech_net_owed|smart_number }}</p>
+      <p class="text-xs text-gray-400 mt-1">بستانکار: {{ tech_credits|smart_number }} | بدهکار: {{ tech_debits|smart_number }}</p>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-lg p-5">
+      <p class="text-sm text-gray-500 mb-1">کارمزد پلتفرم تجمعی (ریال)</p>
+      <p class="text-2xl font-bold text-purple-700">{{ platform_fee_total_accrued|smart_number }}</p>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-lg p-5">
+      <p class="text-sm text-gray-500 mb-1">کارمزد تسویه‌شده (ریال)</p>
+      <p class="text-2xl font-bold text-green-700">{{ platform_fee_total_settled|smart_number }}</p>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-lg p-5">
+      <p class="text-sm text-gray-500 mb-1">مانده کارمزد پلتفرم (ریال)</p>
+      <p class="text-2xl font-bold {% if platform_fee_balance > 0 %}text-red-600{% else %}text-green-600{% endif %}">{{ platform_fee_balance|smart_number }}</p>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

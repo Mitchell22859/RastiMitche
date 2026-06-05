@@ -1,0 +1,45 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers jalali_tags %}
+
+{% block title %}کنترل نقدی{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8" dir="rtl">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">گزارش مالی</h1>
+  {% include "tenants/financial_reports/_nav.html" %}
+
+  <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 flex justify-between items-center">
+    <span class="text-sm font-medium text-orange-800">مجموع نقدی دریافتی توسط تکنسین‌ها (بدهی به شرکت)</span>
+    <span class="text-lg font-bold text-orange-700" dir="ltr">{{ tech_cash_total|smart_number }} ریال</span>
+  </div>
+
+  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="text-right px-4 py-3 font-medium text-gray-600">تکنسین</th>
+          <th class="text-right px-4 py-3 font-medium text-gray-600">فاکتور</th>
+          <th class="text-left px-4 py-3 font-medium text-gray-600">مبلغ (ریال)</th>
+          <th class="text-left px-4 py-3 font-medium text-gray-600">تاریخ</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for entry in tech_cash_entries %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 text-gray-800">{{ entry.technician.user.get_full_name|default:entry.technician.user.username }}</td>
+          <td class="px-4 py-3">
+            {% if entry.invoice %}
+            <a href="/{{ company.code }}/admin/invoices/{{ entry.invoice_id }}/" class="text-blue-600 hover:underline">{{ entry.invoice.invoice_number }}</a>
+            {% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 font-medium" dir="ltr">{{ entry.amount_rial|smart_number }}</td>
+          <td class="px-4 py-3 text-gray-500">{{ entry.created_at|jalali_date }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">هیچ رکوردی یافت نشد</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

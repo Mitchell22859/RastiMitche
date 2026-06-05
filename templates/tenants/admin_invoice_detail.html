@@ -123,9 +123,30 @@
 
 {% if invoice.status == "issued" %}
 <form method="post" style="display:inline;">{% csrf_token %}
-<input type="hidden" name="mark_paid" value="1">
-<button type="submit" class="btn btn-success">ثبت پرداخت مستقیم غیرفعال شد</button>
-</form>{% endif %}
+<input type="hidden" name="mark_paid_company_cash" value="1">
+<button type="submit" class="btn btn-success" onclick="return confirm('آیا نقدی دریافتی توسط شرکت را ثبت می‌کنید؟')">💵 نقدی دریافت شرکت</button>
+</form>
+<form method="post" style="display:inline;">{% csrf_token %}
+<input type="hidden" name="mark_paid_technician_cash" value="1">
+<button type="submit" class="btn btn-warning" onclick="return confirm('آیا نقدی دریافتی توسط تکنسین را ثبت می‌کنید؟')">👷 نقدی دریافت تکنسین</button>
+</form>
+{% endif %}
+
+{% if financial_preview and invoice.status == "issued" %}
+<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:1rem;margin-top:1rem;">
+  <h4 style="margin-bottom:0.75rem;color:#0369a1;">پیش‌نمایش تسویه مالی</h4>
+  <table style="font-size:0.875rem;border-collapse:collapse;">
+    <tr><td style="padding:2px 12px 2px 0;color:#64748b;">مبلغ کل فاکتور</td><td style="font-weight:600;">{{ financial_preview.total_amount|smart_number }} ریال</td></tr>
+    {% if financial_preview.platform_fee_percent %}
+    <tr><td style="padding:2px 12px 2px 0;color:#64748b;">کارمزد پلتفرم ({{ financial_preview.platform_fee_percent }}٪)</td><td style="color:#dc2626;">{{ financial_preview.platform_fee_amount|smart_number }} ریال</td></tr>
+    {% endif %}
+    {% if financial_preview.technician_wage_percent %}
+    <tr><td style="padding:2px 12px 2px 0;color:#64748b;">دستمزد تکنسین ({{ financial_preview.technician_wage_percent }}٪)</td><td style="color:#7c3aed;">{{ financial_preview.technician_wage_amount|smart_number }} ریال</td></tr>
+    {% endif %}
+    <tr style="border-top:1px solid #bae6fd;"><td style="padding:4px 12px 2px 0;font-weight:700;color:#0369a1;">سهم خالص شرکت</td><td style="font-weight:800;color:#0369a1;">{{ financial_preview.company_net_amount|smart_number }} ریال</td></tr>
+  </table>
+</div>
+{% endif %}
 
 {% if invoice.status == "draft" or invoice.status == "issued" %}
 <form method="post" style="display:flex;gap:0.5rem;align-items:center;">{% csrf_token %}

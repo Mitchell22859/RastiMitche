@@ -821,11 +821,40 @@ def admin_invoice_detail(request: HttpRequest, invoice_id: int, **kwargs) -> Htt
         except ValueError as e:
             error = str(e)
 
-    if request.method == "POST" and "mark_paid" in request.POST:
+    if request.method == "POST" and "mark_paid_company_cash" in request.POST:
         try:
-            InvoiceMarkPaidService.mark_paid(invoice=invoice)
+            from apps.payments.models import Payment
+            payment = Payment.objects.create(
+                company=company,
+                invoice=invoice,
+                amount=invoice.total_amount,
+                status=Payment.Status.PAID,
+                metadata={"payment_source": "CASH_RECEIVED_BY_COMPANY", "method": "cash"},
+            )
+            InvoiceMarkPaidService.mark_paid(invoice=invoice, payment=payment, payment_method="cash")
             return redirect(f"/{company.code}/admin/invoices/{invoice.id}/")
-        except ValueError as e:
+        except (ValueError, Exception) as e:
+            error = str(e)
+
+    if request.method == "POST" and "mark_paid_technician_cash" in request.POST:
+        try:
+            from apps.payments.models import Payment
+            order = getattr(invoice, "order", None)
+            technician_id = getattr(getattr(order, "technician", None), "id", None)
+            payment = Payment.objects.create(
+                company=company,
+                invoice=invoice,
+                amount=invoice.total_amount,
+                status=Payment.Status.PAID,
+                metadata={
+                    "payment_source": "CASH_RECEIVED_BY_TECHNICIAN",
+                    "method": "cash",
+                    "technician_id": technician_id,
+                },
+            )
+            InvoiceMarkPaidService.mark_paid(invoice=invoice, payment=payment, payment_method="cash")
+            return redirect(f"/{company.code}/admin/invoices/{invoice.id}/")
+        except (ValueError, Exception) as e:
             error = str(e)
 
     if request.method == "POST" and "cancel_invoice" in request.POST:
@@ -848,12 +877,16 @@ def admin_invoice_detail(request: HttpRequest, invoice_id: int, **kwargs) -> Htt
     paid_payment = PaymentSelector.get_latest_paid_for_invoice(company=company, invoice_id=invoice.id)
     payment_info = PaymentSelector.build_display_info(paid_payment)
 
+    from apps.invoices.services_preview import InvoiceFinancialPreviewService
+    financial_preview = InvoiceFinancialPreviewService.compute(invoice)
+
     return render(request, "tenants/admin_invoice_detail.html", {
         "company": company, "invoice": invoice, "error": error,
         "public_url": public_url,
         "wage": wage_breakdown,
         "paid_payment": paid_payment,
         "payment_info": payment_info,
+        "financial_preview": financial_preview,
     })
 
 
