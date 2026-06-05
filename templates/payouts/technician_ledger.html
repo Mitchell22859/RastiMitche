@@ -1,0 +1,111 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers jalali_tags %}
+{% block title %}دفتر حساب تکنسین - {{ technician.user.get_full_name }} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block content %}
+<style>
+.ledger-balance-card{background:#fff;border:1px solid #e2e8f0;border-radius:1rem;padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
+.ledger-balance-num{font-size:1.6rem;font-weight:900}
+.ledger-balance-num.positive{color:#16a34a}
+.ledger-balance-num.negative{color:#dc2626}
+.ledger-balance-num.zero{color:#64748b}
+.ledger-lbl{font-size:.8rem;color:#64748b;margin-top:.2rem}
+.ledger-source-badge{display:inline-block;padding:.15rem .5rem;border-radius:.4rem;font-size:.72rem;font-weight:700;background:#f1f5f9;color:#475569}
+.entry-credit td{background:#f0fdf4}
+.entry-debit td{background:#fff7f7}
+</style>
+
+<div class="page-header">
+  <div>
+    <h1>دفتر حساب: {{ technician.user.get_full_name|default:technician.user.username }}</h1>
+    <p style="color:#64748b;margin:.35rem 0 0;">صورت‌حساب مالی تکنسین — فقط خواندنی</p>
+  </div>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+    <a href="/{{ company.code }}/admin/technicians/{{ technician.id }}/edit/" class="btn btn-outline">ویرایش تکنسین</a>
+    <a href="/{{ company.code }}/admin/technicians/" class="btn btn-outline">بازگشت به لیست</a>
+  </div>
+</div>
+
+<div class="ledger-balance-card">
+  <div>
+    <div class="ledger-balance-num {% if balance > 0 %}positive{% elif balance < 0 %}negative{% else %}zero{% endif %}">
+      {{ balance|smart_number }} ریال
+    </div>
+    <div class="ledger-lbl">
+      {% if balance > 0 %}
+        شرکت به تکنسین بدهکار است
+      {% elif balance < 0 %}
+        تکنسین به شرکت بدهکار است
+      {% else %}
+        حساب تسویه است
+      {% endif %}
+    </div>
+  </div>
+  <div style="color:#94a3b8;font-size:.8rem;max-width:380px;">
+    موجودی مثبت یعنی شرکت هنوز اجرت تکنسین را پرداخت نکرده.<br>
+    موجودی منفی یعنی تکنسین وجهی را که از مشتری گرفته هنوز به شرکت تحویل نداده.
+  </div>
+</div>
+
+{% if entries %}
+<div class="card" style="overflow-x:auto;">
+  <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
+    <thead>
+      <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;">
+        <th style="padding:.6rem .75rem;text-align:right;font-weight:800;">تاریخ</th>
+        <th style="padding:.6rem .75rem;text-align:right;font-weight:800;">نوع</th>
+        <th style="padding:.6rem .75rem;text-align:right;font-weight:800;">منشأ</th>
+        <th style="padding:.6rem .75rem;text-align:right;font-weight:800;">فاکتور/سفارش</th>
+        <th style="padding:.6rem .75rem;text-align:left;font-weight:800;">مبلغ (ریال)</th>
+        <th style="padding:.6rem .75rem;text-align:left;font-weight:800;">موجودی بعد</th>
+        <th style="padding:.6rem .75rem;text-align:right;font-weight:800;">توضیح</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in entries %}
+      <tr class="{% if entry.entry_type == 'credit' %}entry-credit{% else %}entry-debit{% endif %}" style="border-bottom:1px solid #f1f5f9;">
+        <td style="padding:.55rem .75rem;white-space:nowrap;">{{ entry.created_at|jalali_datetime }}</td>
+        <td style="padding:.55rem .75rem;">
+          {% if entry.entry_type == 'credit' %}
+            <span style="color:#16a34a;font-weight:700;">بستانکار</span>
+          {% else %}
+            <span style="color:#dc2626;font-weight:700;">بدهکار</span>
+          {% endif %}
+        </td>
+        <td style="padding:.55rem .75rem;">
+          <span class="ledger-source-badge">{{ entry.get_source_display }}</span>
+        </td>
+        <td style="padding:.55rem .75rem;">
+          {% if entry.invoice %}
+            <a href="/{{ company.code }}/admin/invoices/{{ entry.invoice.id }}/" style="color:#2563eb;">{{ entry.invoice.invoice_number }}</a>
+          {% elif entry.order %}
+            <a href="/{{ company.code }}/admin/orders/{{ entry.order.id }}/" style="color:#2563eb;">#{{ entry.order.id }}</a>
+          {% else %}
+            —
+          {% endif %}
+        </td>
+        <td style="padding:.55rem .75rem;text-align:left;direction:ltr;font-weight:700;
+                   color:{% if entry.entry_type == 'credit' %}#16a34a{% else %}#dc2626{% endif %}">
+          {% if entry.entry_type == 'credit' %}+{% else %}-{% endif %}{{ entry.amount_rial|smart_number }}
+        </td>
+        <td style="padding:.55rem .75rem;text-align:left;direction:ltr;
+                   color:{% if entry.balance_after >= 0 %}#16a34a{% else %}#dc2626{% endif %}">
+          {{ entry.balance_after|smart_number }}
+        </td>
+        <td style="padding:.55rem .75rem;color:#475569;font-size:.8rem;">{{ entry.description|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card" style="text-align:center;padding:3rem;color:#94a3b8;">
+  <div style="font-size:2rem;">📋</div>
+  <div style="margin-top:.5rem;">هیچ تراکنش مالی ثبت نشده است.</div>
+  <div style="font-size:.8rem;margin-top:.35rem;">پس از ثبت پرداخت فاکتور مرتبط با این تکنسین، اطلاعات اینجا نمایش داده می‌شود.</div>
+</div>
+{% endif %}
+
+{% endblock %}

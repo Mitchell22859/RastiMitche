@@ -1,4 +1,4 @@
-﻿"""
+"""
 Base settings for Rasti Service platform.
 
 This file contains settings shared across all environments.
@@ -50,6 +50,7 @@ LOCAL_APPS = [
     "apps.notifications.apps.NotificationsConfig",
     "apps.sms",
     "apps.reports",
+    "apps.payouts",
     "apps.dashboard",
     "apps.api",
     "apps.public",

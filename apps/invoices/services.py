@@ -319,4 +319,17 @@ class InvoiceMarkPaidService:
         invoice.status = Invoice.Status.PAID
         invoice.paid_at = timezone.now()
         invoice.save(update_fields=["status", "paid_at", "updated_at"])
+
+        # Create technician ledger entries after settlement is frozen.
+        # Import is deferred to avoid circular import; this call is idempotent.
+        try:
+            from apps.payouts.services import TechnicianLedgerService
+            TechnicianLedgerService.create_invoice_entries(invoice, payment=payment)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception(
+                "Failed to create ledger entries for invoice %s — ledger will need backfill.",
+                getattr(invoice, "id", None),
+            )
+
         return invoice

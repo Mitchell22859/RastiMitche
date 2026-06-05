@@ -20,6 +20,7 @@ These legacy paths now redirect to the correct role-specific panel.
 from django.urls import include, path
 
 from . import views, views_admin, views_branding
+from apps.payouts import views as payouts_views
 from apps.platform_core import views_tenant_sms_credit as tenant_sms_views
 from apps.platform_core import views_tenant_comm_settings as tenant_comm_views
 from .views_redirects import (
@@ -85,6 +86,7 @@ urlpatterns = [
     path("admin/technicians/<int:technician_id>/edit/", views_admin.admin_technician_edit, name="admin_technician_edit"),
     path("admin/technicians/<int:technician_id>/delete/", views_admin.admin_technician_delete, name="admin_technician_delete"),
     path("admin/technicians/<int:technician_id>/toggle-active/", views_admin.admin_technician_toggle_active, name="admin_technician_toggle_active"),
+    path("admin/technicians/<int:technician_id>/ledger/", payouts_views.technician_ledger, name="admin_technician_ledger"),
 
     # Admin: Customers — central customer file and history
     path("admin/customers/", views_admin.admin_customer_list, name="admin_customers"),
