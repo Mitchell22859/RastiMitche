@@ -1,0 +1,126 @@
+{% extends "layouts/dashboard.html" %}
+{% load fa_labels smart_numbers jalali_tags %}
+{% block title %}گزارش تسهیم پرداخت‌ها - پلتفرم{% endblock %}
+{% block sidebar_brand %}رستی سرویس{% endblock %}
+{% block sidebar_subtitle %}پنل مدیریت پلتفرم{% endblock %}
+{% block user_role_label %}مدیر پلتفرم{% endblock %}
+{% block page_title %}گزارش تسهیم پرداخت‌ها{% endblock %}
+{% block page_description %}اسنپ‌شات تصمیم تسهیم برای همه شرکت‌ها{% endblock %}
+{% block logout_url %}/owner-platform/logout/{% endblock %}
+
+{% block sidebar_nav %}
+{% include "includes/nav_platform.html" %}
+{% endblock %}
+
+{% block content %}
+{# Filters #}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-5">
+  <form method="get" class="flex flex-wrap gap-3 items-end">
+    <div>
+      <label class="block text-xs font-semibold text-gray-500 mb-1">شرکت</label>
+      <select name="company" class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none">
+        <option value="">همه شرکت‌ها</option>
+        {% for c in companies %}
+        <option value="{{ c.id }}" {% if company_filter == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }} ({{ c.code }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-gray-500 mb-1">تسهیم؟</label>
+      <select name="split" class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none">
+        <option value="">همه</option>
+        <option value="yes" {% if split_filter == 'yes' %}selected{% endif %}>بله</option>
+        <option value="no" {% if split_filter == 'no' %}selected{% endif %}>خیر</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-gray-500 mb-1">دلیل</label>
+      <select name="reason" class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none" style="max-width:200px;">
+        <option value="">همه</option>
+        {% for code, lbl in reason_choices %}
+        <option value="{{ code }}" {% if reason_filter == code %}selected{% endif %}>{{ lbl|truncatechars:38 }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-gray-500 mb-1">جستجو</label>
+      <input type="text" name="q" value="{{ q }}" placeholder="شماره فاکتور، کد پیگیری..."
+             class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none" style="min-width:180px;">
+    </div>
+    <button type="submit"
+            class="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-smooth">
+      اعمال فیلتر
+    </button>
+    {% if company_filter or split_filter or reason_filter or q %}
+    <a href="/owner-platform/payment-split-snapshots/"
+       class="px-4 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 font-medium rounded-lg transition-smooth">
+      حذف فیلتر
+    </a>
+    {% endif %}
+  </form>
+</div>
+
+{% if snapshots %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full data-table">
+      <thead>
+        <tr class="bg-gray-50/50">
+          <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500">شرکت</th>
+          <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500">تاریخ</th>
+          <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500">فاکتور</th>
+          <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500">تکنسین</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500">مبلغ کل</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500">کارمزد</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500">شرکت</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500">تکنسین مستقیم</th>
+          <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500">دفتر تکنسین</th>
+          <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500">تسهیم؟</th>
+          <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500">دلیل</th>
+          <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500">جزئیات</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for s in snapshots %}
+        {% with tech=s.invoice.order.technician %}
+        <tr class="hover:bg-gray-50/50 transition-colors text-sm">
+          <td class="px-4 py-2 text-gray-700">
+            {{ s.company.name }}<br>
+            <span class="text-xs text-gray-400 font-mono">{{ s.company.code }}</span>
+          </td>
+          <td class="px-4 py-2 text-gray-500 whitespace-nowrap text-xs">{{ s.created_at|jalali_datetime }}</td>
+          <td class="px-4 py-2">
+            {% if s.invoice %}<span class="font-medium text-blue-600">{{ s.invoice.invoice_number }}</span>{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-2 text-gray-700">
+            {% if tech %}{{ tech.user.get_full_name|default:tech.user.username }}{% else %}<span class="text-gray-300">—</span>{% endif %}
+          </td>
+          <td class="px-4 py-2 text-left dir-ltr font-semibold">{{ s.total_amount|smart_number }}</td>
+          <td class="px-4 py-2 text-left dir-ltr text-purple-600">{{ s.platform_fee_amount|smart_number }}</td>
+          <td class="px-4 py-2 text-left dir-ltr">{{ s.company_deposit_amount|smart_number }}</td>
+          <td class="px-4 py-2 text-left dir-ltr {% if s.technician_direct_amount > 0 %}text-green-600 font-semibold{% else %}text-gray-300{% endif %}">{{ s.technician_direct_amount|smart_number }}</td>
+          <td class="px-4 py-2 text-left dir-ltr {% if s.technician_ledger_amount > 0 %}text-blue-600{% else %}text-gray-300{% endif %}">{{ s.technician_ledger_amount|smart_number }}</td>
+          <td class="px-4 py-2 text-center">
+            {% if s.should_split_with_technician %}
+              <span class="text-green-600 font-bold text-xs">بله</span>
+            {% else %}
+              <span class="text-red-500 text-xs">خیر</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-2 text-gray-500 text-xs max-w-32">{{ s.reason }}</td>
+          <td class="px-4 py-2">
+            <a href="/owner-platform/payment-split-snapshots/{{ s.id }}/" class="text-sm text-brand-600 hover:text-brand-700 font-medium">بررسی</a>
+          </td>
+        </tr>
+        {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm">
+  {% include "includes/components/empty_state.html" with title="هیچ رکوردی یافت نشد" description="پس از انجام اولین پرداخت آنلاین، اطلاعات اینجا نمایش داده می‌شود." icon="reports" %}
+</div>
+{% endif %}
+{% endblock %}

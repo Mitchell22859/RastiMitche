@@ -21,6 +21,7 @@ from django.urls import include, path
 
 from . import views, views_admin, views_branding
 from apps.payouts import views as payouts_views
+from apps.payouts import views_split_snapshots as split_snapshot_views
 from apps.platform_core import views_tenant_sms_credit as tenant_sms_views
 from apps.platform_core import views_tenant_comm_settings as tenant_comm_views
 from .views_redirects import (
@@ -87,6 +88,10 @@ urlpatterns = [
     path("admin/technicians/<int:technician_id>/delete/", views_admin.admin_technician_delete, name="admin_technician_delete"),
     path("admin/technicians/<int:technician_id>/toggle-active/", views_admin.admin_technician_toggle_active, name="admin_technician_toggle_active"),
     path("admin/technicians/<int:technician_id>/ledger/", payouts_views.technician_ledger, name="admin_technician_ledger"),
+
+    # Admin: Payment Split Snapshot Report (P4)
+    path("admin/payments/split-snapshots/", split_snapshot_views.split_snapshot_list, name="admin_split_snapshots"),
+    path("admin/payments/split-snapshots/<int:snapshot_id>/", split_snapshot_views.split_snapshot_detail, name="admin_split_snapshot_detail"),
     path("admin/technicians/<int:technician_id>/ledger/settlement/", payouts_views.technician_settlement, name="admin_technician_settlement"),
 
     # Admin: Customers — central customer file and history

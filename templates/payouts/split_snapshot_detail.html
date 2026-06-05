@@ -1,0 +1,172 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers jalali_tags %}
+{% block title %}جزئیات تسهیم پرداخت #{{ snapshot.id }} - {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1>جزئیات تسهیم پرداخت #{{ snapshot.id }}</h1>
+    <p style="color:#64748b;margin:.35rem 0 0;">اطلاعات کامل تصمیم تسهیم در لحظه پرداخت</p>
+  </div>
+  <a href="/{{ company.code }}/admin/payments/split-snapshots/" class="btn btn-outline">بازگشت به لیست</a>
+</div>
+
+{% with tech=snapshot.invoice.order.technician %}
+
+{# Explanation banner #}
+<div class="card" style="background:{% if snapshot.should_split_with_technician %}#f0fdf4{% else %}#fff7ed{% endif %};border:1px solid {% if snapshot.should_split_with_technician %}#bbf7d0{% else %}#fed7aa{% endif %};border-radius:1rem;padding:1rem 1.25rem;margin-bottom:1.25rem;">
+  <div style="font-size:.9rem;font-weight:600;color:{% if snapshot.should_split_with_technician %}#166534{% else %}#92400e{% endif %};">
+    {% if snapshot.should_split_with_technician %}
+      ✓ در این پرداخت، سهم تکنسین برای تسهیم مستقیم آماده شده است.
+    {% else %}
+      {{ reason_label }}
+    {% endif %}
+  </div>
+</div>
+
+{# Info rows #}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;">
+
+  {# Payment + Invoice #}
+  <div class="card" style="background:#fff;border:1px solid #e2e8f0;border-radius:1rem;overflow:hidden;">
+    <div style="padding:.75rem 1rem;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:.8rem;font-weight:700;color:#374151;">اطلاعات پرداخت و فاکتور</div>
+    <div style="font-size:.82rem;">
+      {% if snapshot.payment %}
+      <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <span style="width:140px;color:#64748b;">شناسه پرداخت</span>
+        <span style="font-weight:600;">#{{ snapshot.payment.id }}</span>
+      </div>
+      <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <span style="width:140px;color:#64748b;">وضعیت پرداخت</span>
+        <span>{{ snapshot.payment.status }}</span>
+      </div>
+      {% if snapshot.payment.tracking_code %}
+      <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <span style="width:140px;color:#64748b;">کد پیگیری</span>
+        <span style="font-family:monospace;direction:ltr;">{{ snapshot.payment.tracking_code }}</span>
+      </div>
+      {% endif %}
+      {% if snapshot.payment.reference_id %}
+      <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <span style="width:140px;color:#64748b;">شناسه مرجع</span>
+        <span style="font-family:monospace;direction:ltr;">{{ snapshot.payment.reference_id }}</span>
+      </div>
+      {% endif %}
+      {% if snapshot.payment.paid_at %}
+      <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <span style="width:140px;color:#64748b;">تاریخ پرداخت</span>
+        <span>{{ snapshot.payment.paid_at|jalali_datetime }}</span>
+      </div>
+      {% endif %}
+      {% endif %}
+      {% if snapshot.invoice %}
+      <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <span style="width:140px;color:#64748b;">شماره فاکتور</span>
+        <a href="/{{ company.code }}/admin/invoices/{{ snapshot.invoice.id }}/" style="color:#2563eb;font-weight:600;">{{ snapshot.invoice.invoice_number }}</a>
+      </div>
+      {% endif %}
+      <div style="display:flex;padding:.5rem 1rem;">
+        <span style="width:140px;color:#64748b;">تاریخ ثبت اسنپ</span>
+        <span>{{ snapshot.created_at|jalali_datetime }}</span>
+      </div>
+    </div>
+  </div>
+
+  {# Technician #}
+  <div class="card" style="background:#fff;border:1px solid #e2e8f0;border-radius:1rem;overflow:hidden;">
+    <div style="padding:.75rem 1rem;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:.8rem;font-weight:700;color:#374151;">تکنسین</div>
+    <div style="font-size:.82rem;">
+      {% if tech %}
+      <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <span style="width:140px;color:#64748b;">نام</span>
+        <span>{{ tech.user.get_full_name|default:tech.user.username }}</span>
+      </div>
+      <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <span style="width:140px;color:#64748b;">نام‌کاربری</span>
+        <span style="font-family:monospace;">{{ tech.user.username }}</span>
+      </div>
+      <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+        <span style="width:140px;color:#64748b;">وضعیت تأیید در لحظه</span>
+        <span style="color:{% if snapshot.technician_verified_snapshot %}#16a34a{% else %}#dc2626{% endif %};font-weight:600;">
+          {% if snapshot.technician_verified_snapshot %}تأییدشده{% else %}تأیید نشده{% endif %}
+        </span>
+      </div>
+      <div style="display:flex;padding:.5rem 1rem;">
+        <span style="width:140px;color:#64748b;">شناسه فرعی در لحظه</span>
+        <span style="font-family:monospace;">{{ snapshot.technician_sub_merchant_id_snapshot|default:"—" }}</span>
+      </div>
+      {% else %}
+      <div style="padding:1rem;color:#94a3b8;">این فاکتور تکنسین ندارد.</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{# Amount Breakdown #}
+<div class="card" style="background:#fff;border:1px solid #e2e8f0;border-radius:1rem;overflow:hidden;margin-bottom:1.25rem;">
+  <div style="padding:.75rem 1rem;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:.8rem;font-weight:700;color:#374151;">تفکیک مبالغ (ریال)</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;font-size:.85rem;">
+    <div style="padding:.85rem 1rem;border-left:1px solid #f1f5f9;">
+      <div style="font-size:.7rem;color:#64748b;margin-bottom:.2rem;">مبلغ کل</div>
+      <div style="font-weight:800;font-size:1rem;">{{ snapshot.total_amount|smart_number }}</div>
+    </div>
+    <div style="padding:.85rem 1rem;border-left:1px solid #f1f5f9;">
+      <div style="font-size:.7rem;color:#64748b;margin-bottom:.2rem;">کارمزد پلتفرم ({{ snapshot.platform_fee_percent_snapshot }}٪)</div>
+      <div style="font-weight:700;color:#7c3aed;">{{ snapshot.platform_fee_amount|smart_number }}</div>
+    </div>
+    <div style="padding:.85rem 1rem;border-left:1px solid #f1f5f9;">
+      <div style="font-size:.7rem;color:#64748b;margin-bottom:.2rem;">سهم شرکت</div>
+      <div style="font-weight:700;">{{ snapshot.company_deposit_amount|smart_number }}</div>
+    </div>
+    <div style="padding:.85rem 1rem;border-left:1px solid #f1f5f9;">
+      <div style="font-size:.7rem;color:#64748b;margin-bottom:.2rem;">سهم مستقیم تکنسین</div>
+      <div style="font-weight:700;color:{% if snapshot.technician_direct_amount > 0 %}#16a34a{% else %}#94a3b8{% endif %};">{{ snapshot.technician_direct_amount|smart_number }}</div>
+    </div>
+    <div style="padding:.85rem 1rem;">
+      <div style="font-size:.7rem;color:#64748b;margin-bottom:.2rem;">ثبت در دفتر تکنسین</div>
+      <div style="font-weight:700;color:{% if snapshot.technician_ledger_amount > 0 %}#0369a1{% else %}#94a3b8{% endif %};">{{ snapshot.technician_ledger_amount|smart_number }}</div>
+    </div>
+  </div>
+</div>
+
+{# Policy Snapshot #}
+<div class="card" style="background:#fff;border:1px solid #e2e8f0;border-radius:1rem;overflow:hidden;margin-bottom:1.25rem;">
+  <div style="padding:.75rem 1rem;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:.8rem;font-weight:700;color:#374151;">تنظیمات در لحظه پرداخت</div>
+  <div style="font-size:.82rem;">
+    <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+      <span style="width:200px;color:#64748b;">استراتژی پرداخت</span>
+      <span style="font-family:monospace;">{{ snapshot.payout_strategy_snapshot }}</span>
+    </div>
+    <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+      <span style="width:200px;color:#64748b;">تکنسین تأییدشده؟</span>
+      <span>{% if snapshot.technician_verified_snapshot %}بله{% else %}خیر{% endif %}</span>
+    </div>
+    <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+      <span style="width:200px;color:#64748b;">شناسه فرعی درگاه</span>
+      <span style="font-family:monospace;">{{ snapshot.technician_sub_merchant_id_snapshot|default:"—" }}</span>
+    </div>
+    <div style="display:flex;padding:.5rem 1rem;border-bottom:1px solid #f1f5f9;">
+      <span style="width:200px;color:#64748b;">تسهیم انجام شد؟</span>
+      <span style="font-weight:700;color:{% if snapshot.should_split_with_technician %}#16a34a{% else %}#dc2626{% endif %};">
+        {% if snapshot.should_split_with_technician %}بله{% else %}خیر{% endif %}
+      </span>
+    </div>
+    <div style="display:flex;padding:.5rem 1rem;">
+      <span style="width:200px;color:#64748b;">کد دلیل</span>
+      <span style="font-family:monospace;color:#475569;">{{ snapshot.reason }}</span>
+    </div>
+  </div>
+</div>
+
+{# Raw JSON #}
+<div class="card" style="background:#fff;border:1px solid #e2e8f0;border-radius:1rem;overflow:hidden;">
+  <div style="padding:.75rem 1rem;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:.8rem;font-weight:700;color:#374151;">اطلاعات خام تصمیم</div>
+  <pre style="padding:1rem;margin:0;font-size:.75rem;font-family:monospace;overflow-x:auto;background:#fafafa;color:#1e293b;direction:ltr;text-align:left;">{{ raw_json }}</pre>
+</div>
+
+{% endwith %}
+{% endblock %}
