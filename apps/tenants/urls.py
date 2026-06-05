@@ -22,6 +22,7 @@ from django.urls import include, path
 from . import views, views_admin, views_branding
 from apps.payouts import views as payouts_views
 from apps.payouts import views_split_snapshots as split_snapshot_views
+from . import views_merchant_profile as merchant_profile_views
 from apps.platform_core import views_tenant_sms_credit as tenant_sms_views
 from apps.platform_core import views_tenant_comm_settings as tenant_comm_views
 from .views_redirects import (
@@ -63,6 +64,11 @@ urlpatterns = [
     # Admin: Payment Gateway
     path("admin/payment-gateway/", tenant_pg_views.tenant_gateway_settings, name="admin_payment_gateway"),
     path("admin/payment-gateway/test/", tenant_pg_views.tenant_gateway_test, name="admin_payment_gateway_test"),
+
+    # Admin: Merchant/KYC Profile (Payment P5)
+    path("admin/payment/merchant-profile/", merchant_profile_views.merchant_profile_view, name="admin_merchant_profile"),
+    path("admin/payment/merchant-profile/edit-request/", merchant_profile_views.merchant_profile_edit_request_view, name="admin_merchant_profile_edit_request"),
+    path("admin/payment/merchant-profile/document/<str:field_name>/", merchant_profile_views.serve_profile_document, name="admin_merchant_profile_document"),
 
     # Admin: Services CRUD
 

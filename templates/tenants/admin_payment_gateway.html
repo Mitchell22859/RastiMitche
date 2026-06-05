@@ -17,6 +17,18 @@
     این تنظیمات فقط برای آماده‌سازی ذخیره می‌شوند.
 </div>
 
+{% if not gateway_eligible %}
+<div class="alert alert-danger" style="margin-bottom:1.5rem; border-right: 4px solid #dc3545;">
+    <strong>پروفایل پذیرنده (KYC) تأیید نشده است.</strong>
+    برای فعال‌سازی درگاه پرداخت واقعی، ابتدا باید پروفایل پذیرنده شرکت تکمیل و تأیید شود.
+    <br>
+    <a href="/{{ company.code }}/admin/payment/merchant-profile/" style="color:#721c24;font-weight:bold;">
+        تکمیل پروفایل پذیرنده ←
+    </a>
+    {% if not gateway_eligible_reason %}{% else %}<br><small>{{ gateway_eligible_reason }}</small>{% endif %}
+</div>
+{% endif %}
+
 {% if success %}
 <div class="alert alert-success">تنظیمات با موفقیت ذخیره شد.</div>
 {% endif %}

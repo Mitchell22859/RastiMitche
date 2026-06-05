@@ -18,6 +18,7 @@ from . import views_sms_template_requests
 from . import views_password_reset_policy
 from . import views_technician_verification
 from . import views_split_snapshots as platform_split_snapshot_views
+from . import views_merchant_profile as merchant_profile_views
 
 app_name = "platform_core"
 
@@ -75,6 +76,14 @@ urlpatterns = [
     # Password Reset SMS Billing Policy
     path("password-reset-policy/", views_password_reset_policy.policy_list, name="password_reset_policy"),
     path("password-reset-policy/<int:company_id>/", views_password_reset_policy.policy_edit, name="password_reset_policy_edit"),
+
+    # Merchant/KYC Profile Review (Payment P5)
+    path("merchant-profiles/", merchant_profile_views.merchant_profile_list, name="merchant_profiles"),
+    path("merchant-profiles/<int:profile_id>/", merchant_profile_views.merchant_profile_detail, name="merchant_profile_detail"),
+    path("merchant-profiles/<int:profile_id>/document/<str:field_name>/", merchant_profile_views.serve_profile_document, name="merchant_profile_document"),
+    path("merchant-profile-change-requests/", merchant_profile_views.change_request_list, name="merchant_profile_change_requests"),
+    path("merchant-profile-change-requests/<int:request_id>/", merchant_profile_views.change_request_detail, name="merchant_profile_change_request_detail"),
+    path("merchant-profile-change-requests/<int:request_id>/document/<str:field_name>/", merchant_profile_views.serve_change_request_document, name="merchant_profile_change_request_document"),
 
     # Payment Split Snapshot Report (P4)
     path("payment-split-snapshots/", platform_split_snapshot_views.split_snapshot_list, name="split_snapshots"),

@@ -1,0 +1,179 @@
+{% extends "layouts/dashboard.html" %}
+{% load smart_numbers jalali_tags %}
+
+{% block title %}پروفایل پذیرنده — {{ profile.company.name }}{% endblock %}
+
+{% block content %}
+<div class="px-6 py-8 max-w-5xl" dir="rtl">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="/owner-platform/merchant-profiles/" class="text-blue-600 hover:underline text-sm">← لیست پروفایل‌ها</a>
+    <h1 class="text-xl font-bold text-gray-800">پروفایل پذیرنده — {{ profile.company.name }}</h1>
+    <span class="text-sm text-gray-500">({{ profile.company.code }})</span>
+  </div>
+
+  {% if success %}
+    <div class="bg-green-50 border border-green-300 rounded-lg px-4 py-3 mb-5 text-sm text-green-700">{{ success }}</div>
+  {% endif %}
+  {% if error %}
+    <div class="bg-red-50 border border-red-300 rounded-lg px-4 py-3 mb-5 text-sm text-red-700">{{ error }}</div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Info panels -->
+    <div class="lg:col-span-2 space-y-5">
+      <!-- Status banner -->
+      <div class="bg-white border border-gray-200 rounded-lg p-4">
+        <div class="flex items-center gap-3">
+          <span class="font-medium text-gray-700">وضعیت:</span>
+          {% if profile.status == "approved" %}
+            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">تأییدشده</span>
+          {% elif profile.status == "rejected" %}
+            <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">رد شده</span>
+          {% elif profile.status == "under_review" %}
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">در حال بررسی</span>
+          {% elif profile.status == "submitted" %}
+            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">ارسال شده — منتظر بررسی</span>
+          {% elif profile.status == "change_requested" %}
+            <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">درخواست تغییر ارسال شده</span>
+          {% else %}
+            <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">ارسال نشده</span>
+          {% endif %}
+          {% if profile.submitted_at %}
+            <span class="text-xs text-gray-400">ارسال: {{ profile.submitted_at|jalali_datetime }}</span>
+          {% endif %}
+        </div>
+        {% if profile.review_note %}
+          <p class="mt-2 text-sm text-gray-600"><strong>یادداشت بررسی:</strong> {{ profile.review_note }}</p>
+        {% endif %}
+        {% if profile.rejected_reason %}
+          <p class="mt-2 text-sm text-red-600"><strong>دلیل رد:</strong> {{ profile.rejected_reason }}</p>
+        {% endif %}
+        {% if profile.reviewed_by %}
+          <p class="mt-1 text-xs text-gray-400">بررسی‌کننده: {{ profile.reviewed_by }} — {{ profile.reviewed_at|jalali_datetime }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Registration info -->
+      <div class="bg-white border border-gray-200 rounded-lg p-5">
+        <h2 class="text-sm font-semibold text-gray-600 mb-3">اطلاعات ثبتی</h2>
+        <dl class="space-y-1">
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">نام حقوقی</dt><dd class="text-sm text-gray-900">{{ profile.legal_company_name|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">نوع شرکت</dt><dd class="text-sm text-gray-900">{{ profile.company_type|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">شناسه ملی</dt><dd class="text-sm text-gray-900 ltr-text">{{ profile.national_id|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">کد اقتصادی</dt><dd class="text-sm text-gray-900 ltr-text">{{ profile.economic_code|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">شماره ثبت</dt><dd class="text-sm text-gray-900 ltr-text">{{ profile.registration_number|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">کد پستی</dt><dd class="text-sm text-gray-900 ltr-text">{{ profile.postal_code|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">آدرس ثبت‌شده</dt><dd class="text-sm text-gray-900">{{ profile.registered_address|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">تلفن شرکت</dt><dd class="text-sm text-gray-900 ltr-text">{{ profile.company_phone|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">نام مالک</dt><dd class="text-sm text-gray-900">{{ profile.owner_full_name|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">کد ملی مالک</dt><dd class="text-sm text-gray-900 ltr-text">{{ profile.owner_national_code_masked|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5"><dt class="text-xs text-gray-500 w-44 shrink-0">موبایل مالک</dt><dd class="text-sm text-gray-900 ltr-text">{{ profile.owner_mobile|default:"—" }}</dd></div>
+        </dl>
+      </div>
+
+      <!-- Banking info -->
+      <div class="bg-white border border-gray-200 rounded-lg p-5">
+        <h2 class="text-sm font-semibold text-gray-600 mb-3">اطلاعات بانکی</h2>
+        <dl class="space-y-1">
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">نام بانک</dt><dd class="text-sm text-gray-900">{{ profile.bank_name|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">نام صاحب حساب</dt><dd class="text-sm text-gray-900">{{ profile.account_holder_name|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">شماره شبا</dt><dd class="text-sm text-gray-900 ltr-text">{{ profile.shaba_masked|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5 border-b border-gray-100"><dt class="text-xs text-gray-500 w-44 shrink-0">شماره حساب</dt><dd class="text-sm text-gray-900 ltr-text">{{ profile.bank_account_number|default:"—" }}</dd></div>
+          <div class="flex gap-4 py-1.5"><dt class="text-xs text-gray-500 w-44 shrink-0">شماره کارت</dt><dd class="text-sm text-gray-900 ltr-text">{{ profile.bank_card_number_masked|default:"—" }}</dd></div>
+        </dl>
+      </div>
+
+      <!-- Documents -->
+      <div class="bg-white border border-gray-200 rounded-lg p-5">
+        <h2 class="text-sm font-semibold text-gray-600 mb-3">مدارک</h2>
+        <div class="space-y-2">
+          {% for field, label, file in document_fields %}
+          <div class="flex items-center gap-4">
+            <span class="text-sm text-gray-700 w-48">{{ label }}</span>
+            {% if file %}
+              <a href="/owner-platform/merchant-profiles/{{ profile.id }}/document/{{ field }}/"
+                 target="_blank"
+                 class="text-blue-600 hover:underline text-sm">مشاهده / دانلود</a>
+            {% else %}
+              <span class="text-xs text-gray-400">آپلود نشده</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions panel -->
+    <div class="space-y-4">
+      {% if profile.status == "submitted" or profile.status == "under_review" or profile.status == "change_requested" %}
+
+      <form method="post" class="bg-white border border-gray-200 rounded-lg p-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="under_review">
+        <h3 class="text-sm font-semibold text-gray-700 mb-2">شروع بررسی</h3>
+        <p class="text-xs text-gray-500 mb-3">وضعیت را به «در حال بررسی» تغییر دهید.</p>
+        <button type="submit"
+                class="w-full px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
+          شروع بررسی
+        </button>
+      </form>
+
+      <form method="post" class="bg-white border border-gray-200 rounded-lg p-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="approve">
+        <h3 class="text-sm font-semibold text-green-700 mb-2">تأیید پروفایل</h3>
+        <label class="block text-xs text-gray-500 mb-1">یادداشت (اختیاری)</label>
+        <textarea name="review_note" rows="2" dir="rtl"
+                  class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm mb-3"></textarea>
+        <button type="submit"
+                class="w-full px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700">
+          تأیید
+        </button>
+      </form>
+
+      <form method="post" class="bg-white border border-gray-200 rounded-lg p-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reject">
+        <h3 class="text-sm font-semibold text-red-700 mb-2">رد پروفایل</h3>
+        <label class="block text-xs text-gray-500 mb-1">دلیل رد <span class="text-red-500">*</span></label>
+        <textarea name="rejected_reason" rows="2" dir="rtl" required
+                  class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm mb-3"></textarea>
+        <button type="submit"
+                class="w-full px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700">
+          رد کردن
+        </button>
+      </form>
+
+      <form method="post" class="bg-white border border-gray-200 rounded-lg p-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="request_changes">
+        <h3 class="text-sm font-semibold text-purple-700 mb-2">درخواست تغییر</h3>
+        <label class="block text-xs text-gray-500 mb-1">متن درخواست <span class="text-red-500">*</span></label>
+        <textarea name="review_note" rows="2" dir="rtl" required
+                  class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm mb-3"></textarea>
+        <button type="submit"
+                class="w-full px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700">
+          ارسال درخواست
+        </button>
+      </form>
+
+      {% elif profile.status == "approved" %}
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-700">
+          این پروفایل تأییدشده است.
+        </div>
+      {% elif profile.status == "not_submitted" %}
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-500">
+          پروفایل هنوز توسط شرکت ارسال نشده است.
+        </div>
+      {% endif %}
+
+      <a href="/owner-platform/merchant-profile-change-requests/?company={{ profile.company_id }}"
+         class="block bg-white border border-gray-200 rounded-lg p-4 text-sm text-blue-600 hover:bg-gray-50 text-center">
+        مشاهده درخواست‌های تغییر این شرکت
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

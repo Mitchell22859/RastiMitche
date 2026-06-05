@@ -149,6 +149,13 @@ def company_activate(request: HttpRequest, company_id: int) -> HttpResponse:
             # Provisioning must never break activation.
             pass
 
+        # Ensure merchant profile exists (Payment P5)
+        try:
+            from apps.tenants.services_merchant_profile import MerchantProfileService
+            MerchantProfileService.get_or_create(company)
+        except Exception:
+            pass
+
         try:
             from apps.notifications.event_catalog import EventKey
             from apps.notifications.services_events import NotificationEventService

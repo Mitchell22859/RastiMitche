@@ -26,11 +26,19 @@ def tenant_gateway_settings(request: HttpRequest, **kwargs) -> HttpResponse:
         gateway.save()
         success = True
 
+    try:
+        from apps.tenants.services_merchant_profile import CompanyPaymentEligibilityService
+        gateway_eligible, gateway_eligible_reason = CompanyPaymentEligibilityService.is_gateway_enabled(company)
+    except Exception:
+        gateway_eligible, gateway_eligible_reason = True, ""
+
     return render(request, "tenants/admin_payment_gateway.html", {
         "company": company,
         "gateway": gateway,
         "providers": PaymentGatewayProvider.choices,
         "success": success,
+        "gateway_eligible": gateway_eligible,
+        "gateway_eligible_reason": gateway_eligible_reason,
     })
 
 

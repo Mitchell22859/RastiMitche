@@ -1,0 +1,150 @@
+{% extends "layouts/dashboard.html" %}
+{% load smart_numbers jalali_tags %}
+
+{% block title %}درخواست تغییر — {{ change_req.company.name }}{% endblock %}
+
+{% block content %}
+<div class="px-6 py-8 max-w-5xl" dir="rtl">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="/owner-platform/merchant-profile-change-requests/" class="text-blue-600 hover:underline text-sm">← لیست درخواست‌ها</a>
+    <h1 class="text-xl font-bold text-gray-800">درخواست تغییر — {{ change_req.company.name }}</h1>
+  </div>
+
+  {% if success %}
+    <div class="bg-green-50 border border-green-300 rounded-lg px-4 py-3 mb-5 text-sm text-green-700">{{ success }}</div>
+  {% endif %}
+  {% if error %}
+    <div class="bg-red-50 border border-red-300 rounded-lg px-4 py-3 mb-5 text-sm text-red-700">{{ error }}</div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <div class="lg:col-span-2 space-y-5">
+
+      <!-- Meta info -->
+      <div class="bg-white border border-gray-200 rounded-lg p-4">
+        <dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <div><dt class="text-xs text-gray-500">ارسال‌کننده</dt><dd class="text-gray-900">{{ change_req.created_by|default:"—" }}</dd></div>
+          <div><dt class="text-xs text-gray-500">تاریخ ارسال</dt><dd class="text-gray-900">{{ change_req.created_at|jalali_datetime }}</dd></div>
+          <div><dt class="text-xs text-gray-500">وضعیت</dt><dd>
+            {% if change_req.status == "approved" %}
+              <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">تأییدشده</span>
+            {% elif change_req.status == "rejected" %}
+              <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs">رد شده</span>
+            {% else %}
+              <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs">در انتظار</span>
+            {% endif %}
+          </dd></div>
+          {% if change_req.reviewed_by %}
+          <div><dt class="text-xs text-gray-500">بررسی‌کننده</dt><dd class="text-gray-900">{{ change_req.reviewed_by }}</dd></div>
+          {% endif %}
+        </dl>
+        {% if change_req.explanation %}
+          <div class="mt-3 pt-3 border-t border-gray-100">
+            <p class="text-xs text-gray-500 mb-1">توضیح درخواست</p>
+            <p class="text-sm text-gray-700">{{ change_req.explanation }}</p>
+          </div>
+        {% endif %}
+        {% if change_req.review_note %}
+          <div class="mt-3 pt-3 border-t border-gray-100">
+            <p class="text-xs text-gray-500 mb-1">یادداشت بررسی</p>
+            <p class="text-sm text-gray-700">{{ change_req.review_note }}</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Diff table -->
+      {% if diff_rows %}
+      <div class="bg-white border border-gray-200 rounded-lg p-5">
+        <h2 class="text-sm font-semibold text-gray-600 mb-4">تغییرات پیشنهادی</h2>
+        <table class="w-full text-sm">
+          <thead class="text-xs text-gray-500 bg-gray-50">
+            <tr>
+              <th class="px-3 py-2 text-right w-40">فیلد</th>
+              <th class="px-3 py-2 text-right">مقدار فعلی</th>
+              <th class="px-3 py-2 text-right">مقدار پیشنهادی</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for field, current, proposed in diff_rows %}
+            <tr>
+              <td class="px-3 py-2 text-gray-500 text-xs">{{ field }}</td>
+              <td class="px-3 py-2 text-gray-700 bg-red-50">{{ current|default:"—" }}</td>
+              <td class="px-3 py-2 text-gray-900 bg-green-50 font-medium">{{ proposed|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-500">
+          تغییری در اطلاعات متنی وجود ندارد (فقط مدارک ممکن است به‌روز شده باشند).
+        </div>
+      {% endif %}
+
+      <!-- Documents -->
+      <div class="bg-white border border-gray-200 rounded-lg p-5">
+        <h2 class="text-sm font-semibold text-gray-600 mb-3">مدارک پیشنهادی</h2>
+        <div class="space-y-2">
+          {% for field, label, file in document_fields %}
+          <div class="flex items-center gap-4">
+            <span class="text-sm text-gray-700 w-48">{{ label }}</span>
+            {% if file %}
+              <a href="/owner-platform/merchant-profile-change-requests/{{ change_req.id }}/document/{{ field }}/"
+                 target="_blank"
+                 class="text-blue-600 hover:underline text-sm">مشاهده / دانلود</a>
+            {% else %}
+              <span class="text-xs text-gray-400">فایل جدیدی ندارد</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div class="space-y-4">
+      {% if change_req.status == "pending" %}
+
+      <form method="post" class="bg-white border border-gray-200 rounded-lg p-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="approve">
+        <h3 class="text-sm font-semibold text-green-700 mb-2">تأیید و اعمال تغییرات</h3>
+        <label class="block text-xs text-gray-500 mb-1">یادداشت (اختیاری)</label>
+        <textarea name="review_note" rows="2" dir="rtl"
+                  class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm mb-3"></textarea>
+        <button type="submit"
+                class="w-full px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700">
+          تأیید و اعمال
+        </button>
+      </form>
+
+      <form method="post" class="bg-white border border-gray-200 rounded-lg p-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reject">
+        <h3 class="text-sm font-semibold text-red-700 mb-2">رد درخواست</h3>
+        <label class="block text-xs text-gray-500 mb-1">دلیل رد <span class="text-red-500">*</span></label>
+        <textarea name="review_note" rows="2" dir="rtl" required
+                  class="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm mb-3"></textarea>
+        <button type="submit"
+                class="w-full px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700">
+          رد کردن
+        </button>
+      </form>
+
+      {% else %}
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-500">
+          این درخواست قبلاً بررسی شده است.
+        </div>
+      {% endif %}
+
+      <a href="/owner-platform/merchant-profiles/{{ change_req.profile_id }}/"
+         class="block bg-white border border-gray-200 rounded-lg p-4 text-sm text-blue-600 hover:bg-gray-50 text-center">
+        مشاهده پروفایل اصلی
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -320,3 +320,213 @@ class ServiceRequest(CompanyOwnedModel):
 
     def __str__(self) -> str:
         return f"Request: {self.customer_name} ({self.customer_phone})"
+
+
+# ---------------------------------------------------------------------------
+# Payment P5 — Company Merchant/KYC Profile
+# ---------------------------------------------------------------------------
+
+class CompanyMerchantProfile(models.Model):
+    """
+    KYC and banking information required before a company can activate a real
+    payment gateway. Submitted by company admin, reviewed by platform owner.
+
+    Flow:
+      NOT_SUBMITTED → (company submits) → SUBMITTED
+      SUBMITTED → (platform owner reviews) → UNDER_REVIEW → APPROVED / REJECTED
+      APPROVED → (company requests changes) → edit request workflow
+      REJECTED / CHANGE_REQUESTED → (company fixes) → SUBMITTED
+    """
+
+    class Status(models.TextChoices):
+        NOT_SUBMITTED = "not_submitted", "ارسال نشده"
+        SUBMITTED = "submitted", "ارسال شده"
+        UNDER_REVIEW = "under_review", "در حال بررسی"
+        APPROVED = "approved", "تأییدشده"
+        REJECTED = "rejected", "رد شده"
+        CHANGE_REQUESTED = "change_requested", "درخواست تغییر"
+
+    class CompanyType(models.TextChoices):
+        REAL_PERSON = "real_person", "شخص حقیقی"
+        LEGAL_ENTITY = "legal_entity", "شخص حقوقی"
+
+    company = models.OneToOneField(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="merchant_profile",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.NOT_SUBMITTED,
+        db_index=True,
+    )
+
+    # --- Registration / KYC ---
+    company_type = models.CharField(
+        max_length=20, choices=CompanyType.choices, blank=True,
+    )
+    legal_company_name = models.CharField(max_length=200, blank=True)
+    national_id = models.CharField(
+        max_length=30, blank=True,
+        help_text="شناسه ملی شرکت (اشخاص حقوقی) یا کد ملی مالک (اشخاص حقیقی)",
+    )
+    economic_code = models.CharField(max_length=20, blank=True)
+    registration_number = models.CharField(max_length=50, blank=True)
+    postal_code = models.CharField(max_length=15, blank=True)
+    registered_address = models.TextField(blank=True)
+    company_phone = models.CharField(max_length=20, blank=True)
+    owner_full_name = models.CharField(max_length=200, blank=True)
+    owner_national_code = models.CharField(max_length=15, blank=True)
+    owner_mobile = models.CharField(max_length=15, blank=True)
+
+    # --- Banking ---
+    bank_name = models.CharField(max_length=100, blank=True)
+    account_holder_name = models.CharField(max_length=200, blank=True)
+    shaba_number = models.CharField(
+        max_length=26, blank=True,
+        help_text="شماره شبا: IR + 24 رقم",
+    )
+    bank_account_number = models.CharField(max_length=30, blank=True)
+    bank_card_number = models.CharField(
+        max_length=20, blank=True,
+        help_text="16 رقمی — در نمایش ماسک می‌شود",
+    )
+
+    # --- Documents ---
+    national_card_image = models.FileField(
+        upload_to="companies/kyc/national_card/", blank=True, null=True,
+        help_text="تصویر کارت ملی مالک/نماینده — jpg, png, pdf",
+    )
+    business_license_image = models.FileField(
+        upload_to="companies/kyc/business_license/", blank=True, null=True,
+        help_text="جواز کسب یا پروانه فعالیت (اختیاری)",
+    )
+    latest_official_newspaper_image = models.FileField(
+        upload_to="companies/kyc/newspaper/", blank=True, null=True,
+        help_text="آخرین آگهی روزنامه رسمی (اشخاص حقوقی — اختیاری)",
+    )
+
+    notes = models.TextField(blank=True)
+
+    # --- Review / audit ---
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        "accounts.CompanyUser",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="reviewed_merchant_profiles",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    review_note = models.TextField(blank=True)
+    rejected_reason = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # --- Computed helpers ---
+
+    @property
+    def bank_card_number_masked(self) -> str:
+        if not self.bank_card_number:
+            return ""
+        return "****-****-****-" + self.bank_card_number[-4:]
+
+    @property
+    def owner_national_code_masked(self) -> str:
+        n = self.owner_national_code or ""
+        return ("***" + n[-4:]) if len(n) > 4 else n
+
+    @property
+    def shaba_masked(self) -> str:
+        s = self.shaba_number or ""
+        if len(s) > 8:
+            return s[:6] + "…" + s[-4:]
+        return s
+
+    @property
+    def is_editable(self) -> bool:
+        """Company admin may directly edit in these states."""
+        return self.status in (
+            self.Status.NOT_SUBMITTED,
+            self.Status.REJECTED,
+            self.Status.CHANGE_REQUESTED,
+        )
+
+    class Meta:
+        verbose_name = "Company Merchant Profile"
+        verbose_name_plural = "Company Merchant Profiles"
+
+    def __str__(self) -> str:
+        return f"MerchantProfile: {self.company.name} [{self.status}]"
+
+
+class CompanyMerchantProfileChangeRequest(models.Model):
+    """
+    A company admin's request to modify an already-approved merchant profile.
+    Platform owner must approve before changes are applied.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "در انتظار بررسی"
+        APPROVED = "approved", "تأییدشده"
+        REJECTED = "rejected", "رد شده"
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="merchant_profile_change_requests",
+    )
+    profile = models.ForeignKey(
+        CompanyMerchantProfile,
+        on_delete=models.CASCADE,
+        related_name="change_requests",
+    )
+    proposed_changes = models.JSONField(
+        default=dict, blank=True,
+        help_text="Snapshot of all proposed text field values.",
+    )
+    explanation = models.TextField(blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
+    created_by = models.ForeignKey(
+        "accounts.CompanyUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_merchant_change_requests",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # Optional new document uploads
+    national_card_image = models.FileField(
+        upload_to="companies/kyc/change_requests/national_card/",
+        blank=True, null=True,
+    )
+    business_license_image = models.FileField(
+        upload_to="companies/kyc/change_requests/business_license/",
+        blank=True, null=True,
+    )
+    latest_official_newspaper_image = models.FileField(
+        upload_to="companies/kyc/change_requests/newspaper/",
+        blank=True, null=True,
+    )
+
+    reviewed_by = models.ForeignKey(
+        "accounts.CompanyUser",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="reviewed_merchant_change_requests",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    review_note = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Merchant Profile Change Request"
+
+    def __str__(self) -> str:
+        return f"ChangeRequest [{self.status}]: {self.company.name} @ {self.created_at}"

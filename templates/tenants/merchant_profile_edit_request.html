@@ -1,0 +1,104 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers jalali_tags %}
+
+{% block title %}درخواست ویرایش پروفایل{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8" dir="rtl">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="/{{ company.code }}/admin/payment/merchant-profile/"
+       class="text-blue-600 hover:underline text-sm">← بازگشت به پروفایل</a>
+    <h1 class="text-xl font-bold text-gray-800">درخواست تغییر اطلاعات پروفایل</h1>
+  </div>
+
+  <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mb-6 text-sm text-yellow-800">
+    پروفایل شما در حال حاضر تأییدشده است. برای ویرایش اطلاعات، یک درخواست تغییر ارسال کنید.
+    تغییرات پس از بررسی و تأیید توسط پلتفرم اعمال خواهند شد.
+  </div>
+
+  {% if errors %}
+    <div class="bg-red-50 border border-red-300 rounded-lg p-4 mb-6">
+      <p class="text-sm font-medium text-red-700 mb-1">خطاهای زیر را برطرف کنید:</p>
+      <ul class="list-disc list-inside text-sm text-red-600 space-y-1">
+        {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="space-y-6">
+    {% csrf_token %}
+
+    <div class="bg-white border border-gray-200 rounded-lg p-6">
+      <h2 class="text-base font-semibold text-gray-700 mb-4">اطلاعات متنی (تنها فیلدهایی که تغییر می‌دهید را پر کنید)</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+        {% include "tenants/includes/field.html" with name="legal_company_name" label="نام حقوقی شرکت" value=profile.legal_company_name required=False %}
+        {% include "tenants/includes/field.html" with name="company_type" label="نوع شرکت" value=profile.company_type required=False %}
+        {% include "tenants/includes/field.html" with name="national_id" label="شناسه ملی" value=profile.national_id required=False dir="ltr" %}
+        {% include "tenants/includes/field.html" with name="economic_code" label="کد اقتصادی" value=profile.economic_code required=False dir="ltr" %}
+        {% include "tenants/includes/field.html" with name="registration_number" label="شماره ثبت" value=profile.registration_number required=False dir="ltr" %}
+        {% include "tenants/includes/field.html" with name="postal_code" label="کد پستی" value=profile.postal_code required=False dir="ltr" %}
+        {% include "tenants/includes/field.html" with name="company_phone" label="تلفن شرکت" value=profile.company_phone required=False dir="ltr" %}
+        {% include "tenants/includes/field.html" with name="owner_full_name" label="نام کامل مالک" value=profile.owner_full_name required=False %}
+        {% include "tenants/includes/field.html" with name="owner_national_code" label="کد ملی مالک" value=profile.owner_national_code required=False dir="ltr" %}
+        {% include "tenants/includes/field.html" with name="owner_mobile" label="موبایل مالک" value=profile.owner_mobile required=False dir="ltr" %}
+        {% include "tenants/includes/field.html" with name="bank_name" label="نام بانک" value=profile.bank_name required=False %}
+        {% include "tenants/includes/field.html" with name="account_holder_name" label="نام صاحب حساب" value=profile.account_holder_name required=False %}
+        {% include "tenants/includes/field.html" with name="shaba_number" label="شماره شبا" value=profile.shaba_number required=False dir="ltr" placeholder="IR" %}
+        {% include "tenants/includes/field.html" with name="bank_account_number" label="شماره حساب" value=profile.bank_account_number required=False dir="ltr" %}
+        {% include "tenants/includes/field.html" with name="bank_card_number" label="شماره کارت" value=profile.bank_card_number required=False dir="ltr" %}
+      </div>
+      <div>
+        {% include "tenants/includes/field.html" with name="registered_address" label="آدرس ثبت‌شده" value=profile.registered_address required=False textarea=True %}
+        {% include "tenants/includes/field.html" with name="notes" label="توضیحات" value=profile.notes required=False textarea=True %}
+      </div>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-lg p-6">
+      <h2 class="text-base font-semibold text-gray-700 mb-4">مدارک (در صورت نیاز به به‌روزرسانی)</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">کارت ملی مالک</label>
+          {% if profile.national_card_image %}
+            <p class="text-xs text-gray-500 mb-1">فایل فعلی موجود است. فایل جدید آپلود کنید تا جایگزین شود.</p>
+          {% endif %}
+          <input type="file" name="national_card_image" accept=".jpg,.jpeg,.png,.pdf"
+                 class="text-sm text-gray-600">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">جواز کسب</label>
+          {% if profile.business_license_image %}
+            <p class="text-xs text-gray-500 mb-1">فایل فعلی موجود است.</p>
+          {% endif %}
+          <input type="file" name="business_license_image" accept=".jpg,.jpeg,.png,.pdf"
+                 class="text-sm text-gray-600">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">آگهی روزنامه رسمی</label>
+          {% if profile.latest_official_newspaper_image %}
+            <p class="text-xs text-gray-500 mb-1">فایل فعلی موجود است.</p>
+          {% endif %}
+          <input type="file" name="latest_official_newspaper_image" accept=".jpg,.jpeg,.png,.pdf"
+                 class="text-sm text-gray-600">
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-lg p-6">
+      <h2 class="text-base font-semibold text-gray-700 mb-4">توضیح درخواست <span class="text-red-500">*</span></h2>
+      <textarea name="explanation" rows="3" required
+                dir="rtl"
+                placeholder="دلیل درخواست تغییر را شرح دهید..."
+                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+    </div>
+
+    <div class="flex gap-3 justify-end">
+      <a href="/{{ company.code }}/admin/payment/merchant-profile/"
+         class="px-4 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">انصراف</a>
+      <button type="submit"
+              class="px-5 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
+        ارسال درخواست تغییر
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

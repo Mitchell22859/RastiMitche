@@ -1,0 +1,8 @@
+{% comment %}
+Reusable read-only display row.
+Variables: label, value
+{% endcomment %}
+<div class="flex flex-col sm:flex-row sm:gap-4 py-2 border-b border-gray-100 last:border-0">
+  <dt class="text-sm text-gray-500 sm:w-40 shrink-0">{{ label }}</dt>
+  <dd class="text-sm text-gray-900 font-medium mt-0.5 sm:mt-0">{{ value|default:"—" }}</dd>
+</div>
