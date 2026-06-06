@@ -218,4 +218,45 @@
   --border-color: var(--color-slate-200);
   --border-color-strong: var(--color-slate-300);
 
+  /* ===========================================================================
+     SEMANTIC ALIASES (P18)
+     High-level design intent tokens. These map to the approved SaaS direction.
+     Use these in new components; older files may still use the palette directly.
+  =========================================================================== */
+
+  /* --- Primary action color --- */
+  --color-primary       : var(--color-brand-600);
+  --color-primary-hover : var(--color-brand-700);
+  --color-primary-light : var(--color-brand-50);
+  --color-primary-bg    : var(--color-brand-100);
+
+  /* --- Page & surface --- */
+  --color-bg            : var(--color-surface-1);
+  --color-surface       : var(--color-surface-0);
+  --color-surface-soft  : var(--color-slate-50);
+
+  /* --- Text hierarchy --- */
+  --color-text          : var(--color-slate-800);
+  --color-text-strong   : var(--color-slate-900);
+  --color-text-muted    : var(--color-slate-500);
+  --color-text-faint    : var(--color-slate-400);
+
+  /* --- Semantic radius shortcuts --- */
+  --radius-card         : var(--radius-xl);
+  --radius-btn          : var(--radius-md);
+  --radius-badge        : var(--radius-full);
+  --radius-input        : var(--radius-sm);
+
+  /* --- Semantic shadow shortcuts --- */
+  --shadow-card         : var(--shadow-sm);
+  --shadow-card-hover   : var(--shadow-md);
+  --shadow-btn          : var(--shadow-xs);
+  --shadow-dropdown     : var(--shadow-lg);
+
+  /* --- Deprecated / backward-compat aliases --- */
+  /* Some older pages.css / dashboard.css may reference these.
+     They are mapped here so nothing breaks. Do not use in new code. */
+  --primary-color       : var(--color-primary);
+  --bg-color            : var(--color-bg);
+
 }
