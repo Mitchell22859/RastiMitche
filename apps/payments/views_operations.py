@@ -22,10 +22,12 @@ def company_payment_operations(request: HttpRequest, **kwargs) -> HttpResponse:
     """
     company = request.company
     health = PaymentOperationsSelector.get_company_payment_health(company)
+    alert = PaymentOperationsSelector.get_company_alert_badge(company)
 
     return render(request, "payments/operations_company.html", {
         "company": company,
         "health": health,
+        "alert": alert,
     })
 
 
@@ -38,7 +40,9 @@ def platform_payment_operations(request: HttpRequest) -> HttpResponse:
     No mutation actions.
     """
     health = PaymentOperationsSelector.get_platform_payment_health()
+    alert = PaymentOperationsSelector.get_platform_alert_badge()
 
     return render(request, "payments/operations_platform.html", {
         "health": health,
+        "alert": alert,
     })

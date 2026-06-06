@@ -16,6 +16,38 @@
   </div>
 </div>
 
+{# Alert banner #}
+{% if alert.severity == "danger" %}
+<div class="alert alert-error" dir="rtl" style="margin-bottom:1.25rem;">
+  <div class="alert-body">
+    <div style="font-weight:700;margin-bottom:.3rem;">⚠️ نیازمند بررسی فوری</div>
+    {% if alert.failed_recent_count > 0 %}<div>{{ alert.failed_recent_count }} پرداخت ناموفق اخیر وجود دارد.</div>{% endif %}
+    {% if alert.old_pending_count > 0 %}<div>{{ alert.old_pending_count }} پرداخت در انتظار قدیمی (بیش از {{ health.expiration_minutes }} دقیقه) نیاز به بررسی دارند.</div>{% endif %}
+    <div style="font-size:.78rem;color:var(--color-slate-500);margin-top:.4rem;">
+      برای پاکسازی: <code>python manage.py expire_pending_payments</code> |
+      برای تطبیق: <code>python manage.py reconcile_payments --file report.csv</code>
+    </div>
+  </div>
+</div>
+{% elif alert.severity == "warning" %}
+<div class="alert alert-warning" dir="rtl" style="margin-bottom:1.25rem;">
+  <div class="alert-body">
+    <div style="font-weight:700;margin-bottom:.3rem;">⏳ پرداخت‌های در انتظار قدیمی</div>
+    <div>{{ alert.old_pending_count }} پرداخت درگاهی بیش از {{ health.expiration_minutes }} دقیقه در انتظار مانده‌اند.</div>
+    <div style="font-size:.78rem;color:var(--color-slate-500);margin-top:.4rem;">
+      این پرداخت‌ها ممکن است callback دریافت نکرده باشند. بررسی کنید یا <code>expire_pending_payments</code> اجرا کنید.
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-success" dir="rtl" style="margin-bottom:1.25rem;">
+  <div class="alert-body">
+    <div style="font-weight:700;">✓ وضعیت سالم</div>
+    <div>هیچ پرداخت درگاهی مشکل‌داری شناسایی نشده است.</div>
+  </div>
+</div>
+{% endif %}
+
 {# Status cards #}
 <div class="stat-grid stat-grid-3" dir="rtl" style="margin-bottom:1.5rem;">
   <div class="stat-card">

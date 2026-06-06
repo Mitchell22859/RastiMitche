@@ -21,6 +21,95 @@ PAYMENT_EXPIRATION_MINUTES = getattr(settings, "PAYMENT_EXPIRATION_MINUTES", 30)
 class PaymentOperationsSelector:
     """Read-only payment health queries for operations dashboards."""
 
+    # ------------------------------------------------------------------
+    # Lightweight alert badge helpers (P15)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def get_company_alert_badge(company) -> dict:
+        """
+        Minimal alert summary for navigation badges.
+        Designed to be lightweight — uses count() only, no full queryset evaluation.
+
+        Returns:
+            {
+                "total_problem_count": int,
+                "old_pending_count": int,
+                "failed_recent_count": int,
+                "severity": "ok" | "warning" | "danger",
+            }
+        """
+        now = timezone.now()
+        cutoff = now - timedelta(minutes=PAYMENT_EXPIRATION_MINUTES)
+        week_ago = now - timedelta(days=7)
+
+        gw_qs = Payment.objects.filter(company=company, gateway__isnull=False)
+
+        old_pending_count = gw_qs.filter(
+            status__in=[Payment.Status.PENDING, Payment.Status.INITIATED],
+            created_at__lt=cutoff,
+        ).count()
+
+        failed_recent_count = gw_qs.filter(
+            status=Payment.Status.FAILED,
+            created_at__gte=week_ago,
+        ).count()
+
+        total = old_pending_count + failed_recent_count
+
+        if failed_recent_count > 0 or old_pending_count > 2:
+            severity = "danger"
+        elif old_pending_count > 0:
+            severity = "warning"
+        else:
+            severity = "ok"
+
+        return {
+            "total_problem_count": total,
+            "old_pending_count": old_pending_count,
+            "failed_recent_count": failed_recent_count,
+            "severity": severity,
+        }
+
+    @staticmethod
+    def get_platform_alert_badge() -> dict:
+        """
+        Minimal global alert summary for platform owner badge.
+
+        Returns same structure as company badge but across all companies.
+        """
+        now = timezone.now()
+        cutoff = now - timedelta(minutes=PAYMENT_EXPIRATION_MINUTES)
+        week_ago = now - timedelta(days=7)
+
+        gw_qs = Payment.objects.filter(gateway__isnull=False)
+
+        old_pending_count = gw_qs.filter(
+            status__in=[Payment.Status.PENDING, Payment.Status.INITIATED],
+            created_at__lt=cutoff,
+        ).count()
+
+        failed_recent_count = gw_qs.filter(
+            status=Payment.Status.FAILED,
+            created_at__gte=week_ago,
+        ).count()
+
+        total = old_pending_count + failed_recent_count
+
+        if failed_recent_count > 0 or old_pending_count > 2:
+            severity = "danger"
+        elif old_pending_count > 0:
+            severity = "warning"
+        else:
+            severity = "ok"
+
+        return {
+            "total_problem_count": total,
+            "old_pending_count": old_pending_count,
+            "failed_recent_count": failed_recent_count,
+            "severity": severity,
+        }
+
     @staticmethod
     def get_company_payment_health(company, *, limit: int = 50) -> dict:
         """
