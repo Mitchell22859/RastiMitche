@@ -19,6 +19,7 @@ from . import views_password_reset_policy
 from . import views_technician_verification
 from . import views_split_snapshots as platform_split_snapshot_views
 from . import views_merchant_profile as merchant_profile_views
+from apps.payments import views_operations as payment_operations_views
 
 app_name = "platform_core"
 
@@ -88,6 +89,9 @@ urlpatterns = [
     # Payment Split Snapshot Report (P4)
     path("payment-split-snapshots/", platform_split_snapshot_views.split_snapshot_list, name="split_snapshots"),
     path("payment-split-snapshots/<int:snapshot_id>/", platform_split_snapshot_views.split_snapshot_detail, name="split_snapshot_detail"),
+
+    # Payment Operations Dashboard (P13)
+    path("payments/operations/", payment_operations_views.platform_payment_operations, name="platform_payment_operations"),
 
     # Technician Financial Verification (P3)
     path("technician-financial-verifications/", views_technician_verification.verification_list, name="technician_verifications"),

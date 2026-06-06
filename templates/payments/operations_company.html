@@ -1,0 +1,125 @@
+{% extends "base_dashboard.html" %}
+{% load smart_numbers jalali_tags %}
+
+{% block title %}عملیات پرداخت — {{ company.name }}{% endblock %}
+{% block sidebar_brand %}{{ company.name }}{% endblock %}
+{% block logout_url %}/{{ company.code }}/login/logout/{% endblock %}
+{% block sidebar_nav %}{% include "includes/nav_admin.html" %}{% endblock %}
+
+{% block content %}
+<div class="page-header" dir="rtl">
+  <div>
+    <h1>عملیات پرداخت درگاهی</h1>
+    <p style="color:var(--color-slate-500);margin:.35rem 0 0;font-size:.9rem;">
+      وضعیت پرداخت‌های آنلاین (درگاه) — فقط خواندنی
+    </p>
+  </div>
+</div>
+
+{# Status cards #}
+<div class="stat-grid stat-grid-3" dir="rtl" style="margin-bottom:1.5rem;">
+  <div class="stat-card">
+    <div class="stat-card-icon amber">⏳</div>
+    <span class="stat-card-value" style="color:var(--color-warning);">{{ health.old_pending_count }}</span>
+    <div class="stat-card-label">در انتظار منقضی‌شده</div>
+    <div style="font-size:.75rem;color:var(--color-slate-400);margin-top:.2rem;">
+      بیش از {{ health.expiration_minutes }} دقیقه — مبلغ: {{ health.old_pending_amount|smart_number }} ریال
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-icon red">✗</div>
+    <span class="stat-card-value" style="color:var(--color-danger);">{{ health.failed_recent_count }}</span>
+    <div class="stat-card-label">ناموفق اخیر (۷ روز)</div>
+    <div style="font-size:.75rem;color:var(--color-slate-400);margin-top:.2rem;">
+      مبلغ: {{ health.failed_recent_amount|smart_number }} ریال
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-icon blue">🔄</div>
+    <span class="stat-card-value">{{ health.expired_by_cleanup_count }}</span>
+    <div class="stat-card-label">منقضی‌شده توسط سیستم</div>
+    <div style="font-size:.75rem;color:var(--color-slate-400);margin-top:.2rem;">
+      توسط دستور expire_pending_payments
+    </div>
+  </div>
+</div>
+
+{# Summary #}
+<div class="card" dir="rtl" style="margin-bottom:1.5rem;">
+  <div class="card-header"><span class="card-header-title">خلاصه وضعیت پرداخت‌های درگاهی</span></div>
+  <table class="data-table" style="font-size:.85rem;">
+    <thead>
+      <tr>
+        <th>وضعیت</th>
+        <th style="text-align:left;">تعداد</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>شروع‌شده (Initiated)</td><td style="text-align:left;">{{ health.status_counts.initiated }}</td></tr>
+      <tr><td>در انتظار (Pending)</td><td style="text-align:left;">{{ health.status_counts.pending }}</td></tr>
+      <tr><td><span style="color:var(--color-success);font-weight:700;">پرداخت‌شده (Paid)</span></td><td style="text-align:left;">{{ health.status_counts.paid }}</td></tr>
+      <tr><td><span style="color:var(--color-danger);">ناموفق (Failed)</span></td><td style="text-align:left;">{{ health.status_counts.failed }}</td></tr>
+      <tr><td>لغو‌شده (Cancelled)</td><td style="text-align:left;">{{ health.status_counts.cancelled }}</td></tr>
+    </tbody>
+  </table>
+</div>
+
+{# Problematic payments table #}
+{% if health.problematic_payments %}
+<div class="card" dir="rtl" style="padding:0;overflow:hidden;">
+  <div class="card-header" style="padding:1rem 1.25rem;">
+    <span class="card-header-title">پرداخت‌های نیازمند بررسی</span>
+    <span class="badge badge-warning">{{ health.problematic_payments|length }} مورد</span>
+  </div>
+  <div class="table-wrapper" style="border:none;border-radius:0;">
+    <table class="data-table" style="font-size:.82rem;">
+      <thead>
+        <tr>
+          <th>شناسه</th>
+          <th>فاکتور</th>
+          <th>وضعیت</th>
+          <th style="text-align:left;">مبلغ (ریال)</th>
+          <th>درگاه</th>
+          <th>تاریخ ایجاد</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in health.problematic_payments %}
+        <tr>
+          <td>#{{ p.id }}</td>
+          <td>{% if p.invoice %}<a href="/{{ company.code }}/admin/invoices/{{ p.invoice_id }}/" style="color:var(--color-brand-600);">{{ p.invoice.invoice_number }}</a>{% else %}—{% endif %}</td>
+          <td>
+            {% if p.status == "pending" or p.status == "initiated" %}
+              <span class="badge badge-warning">{{ p.status }}</span>
+            {% elif p.status == "failed" %}
+              <span class="badge badge-danger">ناموفق</span>
+            {% else %}
+              <span class="badge badge-neutral">{{ p.status }}</span>
+            {% endif %}
+          </td>
+          <td style="text-align:left;">{{ p.amount|smart_number }}</td>
+          <td>{% if p.gateway %}{{ p.gateway.gateway_type }}{% else %}—{% endif %}</td>
+          <td style="color:var(--color-slate-500);">{{ p.created_at|jalali_datetime }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card empty-state" dir="rtl">
+  <div style="font-size:2rem;">✓</div>
+  <p style="color:var(--color-slate-500);margin:.5rem 0;font-weight:600;">هیچ پرداخت مشکل‌داری وجود ندارد</p>
+</div>
+{% endif %}
+
+<div class="alert alert-info" dir="rtl" style="font-size:.82rem;margin-top:1rem;">
+  <div class="alert-body">
+    <strong>راهنما:</strong>
+    این صفحه فقط پرداخت‌های درگاهی (آنلاین) را نشان می‌دهد.
+    پرداخت‌های نقدی و دستی در <a href="/{{ company.code }}/admin/financial-reports/cash-control/">کنترل وجه نقد</a> قابل مشاهده هستند.
+  </div>
+</div>
+{% endblock %}
