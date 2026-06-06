@@ -22,6 +22,7 @@ from django.urls import include, path
 from . import views, views_admin, views_branding
 from apps.payouts import views as payouts_views
 from apps.payouts import views_split_snapshots as split_snapshot_views
+from apps.payments import views_operations as payment_operations_views
 from . import views_merchant_profile as merchant_profile_views
 from apps.platform_core import views_tenant_sms_credit as tenant_sms_views
 from apps.platform_core import views_tenant_comm_settings as tenant_comm_views
@@ -95,6 +96,9 @@ urlpatterns = [
     path("admin/technicians/<int:technician_id>/delete/", views_admin.admin_technician_delete, name="admin_technician_delete"),
     path("admin/technicians/<int:technician_id>/toggle-active/", views_admin.admin_technician_toggle_active, name="admin_technician_toggle_active"),
     path("admin/technicians/<int:technician_id>/ledger/", payouts_views.technician_ledger, name="admin_technician_ledger"),
+
+    # Admin: Payment Operations Dashboard (P13)
+    path("admin/payments/operations/", payment_operations_views.company_payment_operations, name="admin_payment_operations"),
 
     # Admin: Payment Split Snapshot Report (P4)
     path("admin/payments/split-snapshots/", split_snapshot_views.split_snapshot_list, name="admin_split_snapshots"),
