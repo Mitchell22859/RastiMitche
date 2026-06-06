@@ -332,9 +332,12 @@ class TechnicianLedgerService:
             return None
 
         # Lock this technician's rows to prevent balance_after races
-        TechnicianLedgerEntry.objects.select_for_update().filter(
-            company=company, technician=technician
-        ).order_by("-id")[:1].values_list("id", flat=True)
+        list(
+            TechnicianLedgerEntry.objects.select_for_update()
+            .filter(company=company, technician=technician)
+            .order_by("-id")[:1]
+            .values_list("id", flat=True)
+        )
 
         current_balance = TechnicianLedgerService.get_balance(company, technician)
         if entry_type == TechnicianLedgerEntry.EntryType.CREDIT:

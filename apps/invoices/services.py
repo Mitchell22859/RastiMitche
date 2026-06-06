@@ -277,6 +277,9 @@ class InvoiceMarkPaidService:
         payment_reference: str = "",
         discount_code_id: int | None = None,
     ) -> Invoice:
+        # Lock the invoice row to prevent concurrent mark_paid race conditions.
+        invoice = Invoice.objects.select_for_update().get(pk=invoice.pk)
+
         if invoice.status != Invoice.Status.ISSUED:
             raise ValueError("Only issued invoices can be marked as paid.")
         if getattr(invoice, "settled_at", None) is not None:

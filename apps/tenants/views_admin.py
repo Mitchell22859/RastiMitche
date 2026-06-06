@@ -823,6 +823,8 @@ def admin_invoice_detail(request: HttpRequest, invoice_id: int, **kwargs) -> Htt
 
     if request.method == "POST" and "mark_paid_company_cash" in request.POST:
         try:
+            if not invoice.is_payable:
+                raise ValueError("این فاکتور قابل پرداخت نیست. فقط فاکتورهای صادرشده قابل ثبت پرداخت هستند.")
             from apps.payments.models import Payment
             payment = Payment.objects.create(
                 company=company,
@@ -838,6 +840,8 @@ def admin_invoice_detail(request: HttpRequest, invoice_id: int, **kwargs) -> Htt
 
     if request.method == "POST" and "mark_paid_technician_cash" in request.POST:
         try:
+            if not invoice.is_payable:
+                raise ValueError("این فاکتور قابل پرداخت نیست. فقط فاکتورهای صادرشده قابل ثبت پرداخت هستند.")
             from apps.payments.models import Payment
             order = getattr(invoice, "order", None)
             technician_id = getattr(getattr(order, "technician", None), "id", None)
