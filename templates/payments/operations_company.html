@@ -141,9 +141,13 @@
   </div>
 </div>
 {% else %}
-<div class="card empty-state" dir="rtl">
-  <div style="font-size:2rem;">✓</div>
-  <p style="color:var(--color-slate-500);margin:.5rem 0;font-weight:600;">هیچ پرداخت مشکل‌داری وجود ندارد</p>
+<div class="card empty-state" dir="rtl" style="padding:2.5rem;text-align:center;">
+  <div style="font-size:2.5rem;margin-bottom:.75rem;">✓</div>
+  <p style="color:var(--color-slate-700);font-weight:700;font-size:1.05rem;margin-bottom:.5rem;">همه چیز سالم است</p>
+  <p style="color:var(--color-slate-500);font-size:.88rem;line-height:1.8;max-width:400px;margin:0 auto;">
+    در حال حاضر هیچ پرداخت درگاهی قدیمی، ناموفق یا نیازمند بررسی برای این شرکت وجود ندارد.
+    اگر پرداخت آنلاین جدیدی اضافه شود و callback دریافت نشود، این صفحه آن را نمایش می‌دهد.
+  </p>
 </div>
 {% endif %}
 
