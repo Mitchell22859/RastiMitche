@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import render
 
-from apps.common.permissions import require_role, require_tenant
+from apps.accounts.permissions import require_tenant_role
 from apps.payouts.models import PaymentSplitSnapshot
 
 
@@ -41,8 +41,7 @@ def _base_qs(company):
 
 
 @login_required
-@require_tenant
-@require_role("COMPANY_ADMIN", "COMPANY_STAFF")
+@require_tenant_role("COMPANY_ADMIN", "COMPANY_STAFF")
 def split_snapshot_list(request, company_code=None):
     company = request.company
     qs = _base_qs(company)
@@ -87,8 +86,7 @@ def split_snapshot_list(request, company_code=None):
 
 
 @login_required
-@require_tenant
-@require_role("COMPANY_ADMIN", "COMPANY_STAFF")
+@require_tenant_role("COMPANY_ADMIN", "COMPANY_STAFF")
 def split_snapshot_detail(request, snapshot_id: int, company_code=None):
     company = request.company
     try:

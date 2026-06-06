@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.accounts.models import Technician
-from apps.common.permissions import require_role, require_tenant
+from apps.accounts.permissions import require_tenant_role
 
 from .services import TechnicianLedgerService
 
@@ -24,8 +24,7 @@ _ADJUSTMENT_DIRECTIONS = {"ADJUSTMENT_CREDIT", "ADJUSTMENT_DEBIT"}
 
 
 @login_required
-@require_tenant
-@require_role("COMPANY_ADMIN", "COMPANY_STAFF")
+@require_tenant_role("COMPANY_ADMIN", "COMPANY_STAFF")
 def technician_ledger(request, technician_id: int, company_code=None):
     company = request.company
     technician = get_object_or_404(Technician, id=technician_id, company=company)
@@ -42,8 +41,7 @@ def technician_ledger(request, technician_id: int, company_code=None):
 
 
 @login_required
-@require_tenant
-@require_role("COMPANY_ADMIN", "COMPANY_STAFF")
+@require_tenant_role("COMPANY_ADMIN", "COMPANY_STAFF")
 def technician_settlement(request, technician_id: int, company_code=None):
     company = request.company
     technician = get_object_or_404(Technician, id=technician_id, company=company)

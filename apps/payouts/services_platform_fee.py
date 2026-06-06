@@ -106,8 +106,13 @@ class PlatformFeeService:
         if CompanyPlatformFeeEntry.objects.filter(idempotency_key=idempotency_key).exists():
             return None
 
-        # Compute running balance under lock
-        CompanyPlatformFeeEntry.objects.select_for_update().filter(company=company).last()
+        # Compute running balance under lock — force queryset evaluation
+        list(
+            CompanyPlatformFeeEntry.objects.select_for_update()
+            .filter(company=company)
+            .order_by("-id")[:1]
+            .values_list("id", flat=True)
+        )
 
         current_balance = PlatformFeeService.get_balance(company)
         if entry_type == CompanyPlatformFeeEntry.EntryType.DEBIT:

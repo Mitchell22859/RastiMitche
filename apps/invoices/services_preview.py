@@ -3,6 +3,8 @@ Invoice Financial Preview Service (Payment P6).
 
 Pure read — never writes to DB. Returns a breakdown of how an invoice
 would be settled if marked paid right now.
+
+Uses the same wage calculation logic as settlement to ensure consistency.
 """
 from __future__ import annotations
 
@@ -21,7 +23,7 @@ class InvoiceFinancialPreviewService:
           total_amount          int  — invoice total (rial)
           platform_fee_percent  Decimal — fee % from policy (0 if none)
           platform_fee_amount   int  — computed fee (rial, floored)
-          technician_wage_percent Decimal — from settled_* or snapshot
+          technician_wage_percent Decimal — effective average wage percent
           technician_wage_amount  int  — rial
           company_net_amount    int  — total - platform_fee - technician_wage
           payout_strategy       str  — from policy or ""
@@ -29,34 +31,42 @@ class InvoiceFinancialPreviewService:
           is_paid               bool
           already_has_fee_entry bool — True if platform fee already recorded
         """
-        from decimal import Decimal
-        from apps.payouts.services_platform_fee import PlatformFeeService, _get_policy_fee_percent
+        from apps.payouts.services_platform_fee import _get_policy_fee_percent
+        from apps.invoices.models import Invoice
 
         total = int(invoice.total_amount or 0)
+        is_paid = invoice.status == Invoice.Status.PAID
 
+        # --- Platform fee ---
         fee_pct = _get_policy_fee_percent(invoice.company)
         fee_amount = int(Decimal(str(total)) * fee_pct / 100) if fee_pct else 0
 
-        # Technician wage
-        tech_wage_pct = Decimal("0")
+        # --- Technician wage ---
+        # For paid invoices, use the frozen settled values.
+        # For unpaid invoices, use the same calculation as settlement.
         tech_wage_amount = 0
-        technician_name = ""
+        tech_wage_pct = Decimal("0")
 
-        # Try settled snapshot first (already paid), fall back to live policy
-        if getattr(invoice, "settled_technician_wage_percent", None):
-            tech_wage_pct = Decimal(str(invoice.settled_technician_wage_percent))
+        if is_paid and invoice.settled_technician_wage is not None:
+            tech_wage_amount = int(invoice.settled_technician_wage)
+            # Compute effective percent for display
+            if total > 0 and tech_wage_amount > 0:
+                tech_wage_pct = (Decimal(str(tech_wage_amount)) * 100 / Decimal(str(total))).quantize(Decimal("0.01"))
         else:
+            # Use the same policy-aware calculation as settlement
             try:
-                from apps.tenants.models import CompanyFinancialPolicy
-                policy = CompanyFinancialPolicy.objects.filter(company=invoice.company).first()
-                if policy and policy.technician_wage_percent:
-                    tech_wage_pct = Decimal(str(policy.technician_wage_percent))
+                from apps.invoices.services_wage import _calculate_policy_aware_wage
+                wage_result = _calculate_policy_aware_wage(
+                    invoice=invoice,
+                    use_snapshot_percentages_only=False,
+                )
+                tech_wage_amount = int(wage_result.get("final_technician_wage", 0))
+                if total > 0 and tech_wage_amount > 0:
+                    tech_wage_pct = (Decimal(str(tech_wage_amount)) * 100 / Decimal(str(total))).quantize(Decimal("0.01"))
             except Exception:
                 pass
 
-        tech_wage_amount = int(Decimal(str(total)) * tech_wage_pct / 100) if tech_wage_pct else 0
-
-        # Payout strategy
+        # --- Payout strategy ---
         payout_strategy = ""
         try:
             from apps.tenants.models import CompanyFinancialPolicy
@@ -66,7 +76,8 @@ class InvoiceFinancialPreviewService:
         except Exception:
             pass
 
-        # Technician from order
+        # --- Technician name ---
+        technician_name = ""
         try:
             order = getattr(invoice, "order", None)
             tech = getattr(order, "technician", None) if order else None
@@ -80,7 +91,7 @@ class InvoiceFinancialPreviewService:
         except Exception:
             pass
 
-        # Check if fee entry already exists
+        # --- Check if fee entry already exists ---
         already_has_fee_entry = False
         try:
             from apps.payouts.models import CompanyPlatformFeeEntry
@@ -91,9 +102,6 @@ class InvoiceFinancialPreviewService:
             pass
 
         company_net = total - fee_amount - tech_wage_amount
-
-        from apps.invoices.models import Invoice
-        is_paid = invoice.status == Invoice.Status.PAID
 
         return {
             "total_amount": total,
