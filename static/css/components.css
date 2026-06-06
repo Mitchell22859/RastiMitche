@@ -164,17 +164,17 @@
    ============================================================================= */
 
 .card {
-  background-color: var(--color-surface-0);
-  border-radius: var(--radius-lg);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-card);
   border: var(--border-width) solid var(--color-slate-100);
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--shadow-card);
   padding: var(--space-5);
   margin-bottom: var(--space-4);
   transition: var(--transition-base);
 }
 
 .card:hover {
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .card-header {
@@ -659,6 +659,23 @@ textarea.form-control {
   max-width: 24rem;
   margin-bottom: var(--space-5);
   line-height: var(--line-height-loose);
+}
+
+/* Healthy/success empty state — used when "everything is OK" (P19) */
+.empty-state-healthy {
+  background-color: var(--color-success-light);
+  border: var(--border-width) solid var(--color-success-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-8) var(--space-6);
+}
+
+.empty-state-healthy .empty-state-icon {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.empty-state-healthy .empty-state-title {
+  color: var(--color-success-dark);
 }
 
 
