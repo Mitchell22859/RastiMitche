@@ -23,6 +23,7 @@ class FakePaymentProvider(BasePaymentProvider):
     - initiate_payment: Always succeeds, returns a fake redirect URL.
     - verify_payment: Succeeds if reference_id starts with "SUCCESS",
       fails if it starts with "FAIL".
+    - validate_callback_signature: Always returns True (test mode).
 
     Usage in tests:
         provider = FakePaymentProvider()
@@ -47,18 +48,26 @@ class FakePaymentProvider(BasePaymentProvider):
         """
         Succeeds if reference_id starts with 'SUCCESS'.
         Fails if reference_id starts with 'FAIL'.
+
+        Sets verified_amount to request.amount on success (simulating PSP response).
         """
         if request.reference_id.startswith("SUCCESS"):
             tracking_code = f"TRACK-{uuid.uuid4().hex[:8]}"
             return VerificationResponse(
                 success=True,
                 tracking_code=tracking_code,
-                raw_response={"status": "verified", "ref_id": tracking_code},
+                verified_amount=request.amount,
+                raw_response={"status": "verified", "ref_id": tracking_code, "amount": request.amount},
             )
         else:
             return VerificationResponse(
                 success=False,
                 tracking_code="",
                 error_message="Payment was not completed.",
+                verified_amount=None,
                 raw_response={"status": "failed"},
             )
+
+    def validate_callback_signature(self, callback_data: dict) -> bool:
+        """Fake provider: always valid (test/development only)."""
+        return True

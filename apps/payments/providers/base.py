@@ -42,10 +42,18 @@ class VerificationRequest:
 
 @dataclass
 class VerificationResponse:
-    """Response from gateway after verification."""
+    """
+    Response from gateway after verification.
+
+    verified_amount: The amount the gateway actually charged (in rial).
+        Real providers MUST populate this from their API response.
+        Used to detect amount tampering (callback forging a different amount).
+        If None, the verify service will skip amount-match check (legacy/fake mode).
+    """
     success: bool
     tracking_code: str
     error_message: str = ""
+    verified_amount: Optional[int] = None
     raw_response: dict = None
 
     def __post_init__(self):
@@ -60,11 +68,17 @@ class BasePaymentProvider(ABC):
     All gateway implementations must:
     1. Implement initiate_payment() — start a payment, get redirect URL
     2. Implement verify_payment() — verify callback from gateway
+    3. Implement validate_callback_signature() — verify authenticity of callback
 
     This abstraction allows:
     - Easy addition of new gateways
     - Testing with FakePaymentProvider
     - Swapping gateways without changing business logic
+
+    SECURITY CONTRACT for real providers:
+    - verify_payment MUST set verified_amount in the response.
+    - validate_callback_signature MUST verify HMAC/signature from the PSP.
+    - Returning success=True without signature check is a critical vulnerability.
     """
 
     def __init__(self, *, merchant_id: str = "", api_key: str = "", **kwargs):
@@ -93,6 +107,29 @@ class BasePaymentProvider(ABC):
             request: VerificationRequest with reference_id and amount.
 
         Returns:
-            VerificationResponse with success status and tracking_code.
+            VerificationResponse with success status, tracking_code, and verified_amount.
+
+        IMPORTANT: Real providers MUST:
+        - Call the PSP verify/settle API
+        - Set verified_amount from the PSP's response
+        - Only return success=True if signature/token is valid
         """
         ...
+
+    def validate_callback_signature(self, callback_data: dict) -> bool:
+        """
+        Validate the authenticity of a gateway callback.
+
+        Real providers MUST override this to verify HMAC, token, or signature
+        from the PSP before proceeding with verification.
+
+        Args:
+            callback_data: Raw GET/POST parameters from the callback request.
+
+        Returns:
+            True if signature is valid, False otherwise.
+
+        Default: Returns True (permissive for FAKE/testing).
+        Real providers MUST override with strict validation.
+        """
+        return True

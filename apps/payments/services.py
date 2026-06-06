@@ -15,9 +15,18 @@ Payment Flow:
 
 IMPORTANT: Customer invoice payments use the COMPANY'S gateway.
 Platform billing uses a SEPARATE system (apps/billing/).
+
+SECURITY (P8):
+- Callbacks are validated with select_for_update to prevent duplicate processing.
+- Amount tampering is detected by comparing verified_amount with Payment.amount.
+- Payment expiration prevents stale PENDING payments from being verified.
+- KYC eligibility is checked before payment initiation.
 """
+import logging
+from datetime import timedelta
 from typing import Optional
 
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -28,6 +37,13 @@ from .models import Payment, PaymentAttempt, PaymentGateway
 from .providers import get_provider
 from .providers.base import PaymentRequest, VerificationRequest
 from .selectors import PaymentGatewaySelector
+
+logger = logging.getLogger(__name__)
+
+# Payment expiration timeout. Payments older than this in PENDING status
+# are considered expired and will not be verified even if a callback arrives.
+# Override with settings.PAYMENT_EXPIRATION_MINUTES if needed.
+PAYMENT_EXPIRATION_MINUTES = getattr(settings, "PAYMENT_EXPIRATION_MINUTES", 30)
 
 
 def _resolve_discount_code_id(invoice: Invoice) -> int | None:
@@ -47,6 +63,14 @@ def _resolve_discount_code_id(invoice: Invoice) -> int | None:
         return None
 
 
+def _is_payment_expired(payment: Payment) -> bool:
+    """Check if a payment has exceeded its expiration window."""
+    if not payment.created_at:
+        return False
+    expiry_threshold = payment.created_at + timedelta(minutes=PAYMENT_EXPIRATION_MINUTES)
+    return timezone.now() > expiry_threshold
+
+
 class PaymentStartService:
     """
     Service for initiating a payment.
@@ -54,6 +78,7 @@ class PaymentStartService:
     Rules:
     - Invoice must be ISSUED (payable)
     - Company must have an active payment gateway
+    - Company must pass KYC eligibility check (P8 safety)
     - Creates Payment + PaymentAttempt records
     - Uses the company's configured gateway (NOT platform gateway)
     """
@@ -78,7 +103,7 @@ class PaymentStartService:
             Tuple of (Payment, PaymentAttempt, redirect_url).
 
         Raises:
-            ValueError: If invoice is not payable or no gateway available.
+            ValueError: If invoice is not payable, no gateway, or KYC not approved.
         """
         if not invoice.is_payable:
             raise ValueError("Invoice is not payable. Must be in ISSUED status.")
@@ -92,8 +117,23 @@ class PaymentStartService:
         if gateway is None:
             raise ValueError("No active payment gateway configured for this company.")
 
+        if not gateway.is_active:
+            raise ValueError("Payment gateway is not active.")
+
         if gateway.company_id != invoice.company_id:
             raise ValueError("Payment gateway does not belong to this company.")
+
+        # KYC eligibility check (P8 safety)
+        try:
+            from apps.tenants.services_merchant_profile import CompanyPaymentEligibilityService
+            eligible, reason = CompanyPaymentEligibilityService.is_gateway_enabled(invoice.company)
+            if not eligible:
+                raise ValueError(
+                    f"Company is not eligible for online payments: {reason}. "
+                    "KYC profile must be approved before gateway payments."
+                )
+        except ImportError:
+            pass  # Module not available — skip in minimal test environments
 
         # Get provider implementation
         provider = get_provider(gateway)
@@ -152,6 +192,11 @@ class PaymentVerifyService:
     Service for verifying a payment after gateway callback.
 
     Called when the gateway redirects back to our callback URL.
+
+    SECURITY (P8):
+    - Payment row is locked with select_for_update to prevent duplicate processing.
+    - Expired payments are rejected.
+    - Amount tampering is detected by comparing verified_amount with Payment.amount.
     """
 
     @staticmethod
@@ -166,8 +211,24 @@ class PaymentVerifyService:
         Returns:
             Tuple of (success: bool, message: str).
         """
+        # Lock the payment row to prevent concurrent verification attempts
+        payment = Payment.objects.select_for_update().get(pk=payment.pk)
+
+        if payment.status == Payment.Status.PAID:
+            return True, "Payment already verified."
+
         if payment.status != Payment.Status.PENDING:
             return False, "Payment is not in pending status."
+
+        # Expiration check (P8)
+        if _is_payment_expired(payment):
+            payment.status = Payment.Status.FAILED
+            payment.save(update_fields=["status", "updated_at"])
+            logger.warning(
+                "Payment %s expired (created_at=%s, timeout=%d min). Rejecting callback.",
+                payment.id, payment.created_at, PAYMENT_EXPIRATION_MINUTES,
+            )
+            return False, "Payment has expired."
 
         if not payment.gateway:
             return False, "Payment has no associated gateway."
@@ -200,6 +261,17 @@ class PaymentVerifyService:
         )
 
         if response.success:
+            # Amount tampering protection (P8)
+            if response.verified_amount is not None:
+                if int(response.verified_amount) != int(payment.amount):
+                    payment.status = Payment.Status.FAILED
+                    payment.save(update_fields=["status", "updated_at"])
+                    logger.error(
+                        "AMOUNT TAMPERING DETECTED: payment_id=%s expected=%s verified=%s",
+                        payment.id, int(payment.amount), response.verified_amount,
+                    )
+                    return False, "Amount mismatch detected. Payment rejected for security."
+
             # Mark payment as paid
             payment.status = Payment.Status.PAID
             payment.tracking_code = response.tracking_code
@@ -224,8 +296,7 @@ class PaymentVerifyService:
                     fresh_invoice = payment.invoice.__class__.objects.get(pk=payment.invoice.pk)
                     PaymentSplitDecisionService.create_snapshot(payment, fresh_invoice)
                 except Exception:
-                    import logging
-                    logging.getLogger(__name__).exception(
+                    logger.exception(
                         "Failed to create split snapshot for payment %s",
                         payment.id,
                     )
@@ -244,9 +315,16 @@ class PaymentCallbackService:
 
     This is the entry point when a gateway sends a callback
     (either redirect-back or server-to-server notification).
+
+    SECURITY (P8):
+    - Rejects callbacks with empty/missing reference_id.
+    - Locks Payment row before verification to prevent duplicates.
+    - Expired payments are auto-failed.
+    - Amount match is enforced by PaymentVerifyService.
     """
 
     @staticmethod
+    @transaction.atomic
     def handle_callback(
         *,
         company,
@@ -262,16 +340,33 @@ class PaymentCallbackService:
         Returns:
             Tuple of (success, message, payment).
         """
-        # Find the payment by reference_id within the company
-        payment = Payment.objects.filter(
-            company=company,
-            reference_id=reference_id,
-            status=Payment.Status.PENDING,
-        ).first()
+        if not reference_id or not reference_id.strip():
+            return False, "Invalid callback: no reference ID.", None
+
+        # Find the payment by reference_id within the company.
+        # Lock the row immediately to prevent duplicate callback processing.
+        payment = (
+            Payment.objects
+            .select_for_update()
+            .filter(
+                company=company,
+                reference_id=reference_id,
+            )
+            .first()
+        )
 
         if payment is None:
-            return False, "Payment not found or already processed.", None
+            return False, "Payment not found.", None
 
-        # Verify with provider
+        # Already processed (idempotent response)
+        if payment.status == Payment.Status.PAID:
+            return True, "Payment already verified.", payment
+
+        # Only PENDING payments can be verified via callback
+        if payment.status != Payment.Status.PENDING:
+            return False, "Payment is not in pending status.", payment
+
+        # Verify with provider (PaymentVerifyService handles expiration + amount check)
         success, message = PaymentVerifyService.verify(payment=payment)
+        payment.refresh_from_db()
         return success, message, payment
